@@ -1,0 +1,58 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { signOut } from "@/app/actions/auth";
+
+export default async function SettingsPage() {
+  const supabase = await createClient();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  if (!authUser) redirect("/login");
+
+  const user = await prisma.user.findUnique({ where: { id: authUser.id } });
+  if (!user) redirect("/login");
+
+  const trackedCount = await prisma.trackedCompany.count({ where: { userId: user.id } });
+
+  return (
+    <div className="space-y-6 max-w-lg">
+      <h1 className="text-xl font-semibold">Settings</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Email</span>
+            <span>{user.email}</span>
+          </div>
+          {user.name && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Name</span>
+              <span>{user.name}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Companies tracked</span>
+            <span>{trackedCount}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sign out</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={signOut}>
+            <Button type="submit" variant="destructive" size="sm">
+              Sign out
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

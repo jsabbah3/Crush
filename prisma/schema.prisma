@@ -8,61 +8,62 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @db.Uuid
   email     String   @unique
   name      String?
-  role      UserRole @default(JOB_SEEKER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  jobs        Job[]
-  applications Application[]
-}
+  tracked TrackedCompany[]
 
-enum UserRole {
-  JOB_SEEKER
-  EMPLOYER
-  ADMIN
+  @@map("users")
 }
 
 model Company {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  website     String?
-  logoUrl     String?
-  location    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  slug         String        @unique
+  description  String?
+  website      String?
+  logoUrl      String?       @map("logo_url")
+  industry     String?
+  headquarters String?
+  sourceType   CompanySource @default(manual) @map("source_type")
+  sourceId     String?       @map("source_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  jobs Job[]
+  jobs      Job[]
+  trackedBy TrackedCompany[]
+
+  @@map("companies")
 }
 
 model Job {
-  id          String      @id @default(cuid())
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title       String
-  slug        String      @unique
-  description String
+  slug        String    @unique
+  description String    @default("")
   type        JobType
   location    String?
-  remote      Boolean     @default(false)
-  salaryMin   Int?
-  salaryMax   Int?
-  currency    String      @default("USD")
-  status      JobStatus   @default(DRAFT)
-  expiresAt   DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  remote      Boolean   @default(false)
+  salaryMin   Int?      @map("salary_min")
+  salaryMax   Int?      @map("salary_max")
+  currency    String    @default("USD")
+  url         String?
+  status      JobStatus @default(ACTIVE)
+  postedAt    DateTime? @map("posted_at")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  postedById String
-  postedBy   User   @relation(fields: [postedById], references: [id])
+  matches Match[]
 
-  tags         JobTag[]
-  applications Application[]
+  @@map("jobs")
 }
 
 enum JobType {
@@ -74,48 +75,52 @@ enum JobType {
 }
 
 enum JobStatus {
-  DRAFT
-  PUBLISHED
+  ACTIVE
   CLOSED
 }
 
-model Tag {
-  id   String @id @default(cuid())
-  name String @unique
-  slug String @unique
+enum CompanySource {
+  greenhouse
+  lever
+  ashby
+  workday
+  manual
 
-  jobs JobTag[]
+  @@map("company_source")
 }
 
-model JobTag {
-  jobId String
-  tagId String
+model TrackedCompany {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  companyId      String    @map("company_id") @db.Uuid
+  keywords       String[]
+  jobTypes       JobType[] @map("job_types")
+  remoteOnly     Boolean?  @map("remote_only")
+  locationFilter String?   @map("location_filter")
+  emailAlerts    Boolean   @default(true) @map("email_alerts")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  matches Match[]
 
-  @@id([jobId, tagId])
+  @@unique([userId, companyId])
+  @@map("tracked_companies")
 }
 
-model Application {
-  id          String            @id @default(cuid())
-  coverLetter String?
-  resumeUrl   String?
-  status      ApplicationStatus @default(PENDING)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+model Match {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trackedCompanyId String    @map("tracked_company_id") @db.Uuid
+  jobId            String    @map("job_id") @db.Uuid
+  notified         Boolean   @default(false)
+  notifiedAt       DateTime? @map("notified_at")
+  dismissed        Boolean   @default(false)
+  createdAt        DateTime  @default(now()) @map("created_at")
 
-  jobId String
-  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  trackedCompany TrackedCompany @relation(fields: [trackedCompanyId], references: [id], onDelete: Cascade)
+  job            Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
-  applicantId String
-  applicant   User   @relation(fields: [applicantId], references: [id])
-}
-
-enum ApplicationStatus {
-  PENDING
-  REVIEWED
-  INTERVIEW
-  OFFERED
-  REJECTED
+  @@unique([trackedCompanyId, jobId])
+  @@map("matches")
 }
