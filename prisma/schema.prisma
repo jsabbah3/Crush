@@ -72,11 +72,15 @@ enum JobType {
   CONTRACT
   INTERNSHIP
   FREELANCE
+
+  @@map("job_type")
 }
 
 enum JobStatus {
   ACTIVE
   CLOSED
+
+  @@map("job_status")
 }
 
 enum CompanySource {

@@ -21,6 +21,31 @@ export async function trackCompany(companyId: string) {
   return { success: true };
 }
 
+export async function followCompany(
+  companyId: string,
+  criteria: {
+    keywords: string[];
+    jobTypes: JobType[];
+    remoteOnly: boolean | null;
+    locationFilter: string | null;
+    emailAlerts: boolean;
+  }
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  await prisma.trackedCompany.upsert({
+    where: { userId_companyId: { userId: user.id, companyId } },
+    create: { userId: user.id, companyId, ...criteria },
+    update: criteria,
+  });
+
+  revalidatePath(`/companies`);
+  revalidatePath(`/dashboard`);
+  return { success: true };
+}
+
 export async function untrackCompany(trackedId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
