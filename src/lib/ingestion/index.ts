@@ -60,25 +60,23 @@ async function ingestCompany(
   const incoming = fetched.filter((j) => !existingSet.has(j.externalJobId));
   if (incoming.length === 0) return { newJobs: 0, newMatches: 0 };
 
-  // Insert new jobs
-  const created = await Promise.all(
-    incoming.map((job) =>
-      prisma.job.create({
-        data: {
-          title: job.title,
-          slug: buildSlug(companySlug, job.externalJobId),
-          description: job.description,
-          type: job.type,
-          location: job.location,
-          remote: job.remote,
-          url: job.url,
-          postedAt: job.postedAt,
-          externalJobId: job.externalJobId,
-          companyId,
-        },
-      })
-    )
-  );
+  // Batch insert; skipDuplicates handles any race condition between cron runs using the
+  // (companyId, externalJobId) unique constraint. Only actually-inserted rows come back.
+  const created = await prisma.job.createManyAndReturn({
+    data: incoming.map((job) => ({
+      title: job.title,
+      slug: buildSlug(companySlug, job.externalJobId),
+      description: job.description,
+      type: job.type,
+      location: job.location,
+      remote: job.remote,
+      url: job.url,
+      postedAt: job.postedAt,
+      externalJobId: job.externalJobId,
+      companyId,
+    })),
+    skipDuplicates: true,
+  });
 
   // Run matching for new jobs
   const tracked = await prisma.trackedCompany.findMany({

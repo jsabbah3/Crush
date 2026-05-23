@@ -65,6 +65,7 @@ model Job {
 
   matches Match[]
 
+  @@unique([companyId, externalJobId])
   @@map("jobs")
 }
 
