@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { AlertMode } from "@/generated/prisma/enums";
+import { trackServerEvent } from "@/lib/analytics-node";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_URL = process.env.APP_URL ?? "https://crush.so";
@@ -43,17 +44,23 @@ export async function dispatchInstantAlerts(): Promise<{ sent: number; errors: n
   for (const [, matches] of byUser) {
     if (matches[0].createdAt > cutoff) continue; // batch window still open
 
-    const { email, name, unsubscribeToken } = matches[0].trackedCompany.user;
+    const { id: userId, email, name, unsubscribeToken } = matches[0].trackedCompany.user;
     const ok = await sendEmail({
+      userId,
       to: email,
       name,
       matches,
       subject: `${matches.length} new role${matches.length > 1 ? "s" : ""} at companies you're tracking`,
       unsubscribeToken,
+      emailType: "instant_alert",
     });
 
     if (ok) {
       await markNotified(matches.map((m) => m.id));
+      await trackServerEvent(userId, "alert_email_sent", {
+        email_type: "instant_alert",
+        match_count: matches.length,
+      });
       sent += matches.length;
     } else {
       errors++;
@@ -75,17 +82,23 @@ export async function sendDailyDigest(): Promise<{ sent: number; errors: number 
   let errors = 0;
 
   for (const [, matches] of byUser) {
-    const { email, name, unsubscribeToken } = matches[0].trackedCompany.user;
+    const { id: userId, email, name, unsubscribeToken } = matches[0].trackedCompany.user;
     const ok = await sendEmail({
+      userId,
       to: email,
       name,
       matches,
       subject: `Your daily job digest — ${matches.length} new match${matches.length > 1 ? "es" : ""}`,
       unsubscribeToken,
+      emailType: "daily_digest",
     });
 
     if (ok) {
       await markNotified(matches.map((m) => m.id));
+      await trackServerEvent(userId, "alert_email_sent", {
+        email_type: "daily_digest",
+        match_count: matches.length,
+      });
       sent += matches.length;
     } else {
       errors++;
@@ -150,23 +163,27 @@ async function markNotified(ids: string[]) {
 }
 
 async function sendEmail({
+  userId,
   to,
   name,
   matches,
   subject,
   unsubscribeToken,
+  emailType,
 }: {
+  userId: string;
   to: string;
   name: string | null;
   matches: MatchRow[];
   subject: string;
   unsubscribeToken: string;
+  emailType: string;
 }): Promise<boolean> {
   const { error } = await resend.emails.send({
     from: "Crush <alerts@crush.so>",
     to,
     subject,
-    html: buildHtml(name ?? "there", matches, unsubscribeToken),
+    html: buildHtml(name ?? "there", matches, unsubscribeToken, userId, emailType),
     headers: {
       "List-Unsubscribe": `<${APP_URL}/api/unsubscribe?token=${unsubscribeToken}>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -176,13 +193,25 @@ async function sendEmail({
   return !error;
 }
 
-function buildHtml(name: string, matches: MatchRow[], token: string): string {
+function emailLink(dest: string, uid: string, type: string, utm: string): string {
+  const utmDest = `${dest}${dest.includes("?") ? "&" : "?"}utm_source=email&utm_medium=email&utm_campaign=${type}`;
+  const wrapped = `${APP_URL}/api/email/click?uid=${uid}&type=${type}&url=${encodeURIComponent(utmDest)}`;
+  return wrapped;
+}
+
+function buildHtml(
+  name: string,
+  matches: MatchRow[],
+  token: string,
+  userId: string,
+  emailType: string,
+): string {
   const rows = matches
     .map((m) => {
       const loc = m.job.remote ? "Remote" : (m.job.location ?? "Location not listed");
-      const link = m.job.url
-        ? `<a href="${m.job.url}" style="color:#6366f1;font-weight:500">${m.job.title}</a>`
-        : `<strong>${m.job.title}</strong>`;
+      const rawUrl = m.job.url ?? `${APP_URL}/companies`;
+      const trackedUrl = emailLink(rawUrl, userId, emailType, "apply");
+      const link = `<a href="${trackedUrl}" style="color:#6366f1;font-weight:500">${m.job.title}</a>`;
       return `
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #f3f4f6">
@@ -194,7 +223,8 @@ function buildHtml(name: string, matches: MatchRow[], token: string): string {
     .join("");
 
   const pauseUrl = `${APP_URL}/api/unsubscribe?token=${token}`;
-  const settingsUrl = `${APP_URL}/settings`;
+  const settingsUrl = emailLink(`${APP_URL}/settings`, userId, emailType, "settings");
+  const pixelUrl = `${APP_URL}/api/email/pixel?uid=${userId}&type=${emailType}`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -218,6 +248,9 @@ function buildHtml(name: string, matches: MatchRow[], token: string): string {
     You're receiving this because you're tracking companies on
     <a href="${APP_URL}" style="color:#d1d5db">Crush</a>.
   </p>
+
+  <!-- open tracking pixel -->
+  <img src="${pixelUrl}" width="1" height="1" style="border:0;display:block;width:1px;height:1px" alt="" />
 </body>
 </html>`;
 }

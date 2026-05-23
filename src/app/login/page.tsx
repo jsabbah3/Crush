@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { PageView } from "@/components/page-analytics";
 import { signInWithGoogle } from "@/app/actions/auth";
 
 export default function LoginPage({
@@ -8,6 +9,8 @@ export default function LoginPage({
 }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
+      {/* fires for new and returning users — use signup_completed for reliable new-user signal */}
+      <PageView event="signup_started" />
       <div className="w-full max-w-sm space-y-6 px-4">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold tracking-tight">Welcome to Crush</h1>
