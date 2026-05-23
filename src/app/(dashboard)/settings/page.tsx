@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AlertSettingsForm } from "@/components/alert-settings-form";
 import { signOut } from "@/app/actions/auth";
 
 export default async function SettingsPage() {
@@ -38,6 +39,18 @@ export default async function SettingsPage() {
             <span className="text-muted-foreground">Companies tracked</span>
             <span>{trackedCount}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Email alerts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AlertSettingsForm
+            alertMode={user.alertMode}
+            alertsPaused={user.alertsPaused}
+          />
         </CardContent>
       </Card>
 

@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { doesJobMatch } from "@/lib/matching";
-import { sendMatchNotifications } from "@/lib/notifications";
 import { JobType } from "@/generated/prisma/enums";
 
 export async function POST(request: NextRequest) {
@@ -66,9 +65,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (matchIds.length > 0) {
-    await sendMatchNotifications(matchIds);
-  }
-
+  // Matches are picked up by /api/cron/notify (instant) or /api/cron/digest (daily)
   return Response.json({ jobId: job.id, matchCount: matchIds.length });
 }

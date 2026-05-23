@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { doesJobMatch } from "@/lib/matching";
-import { sendMatchNotifications } from "@/lib/notifications";
 import { fetchGreenhouseJobs } from "./greenhouse";
 import { fetchLeverJobs } from "./lever";
 import { fetchAshbyJobs } from "./ashby";
@@ -98,10 +97,6 @@ async function ingestCompany(
         }
       }
     }
-  }
-
-  if (matchIds.length > 0) {
-    await sendMatchNotifications(matchIds);
   }
 
   return { newJobs: created.length, newMatches: matchIds.length };
