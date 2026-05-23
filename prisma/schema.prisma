@@ -37,8 +37,9 @@ model Company {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  jobs      Job[]
-  trackedBy TrackedCompany[]
+  jobs        Job[]
+  trackedBy   TrackedCompany[]
+  collections CollectionCompany[]
 
   @@map("companies")
 }
@@ -87,6 +88,32 @@ enum JobStatus {
   CLOSED
 
   @@map("job_status")
+}
+
+model Collection {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  slug          String   @unique
+  description   String?
+  coverImageUrl String?  @map("cover_image_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  companies CollectionCompany[]
+
+  @@map("collections")
+}
+
+model CollectionCompany {
+  collectionId String @map("collection_id") @db.Uuid
+  companyId    String @map("company_id") @db.Uuid
+  displayOrder Int    @default(0) @map("display_order")
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  company    Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, companyId])
+  @@map("collection_companies")
 }
 
 enum AlertMode {

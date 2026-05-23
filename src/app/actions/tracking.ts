@@ -88,6 +88,34 @@ export async function updateCriteria(
   return { success: true };
 }
 
+export async function trackCollection(
+  companyIds: string[],
+  criteria: {
+    keywords: string[];
+    jobTypes: JobType[];
+    remoteOnly: boolean | null;
+    locationFilter: string | null;
+    emailAlerts: boolean;
+  }
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  for (const companyId of companyIds) {
+    await prisma.trackedCompany.upsert({
+      where: { userId_companyId: { userId: user.id, companyId } },
+      create: { userId: user.id, companyId, ...criteria },
+      update: {}, // preserve existing criteria for already-tracked companies
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/collections");
+  revalidatePath("/companies");
+  return { success: true };
+}
+
 export async function dismissMatch(matchId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
