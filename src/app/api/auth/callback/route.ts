@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { trackServerEvent } from "@/lib/analytics-node";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -17,7 +18,11 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=exchange_failed`);
   }
 
-  await prisma.user.upsert({
+  // Check if this is a new signup before the upsert
+  const existing = await prisma.user.findUnique({ where: { id: data.user.id }, select: { id: true } });
+  const isNewUser = !existing;
+
+  const dbUser = await prisma.user.upsert({
     where: { id: data.user.id },
     create: {
       id: data.user.id,
@@ -31,5 +36,12 @@ export async function GET(request: Request) {
     },
   });
 
-  return NextResponse.redirect(`${origin}/dashboard`);
+  if (isNewUser) {
+    await trackServerEvent(data.user.id, "signup_completed", {
+      email: data.user.email,
+    });
+  }
+
+  const destination = dbUser.onboardingComplete ? "/dashboard" : "/onboarding";
+  return NextResponse.redirect(`${origin}${destination}`);
 }

@@ -12,9 +12,11 @@ model User {
   email            String    @unique
   name             String?
   avatarUrl        String?   @map("avatar_url")
-  alertMode        AlertMode @default(instant) @map("alert_mode")
-  alertsPaused     Boolean   @default(false) @map("alerts_paused")
-  unsubscribeToken String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("unsubscribe_token")
+  onboardingComplete Boolean   @default(false) @map("onboarding_complete")
+  defaultCriteria    Json?     @map("default_criteria")
+  alertMode          AlertMode @default(instant) @map("alert_mode")
+  alertsPaused       Boolean   @default(false) @map("alerts_paused")
+  unsubscribeToken   String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("unsubscribe_token")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -116,6 +118,17 @@ model CollectionCompany {
   @@map("collection_companies")
 }
 
+enum ApplicationStatus {
+  INTERESTED
+  APPLIED
+  INTERVIEWING
+  REJECTED
+  OFFER
+  NOT_INTERESTED
+
+  @@map("application_status")
+}
+
 enum AlertMode {
   instant
   daily
@@ -154,13 +167,16 @@ model TrackedCompany {
 }
 
 model Match {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  trackedCompanyId String    @map("tracked_company_id") @db.Uuid
-  jobId            String    @map("job_id") @db.Uuid
-  notified         Boolean   @default(false)
-  notifiedAt       DateTime? @map("notified_at")
-  dismissed        Boolean   @default(false)
-  createdAt        DateTime  @default(now()) @map("created_at")
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trackedCompanyId String            @map("tracked_company_id") @db.Uuid
+  jobId            String            @map("job_id") @db.Uuid
+  notified         Boolean           @default(false)
+  notifiedAt       DateTime?         @map("notified_at")
+  dismissed        Boolean           @default(false)
+  applicationStatus ApplicationStatus @default(INTERESTED) @map("application_status")
+  applicationNote  String?           @map("application_note")
+  appliedAt        DateTime?         @map("applied_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
 
   trackedCompany TrackedCompany @relation(fields: [trackedCompanyId], references: [id], onDelete: Cascade)
   job            Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
