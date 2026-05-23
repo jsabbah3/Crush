@@ -27,12 +27,19 @@ const SENIORITY = [
 ];
 const SENIORITY_KWS = new Set(SENIORITY.map((s) => s.kw));
 
+type DefaultCriteria = {
+  keywords: string[];
+  remoteOnly: boolean | null;
+  locationFilter: string | null;
+};
+
 type Props = {
   collectionName: string;
   collectionSlug: string;
   companies: { id: string; name: string }[];
   trackedIds: Set<string>;
   userId: string | null;
+  defaultCriteria?: DefaultCriteria | null;
 };
 
 export function TrackCollectionButton({
@@ -41,17 +48,22 @@ export function TrackCollectionButton({
   companies,
   trackedIds,
   userId,
+  defaultCriteria,
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  // Criteria state
-  const [keywords, setKeywords] = useState<string[]>([]);
+  // Criteria state (pre-filled from defaultCriteria if available)
+  const seedKeywords = defaultCriteria?.keywords.filter((k) => !SENIORITY_KWS.has(k)) ?? [];
+  const seedSeniority = defaultCriteria?.keywords.filter((k) => SENIORITY_KWS.has(k)) ?? [];
+  const [keywords, setKeywords] = useState<string[]>(seedKeywords);
   const [kwInput, setKwInput] = useState("");
-  const [seniority, setSeniority] = useState<string[]>([]);
-  const [remote, setRemote] = useState<"any" | "remote" | "onsite">("any");
-  const [location, setLocation] = useState("");
+  const [seniority, setSeniority] = useState<string[]>(seedSeniority);
+  const [remote, setRemote] = useState<"any" | "remote" | "onsite">(
+    defaultCriteria?.remoteOnly === true ? "remote" : defaultCriteria?.remoteOnly === false ? "onsite" : "any"
+  );
+  const [location, setLocation] = useState(defaultCriteria?.locationFilter ?? "");
   const [emailAlerts, setEmailAlerts] = useState(true);
 
   const untracked = companies.filter((c) => !trackedIds.has(c.id));

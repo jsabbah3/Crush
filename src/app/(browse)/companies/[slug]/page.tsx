@@ -22,7 +22,7 @@ export default async function CompanyDetailPage({
 
   const { slug } = await params;
 
-  const [company, tracked] = await Promise.all([
+  const [company, tracked, dbUser] = await Promise.all([
     prisma.company.findUnique({
       where: { slug },
       include: {
@@ -39,7 +39,19 @@ export default async function CompanyDetailPage({
           where: { userId: authUser.id, company: { slug } },
         })
       : null,
+    authUser
+      ? prisma.user.findUnique({
+          where: { id: authUser.id },
+          select: { defaultCriteria: true },
+        })
+      : null,
   ]);
+
+  const defaultCriteria = dbUser?.defaultCriteria as {
+    keywords: string[];
+    remoteOnly: boolean | null;
+    locationFilter: string | null;
+  } | null ?? null;
 
   if (!company) notFound();
 
@@ -55,6 +67,7 @@ export default async function CompanyDetailPage({
               company={{ id: company.id, name: company.name }}
               tracked={tracked}
               userId={authUser?.id ?? null}
+              defaultCriteria={defaultCriteria}
             />
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">

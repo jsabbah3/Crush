@@ -30,6 +30,12 @@ type Company = {
   _count: { trackedBy: number };
 };
 
+type DefaultCriteria = {
+  keywords: string[];
+  remoteOnly: boolean | null;
+  locationFilter: string | null;
+};
+
 export function CompanyBrowser({
   companies,
   trackedMap,
@@ -37,6 +43,7 @@ export function CompanyBrowser({
   userId,
   initialQ,
   initialIndustry,
+  defaultCriteria,
 }: {
   companies: Company[];
   trackedMap: Map<string, Tracked>;
@@ -44,6 +51,7 @@ export function CompanyBrowser({
   userId: string | null;
   initialQ: string;
   initialIndustry: string;
+  defaultCriteria?: DefaultCriteria | null;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
@@ -118,6 +126,7 @@ export function CompanyBrowser({
                 company={company}
                 tracked={tracked}
                 userId={userId}
+                defaultCriteria={defaultCriteria}
               />
             );
           })}
@@ -131,10 +140,12 @@ function CompanyCard({
   company,
   tracked,
   userId,
+  defaultCriteria,
 }: {
   company: Company;
   tracked: Tracked | null;
   userId: string | null;
+  defaultCriteria?: DefaultCriteria | null;
 }) {
   return (
     <div className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
@@ -181,6 +192,7 @@ function CompanyCard({
           tracked={tracked}
           userId={userId}
           size="sm"
+          defaultCriteria={defaultCriteria}
         />
       </div>
     </div>

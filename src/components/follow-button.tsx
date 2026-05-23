@@ -16,16 +16,24 @@ type Tracked = {
   emailAlerts: boolean;
 } | null;
 
+type DefaultCriteria = {
+  keywords: string[];
+  remoteOnly: boolean | null;
+  locationFilter: string | null;
+};
+
 export function FollowButton({
   company,
   tracked,
   userId,
   size = "sm",
+  defaultCriteria,
 }: {
   company: { id: string; name: string };
   tracked: Tracked;
   userId: string | null;
   size?: "sm" | "default";
+  defaultCriteria?: DefaultCriteria | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -65,6 +73,7 @@ export function FollowButton({
         onOpenChange={setOpen}
         company={company}
         existing={tracked ?? undefined}
+        defaultCriteria={defaultCriteria}
       />
     </>
   );

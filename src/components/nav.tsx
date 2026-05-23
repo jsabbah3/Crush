@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Briefcase, Bell, Settings, LogOut } from "lucide-react";
+import { Building2, Briefcase, Bell, ClipboardList, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -25,6 +25,7 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: Briefcase },
   { href: "/companies", label: "Companies", icon: Building2 },
   { href: "/matches", label: "Matches", icon: Bell },
+  { href: "/applications", label: "Applications", icon: ClipboardList },
 ];
 
 export function DashboardNav({ user }: { user: UserProps }) {

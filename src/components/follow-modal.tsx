@@ -36,24 +36,32 @@ type Existing = {
   emailAlerts: boolean;
 };
 
+type DefaultCriteria = {
+  keywords: string[];
+  remoteOnly: boolean | null;
+  locationFilter: string | null;
+};
+
 type Props = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   company: { id: string; name: string };
   existing?: Existing;
+  defaultCriteria?: DefaultCriteria | null;
 };
 
-export function FollowModal({ open, onOpenChange, company, existing }: Props) {
-  const baseKeywords = existing?.keywords.filter((k) => !SENIORITY_KWS.has(k)) ?? [];
-  const baseSeniority = existing?.keywords.filter((k) => SENIORITY_KWS.has(k)) ?? [];
+export function FollowModal({ open, onOpenChange, company, existing, defaultCriteria }: Props) {
+  const seed = existing ?? defaultCriteria;
+  const baseKeywords = (seed?.keywords ?? []).filter((k) => !SENIORITY_KWS.has(k));
+  const baseSeniority = (seed?.keywords ?? []).filter((k) => SENIORITY_KWS.has(k));
 
   const [keywords, setKeywords] = useState<string[]>(baseKeywords);
   const [kwInput, setKwInput] = useState("");
   const [seniority, setSeniority] = useState<string[]>(baseSeniority);
   const [remote, setRemote] = useState<"any" | "remote" | "onsite">(
-    existing?.remoteOnly === true ? "remote" : existing?.remoteOnly === false ? "onsite" : "any"
+    seed?.remoteOnly === true ? "remote" : seed?.remoteOnly === false ? "onsite" : "any"
   );
-  const [location, setLocation] = useState(existing?.locationFilter ?? "");
+  const [location, setLocation] = useState(seed?.locationFilter ?? "");
   const [emailAlerts, setEmailAlerts] = useState(existing?.emailAlerts ?? true);
   const [isPending, startTransition] = useTransition();
 

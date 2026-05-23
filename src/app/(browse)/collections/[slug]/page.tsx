@@ -25,7 +25,7 @@ export default async function CollectionDetailPage({
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
 
-  const [collection, tracked] = await Promise.all([
+  const [collection, tracked, dbUser] = await Promise.all([
     prisma.collection.findUnique({
       where: { slug },
       include: {
@@ -53,7 +53,19 @@ export default async function CollectionDetailPage({
           },
         })
       : [],
+    authUser
+      ? prisma.user.findUnique({
+          where: { id: authUser.id },
+          select: { defaultCriteria: true },
+        })
+      : null,
   ]);
+
+  const defaultCriteria = dbUser?.defaultCriteria as {
+    keywords: string[];
+    remoteOnly: boolean | null;
+    locationFilter: string | null;
+  } | null ?? null;
 
   if (!collection) notFound();
 
@@ -92,6 +104,7 @@ export default async function CollectionDetailPage({
           companies={companies.map((c) => ({ id: c.id, name: c.name }))}
           trackedIds={trackedIds}
           userId={authUser?.id ?? null}
+          defaultCriteria={defaultCriteria}
         />
       </div>
 
@@ -146,6 +159,7 @@ export default async function CollectionDetailPage({
                   } | null}
                   userId={authUser?.id ?? null}
                   size="sm"
+                  defaultCriteria={defaultCriteria}
                 />
               </div>
             </div>

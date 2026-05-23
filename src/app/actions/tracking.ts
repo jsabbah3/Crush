@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { trackServerEvent } from "@/lib/analytics-node";
 import type { JobType } from "@/generated/prisma/enums";
 
 export async function trackCompany(companyId: string) {
@@ -29,17 +30,31 @@ export async function followCompany(
     remoteOnly: boolean | null;
     locationFilter: string | null;
     emailAlerts: boolean;
-  }
+  },
+  source: "browse" | "collection" | "company_page" = "browse",
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Unauthorized" };
+
+  // Count before upsert to detect first-time tracking
+  const priorCount = await prisma.trackedCompany.count({ where: { userId: user.id } });
 
   await prisma.trackedCompany.upsert({
     where: { userId_companyId: { userId: user.id, companyId } },
     create: { userId: user.id, companyId, ...criteria },
     update: criteria,
   });
+
+  await trackServerEvent(user.id, "company_tracked", {
+    company_id: companyId,
+    source,
+    criteria_keywords: criteria.keywords,
+  });
+
+  if (priorCount === 0) {
+    await trackServerEvent(user.id, "first_company_tracked", { company_id: companyId, source });
+  }
 
   revalidatePath(`/companies`);
   revalidatePath(`/dashboard`);
@@ -57,6 +72,8 @@ export async function untrackCompany(trackedId: string) {
   if (!existing) return { error: "Not found" };
 
   await prisma.trackedCompany.delete({ where: { id: trackedId } });
+
+  await trackServerEvent(user.id, "company_untracked", { company_id: existing.companyId });
 
   revalidatePath(`/companies`);
   revalidatePath(`/dashboard`);
@@ -83,6 +100,11 @@ export async function updateCriteria(
   if (!existing) return { error: "Not found" };
 
   await prisma.trackedCompany.update({ where: { id: trackedId }, data: criteria });
+
+  await trackServerEvent(user.id, "criteria_updated", {
+    company_id: existing.companyId,
+    criteria_keywords: criteria.keywords,
+  });
 
   revalidatePath(`/dashboard`);
   return { success: true };

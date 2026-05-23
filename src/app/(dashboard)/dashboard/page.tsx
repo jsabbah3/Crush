@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { JobCard } from "@/components/job-card";
+import type { AppStatus } from "@/components/status-picker";
+import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
 
 export default async function DashboardPage() {
@@ -47,6 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Dashboard</h1>
@@ -173,7 +176,12 @@ export default async function DashboardPage() {
           </div>
           <div className="space-y-3">
             {recentMatches.map((match) => (
-              <JobCard key={match.id} job={match.job} matchId={match.id} />
+              <JobCard
+                key={match.id}
+                job={match.job}
+                matchId={match.id}
+                applicationStatus={match.applicationStatus as AppStatus}
+              />
             ))}
           </div>
         </section>

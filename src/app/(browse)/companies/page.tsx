@@ -19,7 +19,7 @@ export default async function CompaniesPage({
 
   const { q = "", industry = "" } = await searchParams;
 
-  const [companies, tracked, industries] = await Promise.all([
+  const [companies, tracked, industries, dbUser] = await Promise.all([
     prisma.company.findMany({
       where: {
         ...(q && {
@@ -54,11 +54,20 @@ export default async function CompaniesPage({
       distinct: ["industry"],
       orderBy: { industry: "asc" },
     }),
+    authUser
+      ? prisma.user.findUnique({
+          where: { id: authUser.id },
+          select: { defaultCriteria: true },
+        })
+      : null,
   ]);
 
-  const trackedMap = new Map(
-    tracked.map((t) => [t.companyId, t])
-  );
+  const trackedMap = new Map(tracked.map((t) => [t.companyId, t]));
+  const defaultCriteria = dbUser?.defaultCriteria as {
+    keywords: string[];
+    remoteOnly: boolean | null;
+    locationFilter: string | null;
+  } | null ?? null;
 
   return (
     <div className="space-y-6">
@@ -76,6 +85,7 @@ export default async function CompaniesPage({
         userId={authUser?.id ?? null}
         initialQ={q}
         initialIndustry={industry}
+        defaultCriteria={defaultCriteria}
       />
     </div>
   );
