@@ -82,18 +82,21 @@ async function fetchText(url: string, timeoutMs = 30_000): Promise<string | null
   }
 }
 
-async function fetchJson<T>(url: string, timeoutMs = 15_000): Promise<T | null> {
+async function fetchJson<T>(url: string, timeoutMs = 15_000, init?: RequestInit): Promise<T | null> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     const res = await fetch(url, {
-      headers: { "User-Agent": UA },
+      headers: { "User-Agent": UA, ...((init?.headers as Record<string, string>) ?? {}) },
+      ...init,
       signal: ctrl.signal,
     });
-    clearTimeout(timer);
     if (!res.ok) return null;
-    return res.json() as Promise<T>;
+    const json = await res.json() as T;
+    clearTimeout(timer);
+    return json;
   } catch {
+    clearTimeout(timer);
     return null;
   }
 }
@@ -202,10 +205,25 @@ async function getAshbySlugs() {
 }
 
 async function getAshbyName(slug: string): Promise<string | null> {
-  const data = await fetchJson<{ jobBoard?: { name?: string } }>(
-    `https://api.ashbyhq.com/posting-api/job-board/${slug}`,
+  // Ashby migrated from REST to GraphQL. The public schema has no name field,
+  // so we use jobBoardWithTeams purely for existence-checking and derive the
+  // name from the slug.
+  const data = await fetchJson<{ data?: { jobBoardWithTeams: unknown } }>(
+    "https://jobs.ashbyhq.com/api/non-user-graphql?op=GetBoard",
+    15_000,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        operationName: "GetBoard",
+        variables: { organizationHostedJobsPageName: slug },
+        query:
+          "query GetBoard($organizationHostedJobsPageName: String!) { jobBoardWithTeams(organizationHostedJobsPageName: $organizationHostedJobsPageName) { jobPostings { title } } }",
+      }),
+    },
   );
-  return data?.jobBoard?.name ?? null;
+  if (!data?.data?.jobBoardWithTeams) return null;
+  return slugToName(slug);
 }
 
 // ── database ──────────────────────────────────────────────────────────────────
