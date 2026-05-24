@@ -20,9 +20,22 @@ model User {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  tracked TrackedCompany[]
+  tracked      TrackedCompany[]
+  trackedRoles TrackedRole[]
 
   @@map("users")
+}
+
+model TrackedRole {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  title     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, title])
+  @@map("tracked_roles")
 }
 
 model Company {

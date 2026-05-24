@@ -82,11 +82,24 @@ async function ingestCompany(
     where: { companyId, emailAlerts: true },
   });
 
+  // Load tracked roles for all relevant users in one query
+  const userIds = [...new Set(tracked.map((tc) => tc.userId))];
+  const roleRows = await prisma.trackedRole.findMany({
+    where: { userId: { in: userIds } },
+    select: { userId: true, title: true },
+  });
+  const rolesByUserId = new Map<string, string[]>();
+  for (const r of roleRows) {
+    if (!rolesByUserId.has(r.userId)) rolesByUserId.set(r.userId, []);
+    rolesByUserId.get(r.userId)!.push(r.title);
+  }
+
   const matchIds: string[] = [];
 
   for (const job of created) {
     for (const tc of tracked) {
-      if (doesJobMatch(job, tc)) {
+      const userRoles = rolesByUserId.get(tc.userId) ?? [];
+      if (doesJobMatch(job, tc, userRoles)) {
         try {
           const match = await prisma.match.create({
             data: { trackedCompanyId: tc.id, jobId: job.id },

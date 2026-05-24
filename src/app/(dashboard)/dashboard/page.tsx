@@ -10,13 +10,14 @@ import { JobCard } from "@/components/job-card";
 import type { AppStatus } from "@/components/status-picker";
 import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
+import { TrackedRoles } from "@/components/tracked-roles";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) redirect("/login");
 
-  const [tracked, recentMatches, featuredCollections] = await Promise.all([
+  const [tracked, recentMatches, featuredCollections, trackedRoles] = await Promise.all([
     prisma.trackedCompany.findMany({
       where: { userId: authUser.id },
       include: {
@@ -43,6 +44,11 @@ export default async function DashboardPage() {
         _count: { select: { companies: true } },
       },
     }),
+    prisma.trackedRole.findMany({
+      where: { userId: authUser.id },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, title: true },
+    }),
   ]);
 
   const showCollections = tracked.length < 5;
@@ -64,6 +70,20 @@ export default async function DashboardPage() {
           </Button>
         </Link>
       </div>
+
+      {/* My Roles */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold">My roles</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Role titles matched against every company you track. Generic ("engineer") or specific ("GTM engineer") — both work.
+          </p>
+        </div>
+        <TrackedRoles
+          initialRoles={trackedRoles}
+          trackedCount={tracked.length}
+        />
+      </section>
 
       {tracked.length === 0 ? (
         // Full empty state
