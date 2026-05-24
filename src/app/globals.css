@@ -48,100 +48,99 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* ── Warm Dark (default) ─────────────────────────────────────────────────── */
+/* ── Notion-style: white canvas, warm ink, no accent color ─────────────── */
 :root {
   /* Canvas */
-  --background: oklch(0.085 0.007 73);
-  --foreground: oklch(0.94 0.015 83);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.235 0.012 73);     /* #37352f — Notion ink */
 
   /* Cards */
-  --card: oklch(0.12 0.008 73);
-  --card-foreground: oklch(0.94 0.015 83);
+  --card: oklch(0.972 0.004 73);           /* #f7f6f3 — warm off-white */
+  --card-foreground: oklch(0.235 0.012 73);
 
   /* Popover */
-  --popover: oklch(0.12 0.008 73);
-  --popover-foreground: oklch(0.94 0.015 83);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.235 0.012 73);
 
-  /* Primary = amber */
-  --primary: oklch(0.73 0.14 76);
-  --primary-foreground: oklch(0.085 0.007 73);
+  /* Primary = near-black (button) */
+  --primary: oklch(0.235 0.012 73);
+  --primary-foreground: oklch(1 0 0);
 
   /* Secondary surface */
-  --secondary: oklch(0.17 0.009 73);
-  --secondary-foreground: oklch(0.94 0.015 83);
+  --secondary: oklch(0.972 0.004 73);
+  --secondary-foreground: oklch(0.235 0.012 73);
 
   /* Muted */
-  --muted: oklch(0.17 0.009 73);
-  --muted-foreground: oklch(0.56 0.016 73);
+  --muted: oklch(0.972 0.004 73);
+  --muted-foreground: oklch(0.52 0.007 73); /* #787774 */
 
-  /* Accent */
-  --accent: oklch(0.17 0.009 73);
-  --accent-foreground: oklch(0.94 0.015 83);
+  /* Accent — subtle hover */
+  --accent: oklch(0.945 0.003 73);          /* #f1f1ef */
+  --accent-foreground: oklch(0.235 0.012 73);
 
   /* Destructive */
-  --destructive: oklch(0.62 0.20 25);
+  --destructive: oklch(0.577 0.245 27.325);
 
-  /* Borders & inputs */
-  --border: oklch(0.22 0.010 73);
-  --input: oklch(0.22 0.010 73);
+  /* Borders */
+  --border: oklch(0.915 0.004 73);          /* #e9e9e7 */
+  --input: oklch(0.915 0.004 73);
 
-  /* Ring = amber */
-  --ring: oklch(0.73 0.14 76);
+  /* Ring */
+  --ring: oklch(0.235 0.012 73);
 
   /* Charts */
-  --chart-1: oklch(0.73 0.14 76);
-  --chart-2: oklch(0.60 0.10 73);
-  --chart-3: oklch(0.45 0.07 73);
-  --chart-4: oklch(0.33 0.05 73);
-  --chart-5: oklch(0.22 0.010 73);
+  --chart-1: oklch(0.235 0.012 73);
+  --chart-2: oklch(0.45 0.008 73);
+  --chart-3: oklch(0.60 0.006 73);
+  --chart-4: oklch(0.75 0.004 73);
+  --chart-5: oklch(0.90 0.003 73);
 
-  /* Radius */
-  --radius: 0.5rem;
+  /* Very small radius — Notion is nearly square */
+  --radius: 0.25rem;
 
   /* Sidebar */
-  --sidebar: oklch(0.12 0.008 73);
-  --sidebar-foreground: oklch(0.94 0.015 83);
-  --sidebar-primary: oklch(0.73 0.14 76);
-  --sidebar-primary-foreground: oklch(0.085 0.007 73);
-  --sidebar-accent: oklch(0.17 0.009 73);
-  --sidebar-accent-foreground: oklch(0.94 0.015 83);
-  --sidebar-border: oklch(0.22 0.010 73);
-  --sidebar-ring: oklch(0.73 0.14 76);
+  --sidebar: oklch(0.972 0.004 73);
+  --sidebar-foreground: oklch(0.235 0.012 73);
+  --sidebar-primary: oklch(0.235 0.012 73);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.945 0.003 73);
+  --sidebar-accent-foreground: oklch(0.235 0.012 73);
+  --sidebar-border: oklch(0.915 0.004 73);
+  --sidebar-ring: oklch(0.235 0.012 73);
 }
 
-/* Keep .dark identical so any dark-class usage still works */
 .dark {
-  --background: oklch(0.085 0.007 73);
-  --foreground: oklch(0.94 0.015 83);
-  --card: oklch(0.12 0.008 73);
-  --card-foreground: oklch(0.94 0.015 83);
-  --popover: oklch(0.12 0.008 73);
-  --popover-foreground: oklch(0.94 0.015 83);
-  --primary: oklch(0.73 0.14 76);
-  --primary-foreground: oklch(0.085 0.007 73);
-  --secondary: oklch(0.17 0.009 73);
-  --secondary-foreground: oklch(0.94 0.015 83);
-  --muted: oklch(0.17 0.009 73);
-  --muted-foreground: oklch(0.56 0.016 73);
-  --accent: oklch(0.17 0.009 73);
-  --accent-foreground: oklch(0.94 0.015 83);
-  --destructive: oklch(0.62 0.20 25);
-  --border: oklch(0.22 0.010 73);
-  --input: oklch(0.22 0.010 73);
-  --ring: oklch(0.73 0.14 76);
-  --chart-1: oklch(0.73 0.14 76);
-  --chart-2: oklch(0.60 0.10 73);
-  --chart-3: oklch(0.45 0.07 73);
-  --chart-4: oklch(0.33 0.05 73);
-  --chart-5: oklch(0.22 0.010 73);
-  --sidebar: oklch(0.12 0.008 73);
-  --sidebar-foreground: oklch(0.94 0.015 83);
-  --sidebar-primary: oklch(0.73 0.14 76);
-  --sidebar-primary-foreground: oklch(0.085 0.007 73);
-  --sidebar-accent: oklch(0.17 0.009 73);
-  --sidebar-accent-foreground: oklch(0.94 0.015 83);
-  --sidebar-border: oklch(0.22 0.010 73);
-  --sidebar-ring: oklch(0.73 0.14 76);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.235 0.012 73);
+  --card: oklch(0.972 0.004 73);
+  --card-foreground: oklch(0.235 0.012 73);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.235 0.012 73);
+  --primary: oklch(0.235 0.012 73);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.972 0.004 73);
+  --secondary-foreground: oklch(0.235 0.012 73);
+  --muted: oklch(0.972 0.004 73);
+  --muted-foreground: oklch(0.52 0.007 73);
+  --accent: oklch(0.945 0.003 73);
+  --accent-foreground: oklch(0.235 0.012 73);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.915 0.004 73);
+  --input: oklch(0.915 0.004 73);
+  --ring: oklch(0.235 0.012 73);
+  --chart-1: oklch(0.235 0.012 73);
+  --chart-2: oklch(0.45 0.008 73);
+  --chart-3: oklch(0.60 0.006 73);
+  --chart-4: oklch(0.75 0.004 73);
+  --chart-5: oklch(0.90 0.003 73);
+  --sidebar: oklch(0.972 0.004 73);
+  --sidebar-foreground: oklch(0.235 0.012 73);
+  --sidebar-primary: oklch(0.235 0.012 73);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.945 0.003 73);
+  --sidebar-accent-foreground: oklch(0.235 0.012 73);
+  --sidebar-border: oklch(0.915 0.004 73);
+  --sidebar-ring: oklch(0.235 0.012 73);
 }
 
 @layer base {

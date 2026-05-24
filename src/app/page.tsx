@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Bell, Building2, SlidersHorizontal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
@@ -16,24 +16,21 @@ const FEATURED = [
   { name: "Figma",     website: "https://figma.com" },
 ];
 
-const HOW_IT_WORKS = [
+const FEATURES = [
   {
-    num: "1",
-    icon: Building2,
+    emoji: "🏢",
     title: "Pick your companies",
     body: "Browse a curated list and follow the companies you'd actually want to work for — not job listings.",
   },
   {
-    num: "2",
-    icon: SlidersHorizontal,
+    emoji: "🎯",
     title: "Define your criteria",
-    body: "Set role type, seniority, remote preference, and keywords. We filter every new posting against your exact spec.",
+    body: "Set role titles, seniority, and remote preference. We match every new posting against your exact spec.",
   },
   {
-    num: "3",
-    icon: Bell,
+    emoji: "🔔",
     title: "Get the alert first",
-    body: "One email, the moment a matching role goes live. No daily digests, no noise — just signal.",
+    body: "One email the moment a matching role goes live. No daily digests, no noise — just signal.",
   },
 ];
 
@@ -43,29 +40,25 @@ export default async function HomePage() {
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  if (authUser) {
-    redirect("/dashboard");
-  }
+  if (authUser) redirect("/dashboard");
 
   const companyCount = await prisma.company.count();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
-      <header className="border-b border-border/60 sticky top-0 z-10 bg-background/95 backdrop-blur">
-        <div className="mx-auto max-w-5xl flex items-center justify-between px-4 h-14">
-          <span className="font-heading italic font-bold text-xl text-primary tracking-tight">
-            Crush
-          </span>
+      <header className="border-b sticky top-0 z-10 bg-background">
+        <div className="mx-auto max-w-5xl flex items-center justify-between px-4 h-12">
+          <span className="font-heading font-bold text-lg tracking-tight">Crush</span>
           <div className="flex items-center gap-2">
             <Link href="/companies">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
                 Browse companies
               </Button>
             </Link>
             <form action={signInWithGoogle}>
-              <Button size="sm" type="submit">
-                Sign in
+              <Button size="sm" type="submit" className="text-xs h-7 px-3">
+                Get started →
               </Button>
             </form>
           </div>
@@ -73,80 +66,67 @@ export default async function HomePage() {
       </header>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-4 py-24 text-center">
-        {/* Eyebrow */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-xs font-medium text-primary tracking-wide">
-          Signal, not noise
-        </div>
-
-        <div className="max-w-3xl space-y-7">
-          <h1 className="font-heading text-5xl font-bold tracking-tight leading-[1.1] sm:text-6xl lg:text-[4.25rem]">
+      <section className="flex-1 flex flex-col items-center justify-center px-4 py-28 text-center">
+        <div className="max-w-3xl space-y-8">
+          <h1 className="font-heading text-6xl font-bold tracking-tight leading-[1.05] sm:text-7xl lg:text-[5rem]">
             The role you want,
             <br />
-            <span className="italic text-primary">
-              at the companies you care about.
-            </span>
+            at the companies
+            <br />
+            you care about.
           </h1>
 
-          <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Pick the companies you&apos;d actually work for. Tell us what role fits
-            you — title, seniority, remote pref. Get one email the moment your
-            exact match opens, before it hits LinkedIn.
+          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Pick the companies you&apos;d actually work for. Set your role criteria. Get one email
+            the moment your exact match opens — before it hits LinkedIn.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <form action={signInWithGoogle}>
-              <Button size="lg" type="submit" className="gap-2">
+              <Button size="lg" type="submit" className="gap-2 px-8">
                 Get started free
                 <ArrowRight className="size-4" />
               </Button>
             </form>
             <Link href="/companies">
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="px-8">
                 Browse {companyCount} companies
               </Button>
             </Link>
           </div>
-        </div>
 
-        {/* Company logo strip */}
-        <div className="mt-16 space-y-3">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest">
-            Companies on Crush
-          </p>
-          <div className="flex items-center gap-4 flex-wrap justify-center">
-            {FEATURED.map((c) => (
-              <div
-                key={c.name}
-                title={c.name}
-                className="opacity-50 hover:opacity-90 transition-opacity"
-              >
-                <CompanyLogo name={c.name} website={c.website} size="sm" />
-              </div>
-            ))}
-            <span className="text-xs text-muted-foreground">
-              + {companyCount - FEATURED.length} more
-            </span>
+          {/* Company logo strip */}
+          <div className="pt-6 space-y-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+              Companies on Crush
+            </p>
+            <div className="flex items-center gap-4 flex-wrap justify-center">
+              {FEATURED.map((c) => (
+                <div
+                  key={c.name}
+                  title={c.name}
+                  className="opacity-40 hover:opacity-70 transition-opacity grayscale"
+                >
+                  <CompanyLogo name={c.name} website={c.website} size="sm" />
+                </div>
+              ))}
+              <span className="text-xs text-muted-foreground">
+                + {companyCount - FEATURED.length} more
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section className="border-t border-border/60 bg-card/40">
+      <section className="border-t bg-card">
         <div className="mx-auto max-w-5xl px-4 py-20">
-          <h2 className="font-heading text-2xl font-bold text-center mb-14">
-            How it works
-          </h2>
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
-            {HOW_IT_WORKS.map(({ num, icon: Icon, title, body }) => (
+          <h2 className="font-heading text-3xl font-bold mb-12">How it works</h2>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+            {FEATURES.map(({ emoji, title, body }) => (
               <div key={title} className="space-y-3">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="inline-flex items-center justify-center size-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
-                    {num}
-                  </span>
-                  <Icon className="size-4 text-muted-foreground" />
-                </div>
-                <h3 className="font-semibold text-sm">{title}</h3>
+                <div className="text-3xl">{emoji}</div>
+                <h3 className="font-heading font-bold text-base">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
               </div>
             ))}
@@ -154,34 +134,30 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Positioning section */}
-      <section className="border-t border-border/60">
-        <div className="mx-auto max-w-2xl px-4 py-24 text-center space-y-5">
-          <h2 className="font-heading text-3xl font-bold leading-tight">
-            Built for people who know exactly
-            <br />
-            <span className="italic text-primary">what they&apos;re looking for.</span>
+      {/* Positioning */}
+      <section className="border-t">
+        <div className="mx-auto max-w-3xl px-4 py-24 space-y-6">
+          <h2 className="font-heading text-4xl font-bold leading-tight">
+            Built for people who know exactly what they&apos;re looking for.
           </h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Not a job board. Not a recruiter inbox. Crush is for senior tech
-            professionals with a shortlist of dream companies and a specific role
-            in mind. We monitor those companies every day so you don&apos;t have to.
+          <p className="text-muted-foreground leading-relaxed max-w-xl">
+            Not a job board. Not a recruiter inbox. Crush is for senior tech professionals with
+            a shortlist of dream companies and a specific role in mind. We monitor those
+            companies every day so you don&apos;t have to.
           </p>
-          <div className="pt-2">
-            <form action={signInWithGoogle}>
-              <Button size="lg" type="submit" className="gap-2">
-                Start tracking for free
-                <ArrowRight className="size-4" />
-              </Button>
-            </form>
-          </div>
+          <form action={signInWithGoogle}>
+            <Button size="lg" type="submit" className="gap-2 mt-2">
+              Start tracking for free
+              <ArrowRight className="size-4" />
+            </Button>
+          </form>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/60 py-6">
+      <footer className="border-t py-5">
         <div className="mx-auto max-w-5xl px-4 flex items-center justify-between">
-          <span className="font-heading italic font-bold text-primary">Crush</span>
+          <span className="font-heading font-bold text-sm">Crush</span>
           <span className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Crush
           </span>

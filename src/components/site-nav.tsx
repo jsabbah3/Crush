@@ -30,7 +30,7 @@ export function SiteNav({ user }: { user: User }) {
     <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
       <div className="mx-auto max-w-5xl flex items-center justify-between px-4 h-14">
         <div className="flex items-center gap-6">
-          <Link href={user ? "/dashboard" : "/"} className="font-heading italic font-bold text-xl text-primary tracking-tight">
+          <Link href={user ? "/dashboard" : "/"} className="font-heading font-bold text-lg tracking-tight">
             Crush
           </Link>
           <nav className="flex items-center gap-1">

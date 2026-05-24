@@ -58,8 +58,8 @@ export default async function DashboardPage() {
       <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-xl font-bold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h1 className="font-heading text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {tracked.length} {tracked.length === 1 ? "company" : "companies"} tracked
           </p>
         </div>
@@ -74,9 +74,9 @@ export default async function DashboardPage() {
       {/* My Roles */}
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-semibold">My roles</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Role titles matched against every company you track. Generic ("engineer") or specific ("GTM engineer") — both work.
+          <h2 className="font-heading text-lg font-bold flex items-center gap-2">🎯 My roles</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Role titles matched against every company you track. Generic (&ldquo;engineer&rdquo;) or specific (&ldquo;GTM engineer&rdquo;) — both work.
           </p>
         </div>
         <TrackedRoles

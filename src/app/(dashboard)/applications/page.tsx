@@ -56,8 +56,8 @@ export default async function ApplicationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Applications</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <h1 className="font-heading text-3xl font-bold">📋 Applications</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Everything you've applied to or are in process with
         </p>
       </div>

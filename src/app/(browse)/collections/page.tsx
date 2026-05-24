@@ -22,7 +22,7 @@ export default async function CollectionsPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h1 className="font-heading text-xl font-bold">Collections</h1>
+        <h1 className="font-heading text-3xl font-bold">📚 Collections</h1>
         <p className="text-sm text-muted-foreground">
           Curated company lists to help you discover where to apply.
         </p>
