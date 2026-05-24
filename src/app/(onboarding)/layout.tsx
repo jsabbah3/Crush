@@ -10,7 +10,7 @@ export default function OnboardingLayout({
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b px-6 py-3 flex items-center justify-between">
-        <span className="font-semibold text-sm">Crush</span>
+        <span className="font-heading italic font-bold text-lg text-primary tracking-tight">Crush</span>
         <form action={skipOnboarding}>
           <Button type="submit" variant="ghost" size="sm" className="text-muted-foreground">
             Skip setup

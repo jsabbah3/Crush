@@ -72,7 +72,7 @@ export default async function CompaniesPage({
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">Companies</h1>
+        <h1 className="font-heading text-xl font-bold">Companies</h1>
         <p className="text-sm text-muted-foreground">
           Follow the companies you want to work for. We'll alert you when a matching role opens.
         </p>

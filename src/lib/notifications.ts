@@ -211,12 +211,12 @@ function buildHtml(
       const loc = m.job.remote ? "Remote" : (m.job.location ?? "Location not listed");
       const rawUrl = m.job.url ?? `${APP_URL}/companies`;
       const trackedUrl = emailLink(rawUrl, userId, emailType, "apply");
-      const link = `<a href="${trackedUrl}" style="color:#6366f1;font-weight:500">${m.job.title}</a>`;
+      const link = `<a href="${trackedUrl}" style="color:#E8A830;font-weight:500">${m.job.title}</a>`;
       return `
         <tr>
-          <td style="padding:12px 0;border-bottom:1px solid #f3f4f6">
+          <td style="padding:12px 0;border-bottom:1px solid #2e2a20">
             ${link}<br/>
-            <span style="color:#6b7280;font-size:13px">${m.trackedCompany.company.name} &middot; ${loc}</span>
+            <span style="color:#8b7f66;font-size:13px">${m.trackedCompany.company.name} &middot; ${loc}</span>
           </td>
         </tr>`;
     })
@@ -228,25 +228,26 @@ function buildHtml(
 
   return `<!DOCTYPE html>
 <html lang="en">
-<body style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;color:#111827;background:#fff">
+<body style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;color:#f2eddf;background:#0d0c09">
+  <p style="margin:0 0 6px;font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8b7f66">Crush</p>
   <p style="margin:0 0 4px;font-size:20px;font-weight:600">Hi ${name},</p>
-  <p style="margin:0 0 24px;color:#6b7280;font-size:15px">New roles just opened at companies you're tracking:</p>
+  <p style="margin:0 0 24px;color:#8b7f66;font-size:15px">New roles just opened at companies you're tracking:</p>
 
   <table style="width:100%;border-collapse:collapse">${rows}</table>
 
-  <div style="margin-top:28px;padding:16px;background:#f9fafb;border-radius:8px">
-    <a href="${settingsUrl}" style="color:#6366f1;font-size:13px;text-decoration:none">
+  <div style="margin-top:28px;padding:16px;background:#1a1813;border-radius:8px;border:1px solid #2e2a20">
+    <a href="${settingsUrl}" style="color:#E8A830;font-size:13px;text-decoration:none">
       Change alert settings
     </a>
     &nbsp;&middot;&nbsp;
-    <a href="${pauseUrl}" style="color:#9ca3af;font-size:13px;text-decoration:none">
+    <a href="${pauseUrl}" style="color:#8b7f66;font-size:13px;text-decoration:none">
       Pause all alerts
     </a>
   </div>
 
-  <p style="margin-top:20px;font-size:12px;color:#d1d5db">
+  <p style="margin-top:20px;font-size:12px;color:#56503f">
     You're receiving this because you're tracking companies on
-    <a href="${APP_URL}" style="color:#d1d5db">Crush</a>.
+    <a href="${APP_URL}" style="color:#8b7f66">Crush</a>.
   </p>
 
   <!-- open tracking pixel -->

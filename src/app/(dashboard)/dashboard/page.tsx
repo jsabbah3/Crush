@@ -52,7 +52,7 @@ export default async function DashboardPage() {
       <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Dashboard</h1>
+          <h1 className="font-heading text-xl font-bold">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {tracked.length} {tracked.length === 1 ? "company" : "companies"} tracked
           </p>

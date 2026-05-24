@@ -13,7 +13,7 @@ export default function LoginPage({
       <PageView event="signup_started" />
       <div className="w-full max-w-sm space-y-6 px-4">
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Welcome to Crush</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-tight">Welcome to <span className="italic text-primary">Crush</span></h1>
           <p className="text-sm text-muted-foreground">
             Track companies. Get notified when your role opens.
           </p>

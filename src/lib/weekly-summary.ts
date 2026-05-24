@@ -241,7 +241,7 @@ function buildHtml(name: string, p: WeeklyPayload): string {
   // Match list or zero-match nudge
   const matchSection = hasMatches
     ? `
-    <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#111827">Your matches this week</p>
+    <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#f2eddf">Your matches this week</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
       ${matches
         .map((m) => {
@@ -251,17 +251,17 @@ function buildHtml(name: string, p: WeeklyPayload): string {
           const applyUrl = emailLink(m.jobUrl ?? rawCompanyUrl, userId, "weekly_summary");
           return `
         <tr>
-          <td style="padding:14px 0;border-bottom:1px solid #f3f4f6">
+          <td style="padding:14px 0;border-bottom:1px solid #2e2a20">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td>
-                  <span style="font-size:14px;font-weight:600;color:#111827">${escHtml(m.jobTitle)}</span><br/>
-                  <span style="font-size:13px;color:#6b7280">
-                    <a href="${companyUrl}" style="color:#6b7280;text-decoration:none">${escHtml(m.companyName)}</a>${loc ? ` &middot; ${escHtml(loc)}` : ""}
+                  <span style="font-size:14px;font-weight:600;color:#f2eddf">${escHtml(m.jobTitle)}</span><br/>
+                  <span style="font-size:13px;color:#8b7f66">
+                    <a href="${companyUrl}" style="color:#8b7f66;text-decoration:none">${escHtml(m.companyName)}</a>${loc ? ` &middot; ${escHtml(loc)}` : ""}
                   </span>
                 </td>
                 <td style="text-align:right;white-space:nowrap">
-                  <a href="${applyUrl}" style="display:inline-block;padding:6px 14px;background:#6366f1;color:#fff;font-size:13px;font-weight:500;border-radius:6px;text-decoration:none">Apply →</a>
+                  <a href="${applyUrl}" style="display:inline-block;padding:6px 14px;background:#E8A830;color:#0d0c09;font-size:13px;font-weight:600;border-radius:6px;text-decoration:none">Apply →</a>
                 </td>
               </tr>
             </table>
@@ -271,20 +271,20 @@ function buildHtml(name: string, p: WeeklyPayload): string {
         .join("")}
     </table>`
     : `
-    <div style="background:#fafafa;border:1px solid #f3f4f6;border-radius:12px;padding:24px;margin:0 0 8px">
-      <p style="margin:0 0 6px;font-size:15px;font-weight:600;color:#111827">No matches this week.</p>
-      <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.6">
-        We scanned ${newRolesPosted > 0 ? `<strong>${newRolesPosted} new role${newRolesPosted === 1 ? "" : "s"}</strong> across` : "all of"} your ${companiesChecked} tracked ${companiesChecked === 1 ? "company" : "companies"} — nothing matched your criteria yet.
+    <div style="background:#1a1813;border:1px solid #2e2a20;border-radius:12px;padding:24px;margin:0 0 8px">
+      <p style="margin:0 0 6px;font-size:15px;font-weight:600;color:#f2eddf">No matches this week.</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#8b7f66;line-height:1.6">
+        We scanned ${newRolesPosted > 0 ? `<strong style="color:#f2eddf">${newRolesPosted} new role${newRolesPosted === 1 ? "" : "s"}</strong> across` : "all of"} your ${companiesChecked} tracked ${companiesChecked === 1 ? "company" : "companies"} — nothing matched your criteria yet.
         ${newRolesPosted > 0
           ? "There's activity out there; your filters might just be narrowing it down."
           : "It's been a quiet week for your companies. Try tracking more to cast a wider net."}
       </p>
       <table cellpadding="0" cellspacing="0"><tr>
         <td style="padding-right:8px">
-          <a href="${companiesUrl}" style="display:inline-block;padding:9px 18px;background:#6366f1;color:#fff;font-size:13px;font-weight:500;border-radius:8px;text-decoration:none">Track more companies</a>
+          <a href="${companiesUrl}" style="display:inline-block;padding:9px 18px;background:#E8A830;color:#0d0c09;font-size:13px;font-weight:600;border-radius:8px;text-decoration:none">Track more companies</a>
         </td>
         <td>
-          <a href="${collectionsUrl}" style="display:inline-block;padding:9px 18px;background:#f3f4f6;color:#374151;font-size:13px;font-weight:500;border-radius:8px;text-decoration:none">Browse collections</a>
+          <a href="${collectionsUrl}" style="display:inline-block;padding:9px 18px;background:#272318;color:#f2eddf;font-size:13px;font-weight:500;border-radius:8px;text-decoration:none;border:1px solid #2e2a20">Browse collections</a>
         </td>
       </tr></table>
     </div>`;
@@ -293,11 +293,12 @@ function buildHtml(name: string, p: WeeklyPayload): string {
   const inProcessSection =
     inProcessCount > 0
       ? `
-    <div style="margin-top:24px;padding:14px 16px;background:#eff6ff;border:1px solid #dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:14px;color:#1e40af;font-weight:500">
+    <div style="margin-top:24px;padding:14px 16px;background:#1a1813;border:1px solid #E8A830;border-radius:10px">
+      <span style="font-size:14px;color:#f2eddf;font-weight:500">
         You're in process with ${inProcessCount} ${inProcessCount === 1 ? "company" : "companies"} right now.
       </span>
-      <a href="${applicationsUrl}" style="font-size:13px;color:#3b82f6;text-decoration:none;white-space:nowrap;margin-left:16px">View applications →</a>
+      &nbsp;
+      <a href="${applicationsUrl}" style="font-size:13px;color:#E8A830;text-decoration:none;white-space:nowrap">View applications →</a>
     </div>`
       : "";
 
@@ -305,21 +306,21 @@ function buildHtml(name: string, p: WeeklyPayload): string {
   const trendingSection =
     trending.length > 0
       ? `
-    <div style="margin-top:32px;padding-top:24px;border-top:1px solid #f3f4f6">
-      <p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#111827">Trending this week</p>
-      <p style="margin:0 0 16px;font-size:13px;color:#9ca3af">Companies posting the most new roles right now</p>
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid #2e2a20">
+      <p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#f2eddf">Trending this week</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#8b7f66">Companies posting the most new roles right now</p>
       <table width="100%" cellpadding="0" cellspacing="0">
         ${trending
           .map(
             (t) => `
         <tr>
-          <td style="padding:10px 0;border-bottom:1px solid #f9fafb">
+          <td style="padding:10px 0;border-bottom:1px solid #1a1813">
             <table width="100%" cellpadding="0" cellspacing="0"><tr>
               <td>
-                <a href="${APP_URL}/companies/${t.slug}" style="font-size:14px;font-weight:500;color:#111827;text-decoration:none">${escHtml(t.name)}</a>
+                <a href="${APP_URL}/companies/${t.slug}" style="font-size:14px;font-weight:500;color:#f2eddf;text-decoration:none">${escHtml(t.name)}</a>
               </td>
               <td style="text-align:right">
-                <span style="font-size:13px;color:#6b7280">${t.newJobs} new role${t.newJobs === 1 ? "" : "s"}</span>
+                <span style="font-size:13px;color:#8b7f66">${t.newJobs} new role${t.newJobs === 1 ? "" : "s"}</span>
               </td>
             </tr></table>
           </td>
@@ -336,12 +337,13 @@ function buildHtml(name: string, p: WeeklyPayload): string {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 </head>
-<body style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:580px;margin:0 auto;padding:40px 24px;color:#111827;background:#fff;-webkit-font-smoothing:antialiased">
+<body style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:580px;margin:0 auto;padding:40px 24px;color:#f2eddf;background:#0d0c09;-webkit-font-smoothing:antialiased">
 
   <!-- Header -->
-  <p style="margin:0 0 6px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9ca3af">Weekly update</p>
-  <p style="margin:0 0 4px;font-size:22px;font-weight:700;color:#111827">Hi ${escHtml(name)},</p>
-  <p style="margin:0;font-size:15px;color:#6b7280">Here's what happened at the companies you're tracking this week.</p>
+  <p style="margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#E8A830">Crush</p>
+  <p style="margin:0 0 6px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8b7f66">Weekly update</p>
+  <p style="margin:0 0 4px;font-size:22px;font-weight:700;color:#f2eddf">Hi ${escHtml(name)},</p>
+  <p style="margin:0;font-size:15px;color:#8b7f66">Here's what happened at the companies you're tracking this week.</p>
 
   <!-- Stats -->
   ${stats}
@@ -356,14 +358,14 @@ function buildHtml(name: string, p: WeeklyPayload): string {
   ${trendingSection}
 
   <!-- Footer -->
-  <div style="margin-top:36px;padding-top:20px;border-top:1px solid #f3f4f6">
-    <p style="margin:0 0 8px;font-size:13px;color:#9ca3af">
-      <a href="${settingsUrl}" style="color:#6b7280;text-decoration:underline">Email preferences</a>
+  <div style="margin-top:36px;padding-top:20px;border-top:1px solid #2e2a20">
+    <p style="margin:0 0 8px;font-size:13px;color:#8b7f66">
+      <a href="${settingsUrl}" style="color:#8b7f66;text-decoration:underline">Email preferences</a>
       &nbsp;&middot;&nbsp;
-      <a href="${pauseUrl}" style="color:#9ca3af;text-decoration:underline">Unsubscribe</a>
+      <a href="${pauseUrl}" style="color:#56503f;text-decoration:underline">Unsubscribe</a>
     </p>
-    <p style="margin:0;font-size:12px;color:#d1d5db">
-      Sent by <a href="${APP_URL}" style="color:#d1d5db">Crush</a> &middot; You're receiving this because you're tracking companies.
+    <p style="margin:0;font-size:12px;color:#56503f">
+      Sent by <a href="${APP_URL}" style="color:#8b7f66">Crush</a> &middot; You're receiving this because you're tracking companies.
     </p>
   </div>
 
@@ -376,9 +378,9 @@ function buildHtml(name: string, p: WeeklyPayload): string {
 
 function statCell(value: string, label: string): string {
   return `
-    <td width="33%" style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:10px;padding:16px 12px;text-align:center">
-      <div style="font-size:26px;font-weight:700;color:#111827;line-height:1">${value}</div>
-      <div style="font-size:12px;color:#9ca3af;margin-top:4px;line-height:1.3">${label}</div>
+    <td width="33%" style="background:#1a1813;border:1px solid #2e2a20;border-radius:10px;padding:16px 12px;text-align:center">
+      <div style="font-size:26px;font-weight:700;color:#f2eddf;line-height:1">${value}</div>
+      <div style="font-size:12px;color:#8b7f66;margin-top:4px;line-height:1.3">${label}</div>
     </td>`;
 }
 
