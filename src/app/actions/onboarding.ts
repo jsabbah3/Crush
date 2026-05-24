@@ -4,11 +4,10 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import type { JobType } from "@/generated/prisma/enums";
 
 type Criteria = {
-  keywords: string[];
-  jobTypes: JobType[];
+  roles: string[];
+  seniority: string[];
   remoteOnly: boolean | null;
   locationFilter: string | null;
 };
@@ -25,10 +24,24 @@ export async function saveOnboarding(
     await tx.user.update({
       where: { id: authUser.id },
       data: {
-        defaultCriteria: criteria,
+        defaultCriteria: {
+          seniority: criteria.seniority,
+          remoteOnly: criteria.remoteOnly,
+          locationFilter: criteria.locationFilter,
+        },
         onboardingComplete: true,
       },
     });
+
+    for (const title of criteria.roles) {
+      try {
+        await tx.trackedRole.create({
+          data: { userId: authUser.id, title: title.trim() },
+        });
+      } catch {
+        // Duplicate — skip
+      }
+    }
 
     if (collectionSlug) {
       const collection = await tx.collection.findUnique({
@@ -43,10 +56,8 @@ export async function saveOnboarding(
             create: {
               userId: authUser.id,
               companyId,
-              keywords: criteria.keywords,
-              jobTypes: criteria.jobTypes,
-              remoteOnly: criteria.remoteOnly,
-              locationFilter: criteria.locationFilter,
+              keywords: [],
+              jobTypes: [],
               emailAlerts: true,
             },
             update: {},

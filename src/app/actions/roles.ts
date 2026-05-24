@@ -21,6 +21,7 @@ export async function addTrackedRole(title: string) {
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/settings");
   return { success: true };
 }
 
@@ -34,5 +35,25 @@ export async function removeTrackedRole(id: string) {
   });
 
   revalidatePath("/dashboard");
+  revalidatePath("/settings");
+  return { success: true };
+}
+
+export async function saveUserPreferences(prefs: {
+  seniority: string[];
+  remoteOnly: boolean | null;
+  locationFilter: string | null;
+}) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { defaultCriteria: prefs },
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/settings");
   return { success: true };
 }

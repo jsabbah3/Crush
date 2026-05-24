@@ -1,42 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FollowModal } from "@/components/follow-modal";
-import type { JobType } from "@/generated/prisma/enums";
-
-type Tracked = {
-  id: string;
-  keywords: string[];
-  jobTypes: JobType[];
-  remoteOnly: boolean | null;
-  locationFilter: string | null;
-  emailAlerts: boolean;
-} | null;
-
-type DefaultCriteria = {
-  keywords: string[];
-  remoteOnly: boolean | null;
-  locationFilter: string | null;
-};
+import { followCompany, untrackCompany } from "@/app/actions/tracking";
 
 export function FollowButton({
   company,
   tracked,
   userId,
   size = "sm",
-  defaultCriteria,
 }: {
   company: { id: string; name: string };
-  tracked: Tracked;
+  tracked: { id: string } | null;
   userId: string | null;
   size?: "sm" | "default";
-  defaultCriteria?: DefaultCriteria | null;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const isFollowing = !!tracked;
 
   function handleClick() {
@@ -44,37 +26,34 @@ export function FollowButton({
       router.push("/login");
       return;
     }
-    setOpen(true);
+    startTransition(async () => {
+      if (isFollowing) {
+        await untrackCompany(tracked!.id);
+      } else {
+        await followCompany(company.id);
+      }
+    });
   }
 
   return (
-    <>
-      <Button
-        variant={isFollowing ? "secondary" : "default"}
-        size={size}
-        onClick={handleClick}
-        className="shrink-0"
-      >
-        {isFollowing ? (
-          <>
-            <Check className="size-3.5" />
-            Following
-          </>
-        ) : (
-          <>
-            <Plus className="size-3.5" />
-            Follow
-          </>
-        )}
-      </Button>
-
-      <FollowModal
-        open={open}
-        onOpenChange={setOpen}
-        company={company}
-        existing={tracked ?? undefined}
-        defaultCriteria={defaultCriteria}
-      />
-    </>
+    <Button
+      variant={isFollowing ? "secondary" : "default"}
+      size={size}
+      onClick={handleClick}
+      disabled={isPending}
+      className="shrink-0"
+    >
+      {isFollowing ? (
+        <>
+          <Check className="size-3.5" />
+          Following
+        </>
+      ) : (
+        <>
+          <Plus className="size-3.5" />
+          Follow
+        </>
+      )}
+    </Button>
   );
 }

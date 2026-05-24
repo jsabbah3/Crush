@@ -50,14 +50,30 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  // Find all users tracking this company
+  // Find all users tracking this company and load their global prefs + roles
   const tracked = await prisma.trackedCompany.findMany({
     where: { companyId: company.id, emailAlerts: true },
+    include: { user: { select: { defaultCriteria: true } } },
   });
+
+  const userIds = [...new Set(tracked.map((tc) => tc.userId))];
+  const roleRows = await prisma.trackedRole.findMany({
+    where: { userId: { in: userIds } },
+    select: { userId: true, title: true },
+  });
+  const rolesByUserId = new Map<string, string[]>();
+  for (const r of roleRows) {
+    if (!rolesByUserId.has(r.userId)) rolesByUserId.set(r.userId, []);
+    rolesByUserId.get(r.userId)!.push(r.title);
+  }
+
+  type UserPrefs = { seniority?: string[]; remoteOnly?: boolean | null; locationFilter?: string | null };
 
   const matchIds: string[] = [];
   for (const tc of tracked) {
-    if (doesJobMatch(job, tc)) {
+    const prefs = tc.user.defaultCriteria as UserPrefs | null;
+    const userRoles = rolesByUserId.get(tc.userId) ?? [];
+    if (doesJobMatch(job, userRoles, prefs?.seniority ?? [], prefs?.remoteOnly ?? null, prefs?.locationFilter ?? null)) {
       const match = await prisma.match.create({
         data: { trackedCompanyId: tc.id, jobId: job.id },
       });

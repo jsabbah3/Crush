@@ -6,7 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
 import { TrackCollectionButton } from "@/components/track-collection-button";
-import type { JobType } from "@/generated/prisma/enums";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -25,7 +24,7 @@ export default async function CollectionDetailPage({
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
 
-  const [collection, tracked, dbUser] = await Promise.all([
+  const [collection, tracked] = await Promise.all([
     prisma.collection.findUnique({
       where: { slug },
       include: {
@@ -42,40 +41,19 @@ export default async function CollectionDetailPage({
     authUser
       ? prisma.trackedCompany.findMany({
           where: { userId: authUser.id },
-          select: {
-            id: true,
-            companyId: true,
-            keywords: true,
-            jobTypes: true,
-            remoteOnly: true,
-            locationFilter: true,
-            emailAlerts: true,
-          },
+          select: { id: true, companyId: true },
         })
       : [],
-    authUser
-      ? prisma.user.findUnique({
-          where: { id: authUser.id },
-          select: { defaultCriteria: true },
-        })
-      : null,
   ]);
-
-  const defaultCriteria = dbUser?.defaultCriteria as {
-    keywords: string[];
-    remoteOnly: boolean | null;
-    locationFilter: string | null;
-  } | null ?? null;
 
   if (!collection) notFound();
 
-  const trackedMap = new Map(tracked.map((t) => [t.companyId, t]));
+  const trackedMap = new Map(tracked.map((t) => [t.companyId, { id: t.id }]));
   const trackedIds = new Set(tracked.map((t) => t.companyId));
   const companies = collection.companies.map((cc) => cc.company);
 
   return (
     <div className="space-y-8">
-      {/* Back link */}
       <Link
         href="/collections"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -84,7 +62,6 @@ export default async function CollectionDetailPage({
         Collections
       </Link>
 
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1.5">
           <h1 className="text-2xl font-bold">{collection.name}</h1>
@@ -99,16 +76,12 @@ export default async function CollectionDetailPage({
         </div>
 
         <TrackCollectionButton
-          collectionName={collection.name}
-          collectionSlug={slug}
           companies={companies.map((c) => ({ id: c.id, name: c.name }))}
           trackedIds={trackedIds}
           userId={authUser?.id ?? null}
-          defaultCriteria={defaultCriteria}
         />
       </div>
 
-      {/* Company grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {collection.companies.map(({ company }) => {
           const tc = trackedMap.get(company.id) ?? null;
@@ -149,17 +122,9 @@ export default async function CollectionDetailPage({
                 )}
                 <FollowButton
                   company={{ id: company.id, name: company.name }}
-                  tracked={tc as {
-                    id: string;
-                    keywords: string[];
-                    jobTypes: JobType[];
-                    remoteOnly: boolean | null;
-                    locationFilter: string | null;
-                    emailAlerts: boolean;
-                  } | null}
+                  tracked={tc}
                   userId={authUser?.id ?? null}
                   size="sm"
-                  defaultCriteria={defaultCriteria}
                 />
               </div>
             </div>

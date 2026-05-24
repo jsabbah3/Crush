@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/company-logo";
 import { saveOnboarding } from "@/app/actions/onboarding";
 import { analytics } from "@/lib/analytics";
-import type { JobType } from "@/generated/prisma/enums";
 
 const SENIORITY = [
   { label: "Junior", kw: "junior" },
@@ -17,7 +16,6 @@ const SENIORITY = [
   { label: "Staff", kw: "staff" },
   { label: "Lead", kw: "lead" },
 ];
-const SENIORITY_KWS = new Set(SENIORITY.map((s) => s.kw));
 
 type Collection = {
   id: string;
@@ -36,14 +34,13 @@ export function OnboardingWizard({ collections }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isPending, startTransition] = useTransition();
 
-  // Fire screen view on mount and on step changes
   useEffect(() => {
     analytics.track("onboarding_screen_viewed", { screen_number: step });
   }, [step]);
 
   // Step 1 state
-  const [kwInput, setKwInput] = useState("");
-  const [keywords, setKeywords] = useState<string[]>([]);
+  const [roleInput, setRoleInput] = useState("");
+  const [roles, setRoles] = useState<string[]>([]);
   const [seniority, setSeniority] = useState<string[]>([]);
   const [remote, setRemote] = useState<"any" | "remote" | "onsite">("any");
   const [location, setLocation] = useState("");
@@ -51,25 +48,24 @@ export function OnboardingWizard({ collections }: Props) {
   // Step 2 state
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
-  function addKeyword() {
-    const kw = kwInput.trim().toLowerCase();
-    if (kw && !keywords.includes(kw) && !SENIORITY_KWS.has(kw)) {
-      setKeywords((p) => [...p, kw]);
+  function addRole() {
+    const title = roleInput.trim();
+    if (title && !roles.some((r) => r.toLowerCase() === title.toLowerCase())) {
+      setRoles((p) => [...p, title]);
     }
-    setKwInput("");
+    setRoleInput("");
   }
 
-  const allKeywords = [...keywords, ...seniority];
   const criteria = {
-    keywords: allKeywords,
-    jobTypes: [] as JobType[],
+    roles,
+    seniority,
     remoteOnly: remote === "remote" ? true : remote === "onsite" ? false : null,
     locationFilter: remote === "onsite" && location.trim() ? location.trim() : null,
   };
 
   function handleFinish(collectionSlug: string | null) {
     analytics.track("onboarding_completed", {
-      keyword_count: allKeywords.length,
+      role_count: roles.length,
       collection_slug: collectionSlug ?? undefined,
     });
     if (collectionSlug) {
@@ -80,6 +76,10 @@ export function OnboardingWizard({ collections }: Props) {
     });
   }
 
+  const pillBase = "rounded-full px-4 py-1.5 text-sm font-medium border transition-colors";
+  const pillActive = "border-primary bg-primary text-primary-foreground";
+  const pillInactive = "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground";
+
   if (step === 1) {
     return (
       <div className="space-y-8">
@@ -89,39 +89,41 @@ export function OnboardingWizard({ collections }: Props) {
           </p>
           <h1 className="text-2xl font-bold">What roles are you looking for?</h1>
           <p className="text-sm text-muted-foreground">
-            We'll use this to filter alerts across every company you track.
+            These apply across every company you track — no need to set criteria per company.
           </p>
         </div>
 
         <div className="space-y-6">
-          {/* Keywords */}
+          {/* Role titles */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Job title keywords</p>
-            <p className="text-xs text-muted-foreground">e.g. "engineer", "product manager", "designer"</p>
+            <p className="text-sm font-medium">Role titles</p>
+            <p className="text-xs text-muted-foreground">
+              Be specific or broad — e.g. &ldquo;GTM Engineer&rdquo;, &ldquo;Product Designer&rdquo;, &ldquo;Engineer&rdquo;
+            </p>
             <div className="flex gap-2">
               <Input
-                placeholder="Add a keyword…"
-                value={kwInput}
-                onChange={(e) => setKwInput(e.target.value)}
+                placeholder="Add a role title…"
+                value={roleInput}
+                onChange={(e) => setRoleInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === ",") {
                     e.preventDefault();
-                    addKeyword();
+                    addRole();
                   }
                 }}
                 className="max-w-xs"
               />
-              <Button type="button" variant="outline" size="sm" onClick={addKeyword}>
+              <Button type="button" variant="outline" size="sm" onClick={addRole}>
                 Add
               </Button>
             </div>
-            {keywords.length > 0 && (
+            {roles.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {keywords.map((kw) => (
-                  <Badge key={kw} variant="secondary" className="gap-1 pl-2.5 pr-1.5">
-                    {kw}
+                {roles.map((role) => (
+                  <Badge key={role} variant="secondary" className="gap-1 pl-2.5 pr-1.5">
+                    {role}
                     <button
-                      onClick={() => setKeywords((p) => p.filter((k) => k !== kw))}
+                      onClick={() => setRoles((p) => p.filter((r) => r !== role))}
                       className="rounded hover:text-foreground transition-colors"
                     >
                       <X className="size-3" />
@@ -135,6 +137,7 @@ export function OnboardingWizard({ collections }: Props) {
           {/* Seniority */}
           <div className="space-y-2">
             <p className="text-sm font-medium">Seniority level</p>
+            <p className="text-xs text-muted-foreground">Leave blank to match any level.</p>
             <div className="flex flex-wrap gap-2">
               {SENIORITY.map(({ label, kw }) => {
                 const active = seniority.includes(kw);
@@ -147,11 +150,7 @@ export function OnboardingWizard({ collections }: Props) {
                         p.includes(kw) ? p.filter((k) => k !== kw) : [...p, kw]
                       )
                     }
-                    className={`rounded-full px-4 py-1.5 text-sm font-medium border transition-colors ${
-                      active
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                    }`}
+                    className={`${pillBase} ${active ? pillActive : pillInactive}`}
                   >
                     {label}
                   </button>
@@ -171,11 +170,7 @@ export function OnboardingWizard({ collections }: Props) {
                     key={val}
                     type="button"
                     onClick={() => setRemote(val)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-medium border transition-colors ${
-                      remote === val
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                    }`}
+                    className={`${pillBase} ${remote === val ? pillActive : pillInactive}`}
                   >
                     {label}
                   </button>
@@ -196,7 +191,10 @@ export function OnboardingWizard({ collections }: Props) {
         <div className="flex items-center justify-between pt-2">
           <button
             type="button"
-            onClick={() => { analytics.track("onboarding_completed", { skipped_at_screen: 1 }); setStep(2); }}
+            onClick={() => {
+              analytics.track("onboarding_completed", { skipped_at_screen: 1 });
+              setStep(2);
+            }}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Skip this step
@@ -218,7 +216,7 @@ export function OnboardingWizard({ collections }: Props) {
           </p>
           <h1 className="text-2xl font-bold">Pick a collection to start tracking</h1>
           <p className="text-sm text-muted-foreground">
-            We'll start watching all companies in your chosen collection. You can always add more later.
+            We&apos;ll start watching all companies in your chosen collection. You can always add more later.
           </p>
         </div>
 
@@ -229,9 +227,7 @@ export function OnboardingWizard({ collections }: Props) {
               <button
                 key={col.id}
                 type="button"
-                onClick={() =>
-                  setSelectedCollection(selected ? null : col.slug)
-                }
+                onClick={() => setSelectedCollection(selected ? null : col.slug)}
                 className={`text-left flex flex-col gap-3 rounded-xl border p-4 transition-all ${
                   selected
                     ? "border-primary bg-primary/5 ring-1 ring-primary"
@@ -283,7 +279,10 @@ export function OnboardingWizard({ collections }: Props) {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => { analytics.track("onboarding_completed", { skipped_at_screen: 2 }); setStep(3); }}
+              onClick={() => {
+                analytics.track("onboarding_completed", { skipped_at_screen: 2 });
+                setStep(3);
+              }}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Skip this step
@@ -306,25 +305,32 @@ export function OnboardingWizard({ collections }: Props) {
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Step 3 of 3
         </p>
-        <h1 className="text-2xl font-bold">You're all set.</h1>
+        <h1 className="text-2xl font-bold">You&apos;re all set.</h1>
         <p className="text-sm text-muted-foreground">
-          Here's what we're setting up for you.
+          Here&apos;s what we&apos;re setting up for you.
         </p>
       </div>
 
       <div className="rounded-xl border bg-card p-5 space-y-4">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Your criteria
+            Your roles
           </p>
-          {allKeywords.length > 0 ? (
+          {roles.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
-              {allKeywords.map((kw) => (
-                <Badge key={kw} variant="secondary">{kw}</Badge>
+              {roles.map((r) => (
+                <Badge key={r} variant="secondary">{r}</Badge>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Any role (no keyword filter)</p>
+            <p className="text-sm text-muted-foreground">Any role (no filter set)</p>
+          )}
+          {seniority.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {seniority.map((s) => (
+                <Badge key={s} variant="outline" className="capitalize">{s}</Badge>
+              ))}
+            </div>
           )}
           <p className="text-sm text-muted-foreground">
             {remote === "remote"
@@ -342,7 +348,7 @@ export function OnboardingWizard({ collections }: Props) {
             </p>
             <p className="text-sm font-medium">{chosenCollection.name}</p>
             <p className="text-xs text-muted-foreground">
-              We'll watch {chosenCollection._count.companies} companies and email you the moment a matching role opens.
+              We&apos;ll watch {chosenCollection._count.companies} companies and email you the moment a matching role opens.
             </p>
           </div>
         ) : (

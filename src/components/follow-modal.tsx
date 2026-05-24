@@ -91,7 +91,7 @@ export function FollowModal({ open, onOpenChange, company, existing, defaultCrit
       if (existing) {
         await updateCriteria(existing.id, criteria);
       } else {
-        await followCompany(company.id, criteria);
+        await followCompany(company.id);
       }
       onOpenChange(false);
     });

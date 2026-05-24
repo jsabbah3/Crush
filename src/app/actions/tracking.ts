@@ -6,58 +6,29 @@ import { createClient } from "@/lib/supabase/server";
 import { trackServerEvent } from "@/lib/analytics-node";
 import type { JobType } from "@/generated/prisma/enums";
 
-export async function trackCompany(companyId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" };
-
-  await prisma.trackedCompany.upsert({
-    where: { userId_companyId: { userId: user.id, companyId } },
-    create: { userId: user.id, companyId, keywords: [], jobTypes: [] },
-    update: {},
-  });
-
-  revalidatePath(`/companies`);
-  revalidatePath(`/dashboard`);
-  return { success: true };
-}
-
 export async function followCompany(
   companyId: string,
-  criteria: {
-    keywords: string[];
-    jobTypes: JobType[];
-    remoteOnly: boolean | null;
-    locationFilter: string | null;
-    emailAlerts: boolean;
-  },
   source: "browse" | "collection" | "company_page" = "browse",
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Unauthorized" };
 
-  // Count before upsert to detect first-time tracking
   const priorCount = await prisma.trackedCompany.count({ where: { userId: user.id } });
 
   await prisma.trackedCompany.upsert({
     where: { userId_companyId: { userId: user.id, companyId } },
-    create: { userId: user.id, companyId, ...criteria },
-    update: criteria,
+    create: { userId: user.id, companyId, keywords: [], jobTypes: [], emailAlerts: true },
+    update: {},
   });
 
-  await trackServerEvent(user.id, "company_tracked", {
-    company_id: companyId,
-    source,
-    criteria_keywords: criteria.keywords,
-  });
-
+  await trackServerEvent(user.id, "company_tracked", { company_id: companyId, source });
   if (priorCount === 0) {
     await trackServerEvent(user.id, "first_company_tracked", { company_id: companyId, source });
   }
 
-  revalidatePath(`/companies`);
-  revalidatePath(`/dashboard`);
+  revalidatePath("/companies");
+  revalidatePath("/dashboard");
   return { success: true };
 }
 
@@ -75,11 +46,31 @@ export async function untrackCompany(trackedId: string) {
 
   await trackServerEvent(user.id, "company_untracked", { company_id: existing.companyId });
 
-  revalidatePath(`/companies`);
-  revalidatePath(`/dashboard`);
+  revalidatePath("/companies");
+  revalidatePath("/dashboard");
   return { success: true };
 }
 
+export async function trackCollection(companyIds: string[]) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  for (const companyId of companyIds) {
+    await prisma.trackedCompany.upsert({
+      where: { userId_companyId: { userId: user.id, companyId } },
+      create: { userId: user.id, companyId, keywords: [], jobTypes: [], emailAlerts: true },
+      update: {},
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/collections");
+  revalidatePath("/companies");
+  return { success: true };
+}
+
+// Kept for API route backward compat (/api/tracked/[id] PATCH)
 export async function updateCriteria(
   trackedId: string,
   criteria: {
@@ -101,40 +92,7 @@ export async function updateCriteria(
 
   await prisma.trackedCompany.update({ where: { id: trackedId }, data: criteria });
 
-  await trackServerEvent(user.id, "criteria_updated", {
-    company_id: existing.companyId,
-    criteria_keywords: criteria.keywords,
-  });
-
-  revalidatePath(`/dashboard`);
-  return { success: true };
-}
-
-export async function trackCollection(
-  companyIds: string[],
-  criteria: {
-    keywords: string[];
-    jobTypes: JobType[];
-    remoteOnly: boolean | null;
-    locationFilter: string | null;
-    emailAlerts: boolean;
-  }
-) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" };
-
-  for (const companyId of companyIds) {
-    await prisma.trackedCompany.upsert({
-      where: { userId_companyId: { userId: user.id, companyId } },
-      create: { userId: user.id, companyId, ...criteria },
-      update: {}, // preserve existing criteria for already-tracked companies
-    });
-  }
-
   revalidatePath("/dashboard");
-  revalidatePath("/collections");
-  revalidatePath("/companies");
   return { success: true };
 }
 
@@ -150,7 +108,7 @@ export async function dismissMatch(matchId: string) {
 
   await prisma.match.update({ where: { id: matchId }, data: { dismissed: true } });
 
-  revalidatePath(`/matches`);
-  revalidatePath(`/dashboard`);
+  revalidatePath("/matches");
+  revalidatePath("/dashboard");
   return { success: true };
 }

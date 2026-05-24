@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
-import { CriteriaEditor } from "@/components/criteria-editor";
 import { JobCard } from "@/components/job-card";
 
 export default async function CompanyDetailPage({
@@ -16,13 +15,11 @@ export default async function CompanyDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
 
   const { slug } = await params;
 
-  const [company, tracked, dbUser] = await Promise.all([
+  const [company, tracked] = await Promise.all([
     prisma.company.findUnique({
       where: { slug },
       include: {
@@ -37,21 +34,10 @@ export default async function CompanyDetailPage({
     authUser
       ? prisma.trackedCompany.findFirst({
           where: { userId: authUser.id, company: { slug } },
-        })
-      : null,
-    authUser
-      ? prisma.user.findUnique({
-          where: { id: authUser.id },
-          select: { defaultCriteria: true },
+          select: { id: true },
         })
       : null,
   ]);
-
-  const defaultCriteria = dbUser?.defaultCriteria as {
-    keywords: string[];
-    remoteOnly: boolean | null;
-    locationFilter: string | null;
-  } | null ?? null;
 
   if (!company) notFound();
 
@@ -67,7 +53,6 @@ export default async function CompanyDetailPage({
               company={{ id: company.id, name: company.name }}
               tracked={tracked}
               userId={authUser?.id ?? null}
-              defaultCriteria={defaultCriteria}
             />
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -101,20 +86,14 @@ export default async function CompanyDetailPage({
         <p className="text-sm text-muted-foreground leading-relaxed">{company.description}</p>
       )}
 
-      {/* Criteria editor (logged-in, following) */}
       {tracked && (
-        <>
-          <Separator />
-          <section className="space-y-3">
-            <div>
-              <h2 className="font-medium">Your alert criteria</h2>
-              <p className="text-sm text-muted-foreground">
-                We'll only notify you when a role matches these filters. Leave all blank to match any role.
-              </p>
-            </div>
-            <CriteriaEditor tracked={tracked} />
-          </section>
-        </>
+        <p className="text-sm text-muted-foreground">
+          ✓ Following — we&apos;ll match new roles against your{" "}
+          <a href="/dashboard" className="underline underline-offset-2 hover:text-foreground transition-colors">
+            saved roles
+          </a>
+          .
+        </p>
       )}
 
       <Separator />

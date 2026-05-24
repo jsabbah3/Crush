@@ -8,16 +8,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
-import type { JobType } from "@/generated/prisma/enums";
-
-type Tracked = {
-  id: string;
-  keywords: string[];
-  jobTypes: JobType[];
-  remoteOnly: boolean | null;
-  locationFilter: string | null;
-  emailAlerts: boolean;
-};
 
 type Company = {
   id: string;
@@ -30,12 +20,6 @@ type Company = {
   _count: { trackedBy: number };
 };
 
-type DefaultCriteria = {
-  keywords: string[];
-  remoteOnly: boolean | null;
-  locationFilter: string | null;
-};
-
 export function CompanyBrowser({
   companies,
   trackedMap,
@@ -43,15 +27,13 @@ export function CompanyBrowser({
   userId,
   initialQ,
   initialIndustry,
-  defaultCriteria,
 }: {
   companies: Company[];
-  trackedMap: Map<string, Tracked>;
+  trackedMap: Map<string, { id: string }>;
   industries: string[];
   userId: string | null;
   initialQ: string;
   initialIndustry: string;
-  defaultCriteria?: DefaultCriteria | null;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
@@ -69,7 +51,6 @@ export function CompanyBrowser({
 
   return (
     <div className="space-y-5">
-      {/* Search + industry filter */}
       <div className="space-y-3">
         <div className="flex gap-2 max-w-sm">
           <div className="relative flex-1">
@@ -111,7 +92,6 @@ export function CompanyBrowser({
         )}
       </div>
 
-      {/* Company grid */}
       {companies.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-2 text-center">
           <p className="text-sm text-muted-foreground">No companies found</p>
@@ -126,7 +106,6 @@ export function CompanyBrowser({
                 company={company}
                 tracked={tracked}
                 userId={userId}
-                defaultCriteria={defaultCriteria}
               />
             );
           })}
@@ -140,16 +119,13 @@ function CompanyCard({
   company,
   tracked,
   userId,
-  defaultCriteria,
 }: {
   company: Company;
-  tracked: Tracked | null;
+  tracked: { id: string } | null;
   userId: string | null;
-  defaultCriteria?: DefaultCriteria | null;
 }) {
   return (
     <div className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
-      {/* Header row */}
       <div className="flex items-start gap-3">
         <CompanyLogo
           name={company.name}
@@ -170,14 +146,12 @@ function CompanyCard({
         </div>
       </div>
 
-      {/* Description */}
       {company.description && (
         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
           {company.description}
         </p>
       )}
 
-      {/* Footer */}
       <div className="flex items-center justify-between mt-auto pt-1">
         {company._count.trackedBy > 0 ? (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -192,7 +166,6 @@ function CompanyCard({
           tracked={tracked}
           userId={userId}
           size="sm"
-          defaultCriteria={defaultCriteria}
         />
       </div>
     </div>

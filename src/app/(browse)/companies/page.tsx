@@ -13,13 +13,11 @@ export default async function CompaniesPage({
   searchParams: Promise<{ q?: string; industry?: string }>;
 }) {
   const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
 
   const { q = "", industry = "" } = await searchParams;
 
-  const [companies, tracked, industries, dbUser] = await Promise.all([
+  const [companies, tracked, industries] = await Promise.all([
     prisma.company.findMany({
       where: {
         ...(q && {
@@ -37,15 +35,7 @@ export default async function CompaniesPage({
     authUser
       ? prisma.trackedCompany.findMany({
           where: { userId: authUser.id },
-          select: {
-            id: true,
-            companyId: true,
-            keywords: true,
-            jobTypes: true,
-            remoteOnly: true,
-            locationFilter: true,
-            emailAlerts: true,
-          },
+          select: { id: true, companyId: true },
         })
       : [],
     prisma.company.findMany({
@@ -54,20 +44,9 @@ export default async function CompaniesPage({
       distinct: ["industry"],
       orderBy: { industry: "asc" },
     }),
-    authUser
-      ? prisma.user.findUnique({
-          where: { id: authUser.id },
-          select: { defaultCriteria: true },
-        })
-      : null,
   ]);
 
-  const trackedMap = new Map(tracked.map((t) => [t.companyId, t]));
-  const defaultCriteria = dbUser?.defaultCriteria as {
-    keywords: string[];
-    remoteOnly: boolean | null;
-    locationFilter: string | null;
-  } | null ?? null;
+  const trackedMap = new Map(tracked.map((t) => [t.companyId, { id: t.id }]));
 
   return (
     <div className="space-y-6">
@@ -85,7 +64,6 @@ export default async function CompaniesPage({
         userId={authUser?.id ?? null}
         initialQ={q}
         initialIndustry={industry}
-        defaultCriteria={defaultCriteria}
       />
     </div>
   );

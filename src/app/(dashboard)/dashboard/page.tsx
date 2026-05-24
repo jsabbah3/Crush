@@ -12,12 +12,18 @@ import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
 import { TrackedRoles } from "@/components/tracked-roles";
 
+type UserPrefs = {
+  seniority?: string[];
+  remoteOnly?: boolean | null;
+  locationFilter?: string | null;
+};
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) redirect("/login");
 
-  const [tracked, recentMatches, featuredCollections, trackedRoles] = await Promise.all([
+  const [tracked, recentMatches, featuredCollections, trackedRoles, dbUser] = await Promise.all([
     prisma.trackedCompany.findMany({
       where: { userId: authUser.id },
       include: {
@@ -49,8 +55,13 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "asc" },
       select: { id: true, title: true },
     }),
+    prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: { defaultCriteria: true },
+    }),
   ]);
 
+  const prefs = dbUser?.defaultCriteria as UserPrefs | null;
   const showCollections = tracked.length < 5;
 
   return (
@@ -82,11 +93,13 @@ export default async function DashboardPage() {
         <TrackedRoles
           initialRoles={trackedRoles}
           trackedCount={tracked.length}
+          initialSeniority={prefs?.seniority ?? []}
+          initialRemoteOnly={prefs?.remoteOnly ?? null}
+          initialLocationFilter={prefs?.locationFilter ?? null}
         />
       </section>
 
       {tracked.length === 0 ? (
-        // Full empty state
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
             <div className="text-4xl">🎯</div>
@@ -137,7 +150,7 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* Collections discovery — shown when tracking fewer than 5 companies */}
+      {/* Collections discovery */}
       {showCollections && featuredCollections.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
@@ -158,7 +171,6 @@ export default async function DashboardPage() {
             {featuredCollections.map((col) => (
               <Link key={col.id} href={`/collections/${col.slug}`} className="group">
                 <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm h-full">
-                  {/* Mini logo stack */}
                   <div className="flex -space-x-1.5">
                     {col.companies.map(({ company }, i) => (
                       <div

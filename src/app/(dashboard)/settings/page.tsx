@@ -4,7 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertSettingsForm } from "@/components/alert-settings-form";
+import { TrackedRoles } from "@/components/tracked-roles";
 import { signOut } from "@/app/actions/auth";
+
+type UserPrefs = {
+  seniority?: string[];
+  remoteOnly?: boolean | null;
+  locationFilter?: string | null;
+};
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -14,7 +21,16 @@ export default async function SettingsPage() {
   const user = await prisma.user.findUnique({ where: { id: authUser.id } });
   if (!user) redirect("/login");
 
-  const trackedCount = await prisma.trackedCompany.count({ where: { userId: user.id } });
+  const [trackedCount, trackedRoles] = await Promise.all([
+    prisma.trackedCompany.count({ where: { userId: user.id } }),
+    prisma.trackedRole.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, title: true },
+    }),
+  ]);
+
+  const prefs = user.defaultCriteria as UserPrefs | null;
 
   return (
     <div className="space-y-6 max-w-lg">
@@ -39,6 +55,24 @@ export default async function SettingsPage() {
             <span className="text-muted-foreground">Companies tracked</span>
             <span>{trackedCount}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>My roles</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Role titles and preferences applied globally across all your tracked companies.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <TrackedRoles
+            initialRoles={trackedRoles}
+            trackedCount={trackedCount}
+            initialSeniority={prefs?.seniority ?? []}
+            initialRemoteOnly={prefs?.remoteOnly ?? null}
+            initialLocationFilter={prefs?.locationFilter ?? null}
+          />
         </CardContent>
       </Card>
 

@@ -5,6 +5,12 @@ import { fetchLeverJobs } from "./lever";
 import { fetchAshbyJobs } from "./ashby";
 import type { IngestedJob } from "./normalize";
 
+type UserPrefs = {
+  seniority?: string[];
+  remoteOnly?: boolean | null;
+  locationFilter?: string | null;
+};
+
 export type IngestionResult = {
   companiesProcessed: number;
   newJobs: number;
@@ -46,7 +52,6 @@ async function ingestCompany(
   const fetched = await fetchJobs(sourceType, sourceId);
   if (fetched.length === 0) return { newJobs: 0, newMatches: 0 };
 
-  // Find which external IDs already exist so we only process new ones
   const existingIds = await prisma.job.findMany({
     where: {
       companyId,
@@ -59,8 +64,6 @@ async function ingestCompany(
   const incoming = fetched.filter((j) => !existingSet.has(j.externalJobId));
   if (incoming.length === 0) return { newJobs: 0, newMatches: 0 };
 
-  // Batch insert; skipDuplicates handles any race condition between cron runs using the
-  // (companyId, externalJobId) unique constraint. Only actually-inserted rows come back.
   const created = await prisma.job.createManyAndReturn({
     data: incoming.map((job) => ({
       title: job.title,
@@ -77,12 +80,13 @@ async function ingestCompany(
     skipDuplicates: true,
   });
 
-  // Run matching for new jobs
+  // Load trackers for this company (emailAlerts controls notification opt-in)
   const tracked = await prisma.trackedCompany.findMany({
     where: { companyId, emailAlerts: true },
+    include: { user: { select: { defaultCriteria: true } } },
   });
 
-  // Load tracked roles for all relevant users in one query
+  // Load roles for all relevant users in one query
   const userIds = [...new Set(tracked.map((tc) => tc.userId))];
   const roleRows = await prisma.trackedRole.findMany({
     where: { userId: { in: userIds } },
@@ -98,15 +102,20 @@ async function ingestCompany(
 
   for (const job of created) {
     for (const tc of tracked) {
+      const prefs = tc.user.defaultCriteria as UserPrefs | null;
       const userRoles = rolesByUserId.get(tc.userId) ?? [];
-      if (doesJobMatch(job, tc, userRoles)) {
+      const seniority = prefs?.seniority ?? [];
+      const remoteOnly = prefs?.remoteOnly ?? null;
+      const locationFilter = prefs?.locationFilter ?? null;
+
+      if (doesJobMatch(job, userRoles, seniority, remoteOnly, locationFilter)) {
         try {
           const match = await prisma.match.create({
             data: { trackedCompanyId: tc.id, jobId: job.id },
           });
           matchIds.push(match.id);
         } catch {
-          // Unique constraint violation means match already exists — skip
+          // Unique constraint — match already exists
         }
       }
     }
