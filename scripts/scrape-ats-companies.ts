@@ -64,17 +64,20 @@ function slugToName(slug: string): string {
 }
 
 async function fetchText(url: string, timeoutMs = 30_000): Promise<string | null> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     const res = await fetch(url, {
       headers: { "User-Agent": UA },
       signal: ctrl.signal,
     });
-    clearTimeout(timer);
     if (!res.ok) return null;
-    return res.text();
+    // Keep timer active during body read so slow/stalled connections time out.
+    const text = await res.text();
+    clearTimeout(timer);
+    return text;
   } catch {
+    clearTimeout(timer);
     return null;
   }
 }
@@ -135,17 +138,22 @@ async function cdxSlugs(domain: string): Promise<string[]> {
       `&output=text&fl=original&collapse=urlkey` +
       `&limit=${CDX_PAGE_SIZE}&offset=${offset}`;
 
-    const text = await fetchText(url, 60_000);
-    if (!text) break;
+    let text: string | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      text = await fetchText(url, 90_000);
+      if (text !== null) break;
+      process.stdout.write(`(retry ${attempt + 1})…`);
+      await sleep(3_000);
+    }
+    if (text === null) {
+      process.stdout.write(`(skipped)\n`);
+      break; // give up on this platform after 3 consecutive failures
+    }
 
     const lines = text.trim().split("\n").filter(Boolean);
-    let newThisPage = 0;
     for (const line of lines) {
       const slug = extractSlug(line.trim(), domain);
-      if (slug && !slugs.has(slug)) {
-        slugs.add(slug);
-        newThisPage++;
-      }
+      if (slug && !slugs.has(slug)) slugs.add(slug);
     }
 
     if (lines.length < CDX_PAGE_SIZE) break; // last page
@@ -177,11 +185,14 @@ async function getLeverSlugs() {
 }
 
 async function getLeverName(slug: string): Promise<string | null> {
-  // Lever postings list includes the company name on each posting
   const data = await fetchJson<Array<{ company?: string }>>(
     `https://api.lever.co/v0/postings/${slug}?mode=json&limit=1`,
   );
-  return Array.isArray(data) && data[0]?.company ? data[0].company : null;
+  // null means the fetch failed or 404 — skip the company
+  if (data === null) return null;
+  // [] means the board exists but has no open roles right now — keep the company
+  if (!Array.isArray(data)) return null;
+  return data[0]?.company ?? slugToName(slug);
 }
 
 // ── platform: Ashby ───────────────────────────────────────────────────────────
