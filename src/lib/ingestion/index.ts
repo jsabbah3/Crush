@@ -3,6 +3,9 @@ import { doesJobMatch } from "@/lib/matching";
 import { fetchGreenhouseJobs } from "./greenhouse";
 import { fetchLeverJobs } from "./lever";
 import { fetchAshbyJobs } from "./ashby";
+import { fetchAdzunaJobs } from "./adzuna";
+import { fetchRemotiveJobs, normalizeCompanyName } from "./remotive";
+import { fetchTheMuseJobs } from "./the-muse";
 import type { IngestedJob } from "./normalize";
 
 type UserPrefs = {
@@ -18,38 +21,13 @@ export type IngestionResult = {
   errors: string[];
 };
 
-export async function runIngestion(): Promise<IngestionResult> {
-  const companies = await prisma.company.findMany({
-    where: {
-      sourceType: { in: ["greenhouse", "lever", "ashby"] },
-      sourceId: { not: null },
-    },
-  });
+// ── shared: persist new jobs + create matches ─────────────────────────────────
 
-  let newJobs = 0;
-  let newMatches = 0;
-  const errors: string[] = [];
-
-  for (const company of companies) {
-    try {
-      const result = await ingestCompany(company.id, company.slug, company.sourceType, company.sourceId!);
-      newJobs += result.newJobs;
-      newMatches += result.newMatches;
-    } catch (err) {
-      errors.push(`${company.name}: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }
-
-  return { companiesProcessed: companies.length, newJobs, newMatches, errors };
-}
-
-async function ingestCompany(
+async function persistJobs(
   companyId: string,
   companySlug: string,
-  sourceType: string,
-  sourceId: string
+  fetched: IngestedJob[],
 ): Promise<{ newJobs: number; newMatches: number }> {
-  const fetched = await fetchJobs(sourceType, sourceId);
   if (fetched.length === 0) return { newJobs: 0, newMatches: 0 };
 
   const existingIds = await prisma.job.findMany({
@@ -80,13 +58,11 @@ async function ingestCompany(
     skipDuplicates: true,
   });
 
-  // Load trackers for this company (emailAlerts controls notification opt-in)
   const tracked = await prisma.trackedCompany.findMany({
     where: { companyId, emailAlerts: true },
     include: { user: { select: { defaultCriteria: true } } },
   });
 
-  // Load roles for all relevant users in one query
   const userIds = [...new Set(tracked.map((tc) => tc.userId))];
   const roleRows = await prisma.trackedRole.findMany({
     where: { userId: { in: userIds } },
@@ -98,22 +74,23 @@ async function ingestCompany(
     rolesByUserId.get(r.userId)!.push(r.title);
   }
 
-  const matchIds: string[] = [];
-
+  let newMatches = 0;
   for (const job of created) {
     for (const tc of tracked) {
       const prefs = tc.user.defaultCriteria as UserPrefs | null;
       const userRoles = rolesByUserId.get(tc.userId) ?? [];
-      const seniority = prefs?.seniority ?? [];
-      const remoteOnly = prefs?.remoteOnly ?? null;
-      const locationFilter = prefs?.locationFilter ?? null;
-
-      if (doesJobMatch(job, userRoles, seniority, remoteOnly, locationFilter)) {
+      if (
+        doesJobMatch(
+          job,
+          userRoles,
+          prefs?.seniority ?? [],
+          prefs?.remoteOnly ?? null,
+          prefs?.locationFilter ?? null,
+        )
+      ) {
         try {
-          const match = await prisma.match.create({
-            data: { trackedCompanyId: tc.id, jobId: job.id },
-          });
-          matchIds.push(match.id);
+          await prisma.match.create({ data: { trackedCompanyId: tc.id, jobId: job.id } });
+          newMatches++;
         } catch {
           // Unique constraint — match already exists
         }
@@ -121,23 +98,144 @@ async function ingestCompany(
     }
   }
 
-  return { newJobs: created.length, newMatches: matchIds.length };
+  return { newJobs: created.length, newMatches };
 }
 
-async function fetchJobs(sourceType: string, sourceId: string): Promise<IngestedJob[]> {
+// ── ATS sources: Greenhouse / Lever / Ashby ───────────────────────────────────
+
+async function runAtsIngestion(): Promise<IngestionResult> {
+  const companies = await prisma.company.findMany({
+    where: {
+      sourceType: { in: ["greenhouse", "lever", "ashby"] },
+      sourceId: { not: null },
+    },
+  });
+
+  let newJobs = 0;
+  let newMatches = 0;
+  const errors: string[] = [];
+
+  for (const company of companies) {
+    try {
+      const jobs = await fetchAtsJobs(company.sourceType, company.sourceId!);
+      const r = await persistJobs(company.id, company.slug, jobs);
+      newJobs += r.newJobs;
+      newMatches += r.newMatches;
+    } catch (err) {
+      errors.push(`[ATS] ${company.name}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return { companiesProcessed: companies.length, newJobs, newMatches, errors };
+}
+
+function fetchAtsJobs(sourceType: string, sourceId: string): Promise<IngestedJob[]> {
   switch (sourceType) {
-    case "greenhouse":
-      return fetchGreenhouseJobs(sourceId);
-    case "lever":
-      return fetchLeverJobs(sourceId);
-    case "ashby":
-      return fetchAshbyJobs(sourceId);
-    default:
-      return [];
+    case "greenhouse": return fetchGreenhouseJobs(sourceId);
+    case "lever":      return fetchLeverJobs(sourceId);
+    case "ashby":      return fetchAshbyJobs(sourceId);
+    default:           return Promise.resolve([]);
   }
 }
+
+// ── Aggregate sources: Remotive / The Muse ────────────────────────────────────
+// Fetch all jobs in bulk, then match by normalised company name.
+
+async function runAggregateIngestion(
+  label: string,
+  fetchAll: () => Promise<Map<string, IngestedJob[]>>,
+): Promise<IngestionResult> {
+  const jobsByName = await fetchAll();
+
+  const companies = await prisma.company.findMany({
+    select: { id: true, name: true, slug: true },
+  });
+
+  let companiesProcessed = 0;
+  let newJobs = 0;
+  let newMatches = 0;
+  const errors: string[] = [];
+
+  for (const company of companies) {
+    const jobs = jobsByName.get(normalizeCompanyName(company.name));
+    if (!jobs?.length) continue;
+
+    companiesProcessed++;
+    try {
+      const r = await persistJobs(company.id, company.slug, jobs);
+      newJobs += r.newJobs;
+      newMatches += r.newMatches;
+    } catch (err) {
+      errors.push(`[${label}] ${company.name}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return { companiesProcessed, newJobs, newMatches, errors };
+}
+
+// ── Adzuna: per tracked-company search ───────────────────────────────────────
+// Only queries companies users are actually tracking — keeps API call count
+// proportional to real demand rather than total DB size.
+
+async function runAdzunaIngestion(): Promise<IngestionResult> {
+  const tracked = await prisma.trackedCompany.findMany({
+    where: { emailAlerts: true },
+    select: { company: { select: { id: true, name: true, slug: true } } },
+    distinct: ["companyId"],
+  });
+
+  let newJobs = 0;
+  let newMatches = 0;
+  const errors: string[] = [];
+
+  for (const { company } of tracked) {
+    try {
+      await sleep(200);
+      const jobs = await fetchAdzunaJobs(company.name);
+      const r = await persistJobs(company.id, company.slug, jobs);
+      newJobs += r.newJobs;
+      newMatches += r.newMatches;
+    } catch (err) {
+      errors.push(`[Adzuna] ${company.name}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return { companiesProcessed: tracked.length, newJobs, newMatches, errors };
+}
+
+// ── main entry point ──────────────────────────────────────────────────────────
+
+export async function runIngestion(): Promise<IngestionResult> {
+  const results = await Promise.allSettled([
+    runAtsIngestion(),
+    runAggregateIngestion("Remotive", fetchRemotiveJobs),
+    runAggregateIngestion("The Muse", fetchTheMuseJobs),
+    runAdzunaIngestion(),
+  ]);
+
+  return results.reduce<IngestionResult>(
+    (acc, r) => {
+      if (r.status === "fulfilled") {
+        acc.companiesProcessed += r.value.companiesProcessed;
+        acc.newJobs += r.value.newJobs;
+        acc.newMatches += r.value.newMatches;
+        acc.errors.push(...r.value.errors);
+      } else {
+        acc.errors.push(String(r.reason));
+      }
+      return acc;
+    },
+    { companiesProcessed: 0, newJobs: 0, newMatches: 0, errors: [] },
+  );
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 function buildSlug(companySlug: string, externalJobId: string): string {
   const safe = externalJobId.replace(/[^a-z0-9-]/gi, "-").toLowerCase().slice(0, 40);
   return `${companySlug}-${safe}`;
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((r) => setTimeout(r, ms));
 }
