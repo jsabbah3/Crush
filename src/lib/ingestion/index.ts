@@ -173,22 +173,33 @@ async function runAggregateIngestion(
   return { companiesProcessed, newJobs, newMatches, errors };
 }
 
-// ── Adzuna: per tracked-company search ───────────────────────────────────────
-// Only queries companies users are actually tracking — keeps API call count
-// proportional to real demand rather than total DB size.
+// ── Adzuna: per-company search ────────────────────────────────────────────────
+// Runs for all manual companies (no ATS source) plus any company a user is
+// actively tracking, deduped by id.
 
 async function runAdzunaIngestion(): Promise<IngestionResult> {
-  const tracked = await prisma.trackedCompany.findMany({
-    where: { emailAlerts: true },
-    select: { company: { select: { id: true, name: true, slug: true } } },
-    distinct: ["companyId"],
-  });
+  const [tracked, manualCompanies] = await Promise.all([
+    prisma.trackedCompany.findMany({
+      where: { emailAlerts: true },
+      select: { company: { select: { id: true, name: true, slug: true } } },
+      distinct: ["companyId"],
+    }),
+    prisma.company.findMany({
+      where: { sourceType: "manual" },
+      select: { id: true, name: true, slug: true },
+    }),
+  ]);
+
+  const byId = new Map<string, { id: string; name: string; slug: string }>();
+  for (const { company } of tracked) byId.set(company.id, company);
+  for (const company of manualCompanies) byId.set(company.id, company);
+  const companies = [...byId.values()];
 
   let newJobs = 0;
   let newMatches = 0;
   const errors: string[] = [];
 
-  for (const { company } of tracked) {
+  for (const company of companies) {
     try {
       await sleep(200);
       const jobs = await fetchAdzunaJobs(company.name);
@@ -200,7 +211,7 @@ async function runAdzunaIngestion(): Promise<IngestionResult> {
     }
   }
 
-  return { companiesProcessed: tracked.length, newJobs, newMatches, errors };
+  return { companiesProcessed: companies.length, newJobs, newMatches, errors };
 }
 
 // ── main entry point ──────────────────────────────────────────────────────────
