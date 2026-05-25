@@ -29,17 +29,24 @@ export default async function MatchesPage({
   const activeStatus: AppStatus =
     TABS.find((t) => t.value === rawStatus)?.value ?? "INTERESTED";
 
-  const matches = await prisma.match.findMany({
-    where: {
-      trackedCompany: { userId: user.id },
-      dismissed: false,
-      applicationStatus: activeStatus as ApplicationStatus,
-    },
-    include: {
-      job: { include: { company: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const [matches] = await Promise.all([
+    prisma.match.findMany({
+      where: {
+        trackedCompany: { userId: user.id },
+        dismissed: false,
+        applicationStatus: activeStatus as ApplicationStatus,
+      },
+      include: {
+        job: { include: { company: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    // Mark all unseen matches as seen now that the user is viewing the page.
+    prisma.match.updateMany({
+      where: { trackedCompany: { userId: user.id }, seenAt: null },
+      data: { seenAt: new Date() },
+    }),
+  ]);
 
   // Group by company for Interested view; flat list otherwise
   const grouped = activeStatus === "INTERESTED";

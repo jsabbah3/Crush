@@ -186,6 +186,7 @@ model Match {
   notified         Boolean           @default(false)
   notifiedAt       DateTime?         @map("notified_at")
   dismissed        Boolean           @default(false)
+  seenAt           DateTime?         @map("seen_at")
   applicationStatus ApplicationStatus @default(INTERESTED) @map("application_status")
   applicationNote  String?           @map("application_note")
   appliedAt        DateTime?         @map("applied_at")

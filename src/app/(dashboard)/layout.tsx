@@ -18,7 +18,17 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const user = await prisma.user.findUnique({ where: { id: authUser.id } });
+  const [user, unreadMatches] = await Promise.all([
+    prisma.user.findUnique({ where: { id: authUser.id } }),
+    prisma.match.count({
+      where: {
+        trackedCompany: { userId: authUser.id },
+        seenAt: null,
+        dismissed: false,
+      },
+    }),
+  ]);
+
   if (!user) {
     redirect("/login");
   }
@@ -31,7 +41,7 @@ export default async function DashboardLayout({
         name={user.name}
         createdAt={user.createdAt}
       />
-      <DashboardNav user={user} />
+      <DashboardNav user={user} unreadMatches={unreadMatches} />
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
     </div>
   );

@@ -22,13 +22,19 @@ type UserProps = {
 };
 
 const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: Briefcase },
-  { href: "/companies", label: "Companies", icon: Building2 },
-  { href: "/matches", label: "Matches", icon: Bell },
-  { href: "/applications", label: "Applications", icon: ClipboardList },
+  { href: "/dashboard",    label: "Dashboard",    icon: Briefcase,    badge: false },
+  { href: "/companies",    label: "Companies",    icon: Building2,    badge: false },
+  { href: "/matches",      label: "Matches",      icon: Bell,         badge: true  },
+  { href: "/applications", label: "Applications", icon: ClipboardList, badge: false },
 ];
 
-export function DashboardNav({ user }: { user: UserProps }) {
+export function DashboardNav({
+  user,
+  unreadMatches,
+}: {
+  user: UserProps;
+  unreadMatches: number;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -40,7 +46,7 @@ export function DashboardNav({ user }: { user: UserProps }) {
             Crush
           </Link>
           <nav className="flex items-center gap-1">
-            {navLinks.map(({ href, label, icon: Icon }) => (
+            {navLinks.map(({ href, label, icon: Icon, badge }) => (
               <Link key={href} href={href}>
                 <Button
                   variant="ghost"
@@ -49,6 +55,11 @@ export function DashboardNav({ user }: { user: UserProps }) {
                 >
                   <Icon className="size-3.5" />
                   {label}
+                  {badge && unreadMatches > 0 && (
+                    <span className="ml-1 h-4 min-w-4 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center px-1">
+                      {unreadMatches > 99 ? "99+" : unreadMatches}
+                    </span>
+                  )}
                 </Button>
               </Link>
             ))}
