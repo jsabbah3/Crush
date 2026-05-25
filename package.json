@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
-    "scrape-ats": "tsx scripts/scrape-ats-companies.ts"
+    "scrape-ats": "tsx scripts/scrape-ats-companies.ts",
+    "scrape-vc": "tsx scripts/scrape-vc-portfolios.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

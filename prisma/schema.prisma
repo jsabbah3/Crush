@@ -49,6 +49,7 @@ model Company {
   headquarters String?
   sourceType   CompanySource @default(manual) @map("source_type")
   sourceId     String?       @map("source_id")
+  tags         String[]      @default([])
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
