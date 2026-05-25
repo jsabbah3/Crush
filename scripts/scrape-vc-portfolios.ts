@@ -3,13 +3,17 @@
  * with sourceType='manual' and the appropriate VC tag.
  *
  * Sources:
- *   YC       – https://api.ycombinator.com/v0.1/companies  (REST, paginated)
- *   a16z     – https://a16z.com/portfolio                  (data-companies JSON in HTML)
- *   Sequoia  – https://www.sequoiacap.com/wp-json/wp/v2/company (WordPress REST)
+ *   YC          – https://api.ycombinator.com/v0.1/companies  (REST, paginated)
+ *   a16z        – https://a16z.com/portfolio                  (data-companies JSON in HTML)
+ *   Sequoia     – https://www.sequoiacap.com/wp-json/wp/v2/company (WordPress REST)
+ *   CB Insights – https://www.cbinsights.com/research-unicorn-companies (HTML table)
+ *   Accel       – https://www.accel.com/companies             (aria-label HTML)
+ *   Bessemer    – https://www.bvp.com/portfolio               (HTML anchors)
  *
  * Usage:
  *   npm run scrape-vc
  *   npm run scrape-vc -- --vc yc
+ *   npm run scrape-vc -- --vc cbinsights
  *   npm run scrape-vc -- --dry-run
  */
 
@@ -46,6 +50,20 @@ function toSlug(name: string): string {
 
 function sleep(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms));
+}
+
+const BROWSER_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+async function fetchHtml(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": BROWSER_UA, Accept: "text/html" },
+    });
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
 }
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T | null> {
@@ -115,6 +133,35 @@ async function upsertCompanyWithTag(
   }
 }
 
+async function processNames(
+  names: string[],
+  vcTag: string,
+  websiteFor?: (name: string) => string | null,
+): Promise<void> {
+  let created = 0, tagged = 0, skipped = 0, errors = 0;
+
+  for (const name of names) {
+    try {
+      const r = await upsertCompanyWithTag(
+        {
+          name,
+          slug: toSlug(name),
+          website: websiteFor ? websiteFor(name) : null,
+        },
+        vcTag,
+      );
+      if (r === "created") created++;
+      else if (r === "tagged") tagged++;
+      else skipped++;
+    } catch {
+      errors++;
+    }
+    await sleep(5);
+  }
+
+  console.log(`  Done: ${created} created, ${tagged} tagged existing, ${skipped} skipped, ${errors} errors`);
+}
+
 // ── YC ────────────────────────────────────────────────────────────────────────
 
 type YCCompany = {
@@ -160,14 +207,14 @@ async function scrapeYC(): Promise<void> {
         } catch {
           errors++;
         }
-        await sleep(5); // tiny delay to avoid hammering the DB
+        await sleep(5);
       }
     } else {
       created += data.companies.length;
     }
 
     page++;
-    await sleep(150); // polite delay between API pages
+    await sleep(150);
   }
 
   process.stdout.write("\n");
@@ -189,57 +236,40 @@ async function scrapeA16z(): Promise<void> {
   console.log("\n── Andreessen Horowitz (a16z) ───────────────────────────────");
   console.log("  Fetching portfolio page…");
 
-  const res = await fetch("https://a16z.com/portfolio", {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "Accept": "text/html",
-    },
-  });
+  const html = await fetchHtml("https://a16z.com/portfolio");
+  if (!html) { console.log("  Fetch failed — skipping."); return; }
 
-  if (!res.ok) {
-    console.log(`  HTTP ${res.status} — skipping.`);
-    return;
-  }
-
-  const html = await res.text();
-
-  // Extract the data-companies JSON attribute
   const match = html.match(/data-companies="([^"]+)"/);
   if (!match) {
     console.log("  Could not find data-companies in HTML — skipping.");
     return;
   }
 
-  // The attribute value is HTML-entity-encoded
   const raw = match[1].replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&#039;/g, "'");
   const companies: A16zCompany[] = JSON.parse(raw);
-
   console.log(`  ${companies.length} companies in dataset`);
 
+  if (DRY_RUN) { console.log(`  Done: ${companies.length} created (dry run)`); return; }
+
   let created = 0, tagged = 0, skipped = 0, errors = 0;
+  for (const c of companies) {
+    const name = c.display_name || c.name || c.post_title;
+    if (!name) { skipped++; continue; }
 
-  if (!DRY_RUN) {
-    for (const c of companies) {
-      const name = c.display_name || c.name || c.post_title;
-      if (!name) { skipped++; continue; }
+    const website = c.external_url || c.company_url || null;
 
-      const website = c.external_url || c.company_url || null;
-
-      try {
-        const r = await upsertCompanyWithTag(
-          { name, slug: toSlug(name), website, description: c.website_description || null },
-          "a16z",
-        );
-        if (r === "created") created++;
-        else if (r === "tagged") tagged++;
-        else skipped++;
-      } catch {
-        errors++;
-      }
-      await sleep(5);
+    try {
+      const r = await upsertCompanyWithTag(
+        { name, slug: toSlug(name), website, description: c.website_description || null },
+        "a16z",
+      );
+      if (r === "created") created++;
+      else if (r === "tagged") tagged++;
+      else skipped++;
+    } catch {
+      errors++;
     }
-  } else {
-    created = companies.length;
+    await sleep(5);
   }
 
   console.log(`  Done: ${created} created, ${tagged} tagged existing, ${skipped} skipped, ${errors} errors`);
@@ -256,7 +286,6 @@ type WPCompany = {
 async function scrapeSequoia(): Promise<void> {
   console.log("\n── Sequoia Capital ──────────────────────────────────────────");
 
-  // Get total count from headers
   const PAGE_SIZE = 100;
   const headRes = await fetch(
     `https://www.sequoiacap.com/wp-json/wp/v2/company?per_page=${PAGE_SIZE}&_fields=id`,
@@ -306,12 +335,87 @@ async function scrapeSequoia(): Promise<void> {
   console.log(`  Done: ${created} created, ${tagged} tagged existing, ${skipped} skipped, ${errors} errors`);
 }
 
+// ── CB Insights Unicorn List ──────────────────────────────────────────────────
+
+async function scrapeCBInsights(): Promise<void> {
+  console.log("\n── CB Insights Unicorn List ─────────────────────────────────");
+  console.log("  Fetching unicorn companies page…");
+
+  const html = await fetchHtml("https://www.cbinsights.com/research-unicorn-companies");
+  if (!html) { console.log("  Fetch failed — skipping."); return; }
+
+  // Extract company names from table: <td><a href="...cbinsights.com/company/...">NAME</a></td>
+  const names: string[] = [];
+  const re = /<td><a href="https:\/\/www\.cbinsights\.com\/company\/[^"]+">([^<]+)<\/a><\/td>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const name = m[1].trim();
+    if (name) names.push(name);
+  }
+
+  console.log(`  ${names.length} unicorn companies found`);
+  if (DRY_RUN) { console.log(`  Done: ${names.length} created (dry run)`); return; }
+
+  await processNames(names, "Unicorn");
+}
+
+// ── Accel ─────────────────────────────────────────────────────────────────────
+
+async function scrapeAccel(): Promise<void> {
+  console.log("\n── Accel ────────────────────────────────────────────────────");
+  console.log("  Fetching portfolio page…");
+
+  const html = await fetchHtml("https://www.accel.com/companies");
+  if (!html) { console.log("  Fetch failed — skipping."); return; }
+
+  // aria-label="View COMPANY company details"
+  const names: string[] = [];
+  const re = /aria-label="View ([^"]+) company details"/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const name = m[1].trim();
+    if (name) names.push(name);
+  }
+
+  console.log(`  ${names.length} companies found`);
+  if (DRY_RUN) { console.log(`  Done: ${names.length} created (dry run)`); return; }
+
+  await processNames(names, "Accel");
+}
+
+// ── Bessemer ──────────────────────────────────────────────────────────────────
+
+async function scrapeBessemer(): Promise<void> {
+  console.log("\n── Bessemer Venture Partners ────────────────────────────────");
+  console.log("  Fetching portfolio page…");
+
+  const html = await fetchHtml("https://www.bvp.com/portfolio");
+  if (!html) { console.log("  Fetch failed — skipping."); return; }
+
+  // <a ... class="name click-to-open">COMPANY NAME</a>
+  const names: string[] = [];
+  const re = /class="name click-to-open">([^<]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const name = m[1].trim();
+    if (name) names.push(name);
+  }
+
+  console.log(`  ${names.length} companies found`);
+  if (DRY_RUN) { console.log(`  Done: ${names.length} created (dry run)`); return; }
+
+  await processNames(names, "Bessemer");
+}
+
 // ── main ──────────────────────────────────────────────────────────────────────
 
 const SOURCES = [
-  { key: "yc",      label: "YC",      run: scrapeYC },
-  { key: "a16z",    label: "a16z",    run: scrapeA16z },
-  { key: "sequoia", label: "Sequoia", run: scrapeSequoia },
+  { key: "yc",          label: "YC",          run: scrapeYC },
+  { key: "a16z",        label: "a16z",        run: scrapeA16z },
+  { key: "sequoia",     label: "Sequoia",     run: scrapeSequoia },
+  { key: "cbinsights",  label: "CB Insights", run: scrapeCBInsights },
+  { key: "accel",       label: "Accel",       run: scrapeAccel },
+  { key: "bessemer",    label: "Bessemer",    run: scrapeBessemer },
 ];
 
 async function main() {
@@ -322,7 +426,7 @@ async function main() {
     : SOURCES;
 
   if (sources.length === 0) {
-    console.error(`Unknown VC: ${VC_FILTER}. Use yc, a16z, or sequoia.`);
+    console.error(`Unknown VC: ${VC_FILTER}. Valid options: ${SOURCES.map((s) => s.key).join(", ")}`);
     process.exit(1);
   }
 
