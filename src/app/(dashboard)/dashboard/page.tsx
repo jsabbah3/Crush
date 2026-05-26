@@ -65,6 +65,25 @@ export default async function DashboardPage() {
   const prefs = dbUser?.defaultCriteria as UserPrefs | null;
   const showCollections = tracked.length < 5;
 
+  // If no matches from followed companies but user has tracked roles,
+  // surface discovery jobs from the broader job board
+  const trackedCompanyIds = tracked.map((tc) => tc.companyId);
+  const discoveryJobs =
+    recentMatches.length === 0 && trackedRoles.length > 0
+      ? await prisma.job.findMany({
+          where: {
+            status: "ACTIVE",
+            companyId: trackedCompanyIds.length > 0 ? { notIn: trackedCompanyIds } : undefined,
+            OR: trackedRoles.map((r) => ({
+              title: { contains: r.title, mode: "insensitive" as const },
+            })),
+          },
+          include: { company: true },
+          orderBy: { postedAt: "desc" },
+          take: 8,
+        })
+      : [];
+
   return (
     <div className="space-y-8">
       <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
@@ -227,6 +246,36 @@ export default async function DashboardPage() {
                 matchId={match.id}
                 applicationStatus={match.applicationStatus as AppStatus}
               />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Discovery: role-matching jobs outside followed companies */}
+      {discoveryJobs.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              🔍 Jobs matching your roles
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              These are from companies outside your list — follow one to get alerts when new roles open.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {discoveryJobs.map((job) => (
+              <div key={job.id} className="relative">
+                <JobCard job={{ ...job, company: { name: job.company.name, slug: job.company.slug } }} />
+                <div className="mt-1 flex items-center justify-between px-1">
+                  <span className="text-[11px] text-muted-foreground">Not in your list</span>
+                  <Link
+                    href={`/companies/${job.company.slug}`}
+                    className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+                  >
+                    Follow {job.company.name} →
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         </section>
