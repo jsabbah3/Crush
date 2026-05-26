@@ -39,6 +39,26 @@ const TRENDING_ROLES: Role[] = [
     description: "Works on reliability, alignment, and responsible deployment of AI systems.",
     category: "AI Engineering",
   },
+  {
+    title: "MLOps Engineer",
+    description: "Manages deployment, monitoring, and maintenance of ML models in production — the DevOps of machine learning.",
+    category: "AI Engineering",
+  },
+  {
+    title: "AI Agent Architect",
+    description: "Designs how autonomous AI agents collaborate, manages human-in-the-loop checkpoints, and enforces safeguards. One of the hottest emerging roles as agentic AI takes off.",
+    category: "AI Engineering",
+  },
+  {
+    title: "AI Solutions Architect",
+    description: "Assesses which AI tools best fit a company's needs and leads implementation from proof of concept to production.",
+    category: "AI Engineering",
+  },
+  {
+    title: "AI Red Team Engineer",
+    description: "Ethical AI hacker — simulates adversarial attacks to expose model vulnerabilities and test safeguards before deployment.",
+    category: "AI Engineering",
+  },
   // Startup / Go-to-Market
   {
     title: "Forward Deployed Engineer",
@@ -101,6 +121,21 @@ const TRENDING_ROLES: Role[] = [
   {
     title: "Technical Product Manager",
     description: "PM who can write specs, read code, and partner closely with engineering on API/platform products.",
+    category: "Product",
+  },
+  {
+    title: "AI Strategist",
+    description: "Evaluates where AI drives business value, assesses org readiness, and defines the implementation roadmap. Common at consultancies and larger tech companies.",
+    category: "Product",
+  },
+  {
+    title: "Conversational AI Designer",
+    description: "Designs the dialogue flow, tone, and personality of chatbots and voice assistants — UX design meets NLP.",
+    category: "Product",
+  },
+  {
+    title: "AI Ethics Officer",
+    description: "Develops AI governance policies, audits models for bias, and ensures compliance with emerging AI regulations.",
     category: "Product",
   },
 ];
