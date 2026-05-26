@@ -28,8 +28,12 @@ export async function POST(req: Request) {
     messages: [
       {
         role: "user",
-        content: `You are a career coach specializing in helping people discover roles they haven't considered. Analyze this resume and return a JSON object with:
-- "suggestedRoles": array of 8-12 job title strings. Include a mix of: (1) obvious fits based on their experience, (2) lateral moves they probably haven't considered (e.g. a software engineer might suit "Developer Advocate", "Technical PM", "Solutions Engineer", "ML Engineer", "Platform Engineer"), and (3) emerging/modern role titles at startups (e.g. "GTM Engineer", "Revenue Engineer", "Founding Engineer", "AI Engineer"). Keep titles short (2-4 words). Prioritize variety and surprise over the obvious.
+        content: `You are a career coach who specializes in surfacing modern, AI-era job titles that candidates don't know to search for. Analyze this resume and return a JSON object with:
+- "suggestedRoles": array of 8-12 job title strings. Mix these three types:
+  1. OBVIOUS FITS: 2-3 roles clearly matching their experience
+  2. LATERAL MOVES: roles they're qualified for but probably haven't searched (e.g. a backend engineer → "Solutions Engineer", "Developer Advocate", "Forward Deployed Engineer")
+  3. AI-ERA TITLES: modern startup roles that didn't exist 3 years ago that fit their profile — draw from: "AI Engineer", "LLM Engineer", "Applied AI Engineer", "Inference Engineer", "GTM Engineer", "Revenue Engineer", "Forward Deployed Engineer", "Founding Engineer", "Growth Engineer", "ML Platform Engineer", "AI Safety Engineer", "Technical Customer Success", "Developer Relations Engineer", "AI Product Manager". Only suggest these if there's a plausible connection to their background.
+  Keep titles short (2-4 words). At least 3 of the 8-12 should be AI-era titles.
 - "summary": 1-2 sentence plain-English summary of the person's background
 - "strengths": array of 3-5 key skill/domain strengths (short labels, e.g. "TypeScript", "System Design", "Growth Strategy")
 

@@ -11,6 +11,7 @@ import type { AppStatus } from "@/components/status-picker";
 import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
 import { TrackedRoles } from "@/components/tracked-roles";
+import { TrendingRoles } from "@/components/trending-roles";
 
 type UserPrefs = {
   seniority?: string[];
@@ -97,6 +98,12 @@ export default async function DashboardPage() {
           initialRemoteOnly={prefs?.remoteOnly ?? null}
           initialLocationFilter={prefs?.locationFilter ?? null}
         />
+
+        <div className="pt-2 border-t">
+          <TrendingRoles
+            trackedTitles={trackedRoles.map((r) => r.title)}
+          />
+        </div>
       </section>
 
       {tracked.length === 0 ? (
