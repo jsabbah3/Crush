@@ -27,7 +27,7 @@ export async function followCompany(
     await trackServerEvent(user.id, "first_company_tracked", { company_id: companyId, source });
   }
 
-  revalidatePath("/companies");
+  revalidatePath("/companies", "page");
   revalidatePath("/dashboard");
   return { success: true };
 }
@@ -46,7 +46,7 @@ export async function untrackCompany(trackedId: string) {
 
   await trackServerEvent(user.id, "company_untracked", { company_id: existing.companyId });
 
-  revalidatePath("/companies");
+  revalidatePath("/companies", "page");
   revalidatePath("/dashboard");
   return { success: true };
 }

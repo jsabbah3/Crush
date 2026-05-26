@@ -32,6 +32,7 @@ export function FollowButton({
       } else {
         await followCompany(company.id);
       }
+      router.refresh();
     });
   }
 

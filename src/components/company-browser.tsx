@@ -87,6 +87,7 @@ export function CompanyBrowser({
 
   function applyFilters(newQ: string, newIndustry: string, newVc: string, newSort: Sort) {
     const params = new URLSearchParams();
+    params.set("view", "browse"); // always preserve browse mode
     if (newQ) params.set("q", newQ);
     if (newIndustry) params.set("industry", newIndustry);
     if (newVc) params.set("vc", newVc);
