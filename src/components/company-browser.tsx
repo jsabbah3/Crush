@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
+import type { Sort } from "@/app/(browse)/companies/page";
 
 type Company = {
   id: string;
@@ -22,6 +23,12 @@ type Company = {
   _count: { trackedBy: number };
   jobs: { postedAt: Date | null }[];
 };
+
+const SORT_OPTIONS: { value: Sort; label: string }[] = [
+  { value: "active", label: "Active" },
+  { value: "az",     label: "A–Z" },
+  { value: "followed", label: "Most followed" },
+];
 
 function formatLastActive(date: Date | null | undefined): string | null {
   if (!date) return null;
@@ -57,6 +64,7 @@ export function CompanyBrowser({
   userId,
   initialQ,
   initialIndustry,
+  initialSort,
 }: {
   companies: Company[];
   trackedMap: Map<string, { id: string }>;
@@ -64,16 +72,19 @@ export function CompanyBrowser({
   userId: string | null;
   initialQ: string;
   initialIndustry: string;
+  initialSort: Sort;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
   const [industry, setIndustry] = useState(initialIndustry);
+  const [sort, setSort] = useState<Sort>(initialSort);
   const [, startTransition] = useTransition();
 
-  function applyFilters(newQ: string, newIndustry: string) {
+  function applyFilters(newQ: string, newIndustry: string, newSort: Sort) {
     const params = new URLSearchParams();
     if (newQ) params.set("q", newQ);
     if (newIndustry) params.set("industry", newIndustry);
+    if (newSort !== "active") params.set("sort", newSort);
     startTransition(() => {
       router.push(`/companies?${params.toString()}`);
     });
@@ -82,37 +93,53 @@ export function CompanyBrowser({
   return (
     <div className="space-y-5">
       <div className="space-y-3">
-        <div className="flex gap-2 max-w-sm">
-          <div className="relative flex-1">
+        {/* Search + sort row */}
+        <div className="flex gap-2 flex-wrap">
+          <div className="relative flex-1 min-w-48 max-w-sm">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search companies…"
               className="pl-8"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyFilters(q, industry)}
+              onKeyDown={(e) => e.key === "Enter" && applyFilters(q, industry, sort)}
             />
           </div>
-          <Button variant="outline" size="sm" onClick={() => applyFilters(q, industry)}>
+          <Button variant="outline" size="sm" onClick={() => applyFilters(q, industry, sort)}>
             Search
           </Button>
+          <select
+            value={sort}
+            onChange={(e) => {
+              const next = e.target.value as Sort;
+              setSort(next);
+              applyFilters(q, industry, next);
+            }}
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
 
+        {/* Industry pills */}
         {industries.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {["", ...industries].map((ind) => (
               <button
                 key={ind || "__all__"}
                 onClick={() => {
-                  const next = ind;
-                  setIndustry(next);
-                  applyFilters(q, next);
+                  setIndustry(ind);
+                  applyFilters(q, ind, sort);
                 }}
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
                   industry === ind
                     ? "border-foreground bg-foreground text-background"
-                    : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                    : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
                 )}
               >
                 {ind || "All"}
