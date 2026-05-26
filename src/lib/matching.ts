@@ -97,9 +97,12 @@ export function doesJobMatch(
   // Hard filters
   if (remoteOnly === true && !job.remote) return false;
   if (remoteOnly === false && job.remote) return false;
-  if (locationFilter && !job.remote) {
+  if (locationFilter) {
     const loc = (job.location ?? "").toLowerCase();
-    if (!loc.includes(locationFilter.toLowerCase())) return false;
+    const filter = locationFilter.toLowerCase();
+    // For remote jobs: only filter if a location is specified on the job
+    // (blank location on a remote job = "anywhere" — don't exclude it)
+    if (loc && !loc.includes(filter)) return false;
   }
 
   // No role titles → any role passes (filtered only by remote/location above)

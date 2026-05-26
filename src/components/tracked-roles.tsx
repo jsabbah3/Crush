@@ -14,6 +14,14 @@ const SENIORITY = [
   { label: "Lead", kw: "lead" },
 ];
 
+const GEO_PRESETS = [
+  { label: "🇺🇸 United States", value: "United States" },
+  { label: "🗽 New York",        value: "New York" },
+  { label: "🌉 San Francisco",   value: "San Francisco" },
+  { label: "🇬🇧 London",         value: "London" },
+  { label: "🇪🇺 Europe",         value: "Europe" },
+];
+
 type Role = { id: string; title: string };
 
 export function TrackedRoles({
@@ -66,7 +74,7 @@ export function TrackedRoles({
       await saveUserPreferences({
         seniority,
         remoteOnly: remote === "remote" ? true : remote === "onsite" ? false : null,
-        locationFilter: remote === "onsite" && location.trim() ? location.trim() : null,
+        locationFilter: location.trim() || null,
       });
       setPrefsSaved(true);
       setTimeout(() => setPrefsSaved(false), 2000);
@@ -141,7 +149,7 @@ export function TrackedRoles({
           onClick={() => setFiltersOpen((v) => !v)}
           className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
         >
-          <span>Filters — seniority &amp; work arrangement</span>
+          <span>Filters — seniority, location &amp; work arrangement</span>
           <ChevronDown className={`size-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`} />
         </button>
 
@@ -172,6 +180,39 @@ export function TrackedRoles({
               <p className="text-xs text-muted-foreground">Leave empty to match any seniority level.</p>
             </div>
 
+            {/* Geography */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Geography</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setLocation("")}
+                  className={`${pillBase} ${!location ? pillActive : pillInactive}`}
+                >
+                  Anywhere
+                </button>
+                {GEO_PRESETS.map(({ label, value }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setLocation(location === value ? "" : value)}
+                    className={`${pillBase} ${location === value ? pillActive : pillInactive}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <Input
+                placeholder="Or type a city, state, or country…"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="h-8 text-sm max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Filters both on-site and remote jobs by location. Leave empty for anywhere.
+              </p>
+            </div>
+
             {/* Work arrangement */}
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Work arrangement</p>
@@ -190,14 +231,6 @@ export function TrackedRoles({
                   );
                 })}
               </div>
-              {remote === "onsite" && (
-                <Input
-                  placeholder="City or region (e.g. New York, London)"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="h-8 text-sm max-w-xs mt-1.5"
-                />
-              )}
             </div>
 
             <Button size="sm" variant="outline" onClick={handleSavePrefs} disabled={isPending}>
