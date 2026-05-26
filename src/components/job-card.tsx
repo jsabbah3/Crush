@@ -1,9 +1,9 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { useState } from "react";
+import { ExternalLink, X } from "lucide-react";
+import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { StatusPicker, STATUS_CONFIG, type AppStatus } from "@/components/status-picker";
 import { cn } from "@/lib/utils";
 
 type Job = {
@@ -31,14 +31,28 @@ const JOB_TYPE_LABEL: Record<string, string> = {
 export function JobCard({
   job,
   matchId,
-  applicationStatus,
+  applicationStatus: _applicationStatus,
   className,
 }: {
   job: Job;
   matchId?: string;
-  applicationStatus?: AppStatus;
+  applicationStatus?: string;
   className?: string;
 }) {
+  const [dismissed, setDismissed] = useState(false);
+
+  async function dismiss() {
+    if (!matchId) return;
+    setDismissed(true);
+    await fetch("/api/matches", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchId, dismissed: true }),
+    });
+  }
+
+  if (dismissed) return null;
+
   const salary =
     job.salaryMin && job.salaryMax
       ? `$${(job.salaryMin / 1000).toFixed(0)}k–$${(job.salaryMax / 1000).toFixed(0)}k`
@@ -52,9 +66,20 @@ export function JobCard({
             <p className="font-medium text-sm leading-snug">{job.title}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{job.company.name}</p>
           </div>
-          <Badge variant={job.remote ? "default" : "secondary"} className="text-xs shrink-0">
-            {job.remote ? "Remote" : (job.location ?? "On-site")}
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant={job.remote ? "default" : "secondary"} className="text-xs">
+              {job.remote ? "Remote" : (job.location ?? "On-site")}
+            </Badge>
+            {matchId && (
+              <button
+                onClick={dismiss}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Dismiss"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -63,77 +88,17 @@ export function JobCard({
           <span className="shrink-0">{JOB_TYPE_LABEL[job.type] ?? job.type}</span>
           {salary && <span className="shrink-0">{salary}</span>}
         </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          {matchId && applicationStatus && (
-            <StatusPicker matchId={matchId} initialStatus={applicationStatus} />
-          )}
-          {job.url && (
-            <a
-              href={job.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-foreground transition-colors"
-            >
-              Apply <ExternalLink className="size-3" />
-            </a>
-          )}
-        </div>
+        {job.url && (
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 hover:text-foreground transition-colors shrink-0"
+          >
+            Apply <ExternalLink className="size-3" />
+          </a>
+        )}
       </CardFooter>
     </Card>
-  );
-}
-
-// Compact row variant used on the Applications page
-export function JobRow({
-  job,
-  matchId,
-  applicationStatus,
-  applicationNote,
-  appliedAt,
-}: {
-  job: Job;
-  matchId: string;
-  applicationStatus: AppStatus;
-  applicationNote?: string | null;
-  appliedAt?: Date | null;
-}) {
-  const cfg = STATUS_CONFIG[applicationStatus];
-
-  return (
-    <div className="flex items-center gap-4 py-3 border-b last:border-0">
-      {/* Company + role */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium leading-snug truncate">{job.title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{job.company.name}</p>
-        {applicationNote && (
-          <p className="text-xs text-muted-foreground/70 mt-0.5 italic truncate">{applicationNote}</p>
-        )}
-      </div>
-
-      {/* Applied date */}
-      <div className="text-xs text-muted-foreground w-24 shrink-0 text-right">
-        {appliedAt
-          ? appliedAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-          : "—"}
-      </div>
-
-      {/* Status picker */}
-      <div className="shrink-0">
-        <StatusPicker matchId={matchId} initialStatus={applicationStatus} />
-      </div>
-
-      {/* Apply link */}
-      {job.url && (
-        <a
-          href={job.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-        >
-          <ExternalLink className="size-3" />
-        </a>
-      )}
-    </div>
   );
 }
