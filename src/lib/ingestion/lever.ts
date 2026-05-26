@@ -1,4 +1,4 @@
-import { type IngestedJob, isRemoteLocation, normalizeJobType } from "./normalize";
+import { type IngestedJob, isRemoteLocation, isUSOrRemote, normalizeJobType } from "./normalize";
 
 type LeverPosting = {
   id: string;
@@ -27,17 +27,19 @@ export async function fetchLeverJobs(slug: string): Promise<IngestedJob[]> {
 
   const postings = await res.json() as LeverPosting[];
 
-  return postings.map((p) => {
-    const location = p.categories?.location ?? null;
-    return {
-      externalJobId: p.id,
-      title: p.text,
-      description: p.description ?? p.descriptionPlain ?? "",
-      type: normalizeJobType(p.categories?.commitment),
-      location,
-      remote: isRemoteLocation(location),
-      url: p.hostedUrl ?? p.applyUrl ?? null,
-      postedAt: p.createdAt ? new Date(p.createdAt) : null,
-    };
-  });
+  return postings
+    .filter((p) => isUSOrRemote(p.categories?.location))
+    .map((p) => {
+      const location = p.categories?.location ?? null;
+      return {
+        externalJobId: p.id,
+        title: p.text,
+        description: p.description ?? p.descriptionPlain ?? "",
+        type: normalizeJobType(p.categories?.commitment),
+        location,
+        remote: isRemoteLocation(location),
+        url: p.hostedUrl ?? p.applyUrl ?? null,
+        postedAt: p.createdAt ? new Date(p.createdAt) : null,
+      };
+    });
 }

@@ -19,14 +19,26 @@ function colorFor(name: string) {
   return PALETTE[name.charCodeAt(0) % PALETTE.length];
 }
 
-function logoUrl(website: string | null): string | null {
+function extractDomain(website: string | null): string | null {
   if (!website) return null;
   try {
-    const host = new URL(website).hostname.replace(/^www\./, "");
-    return `https://logo.clearbit.com/${host}`;
+    return new URL(website).hostname.replace(/^www\./, "");
   } catch {
     return null;
   }
+}
+
+// Try multiple logo sources in order, falling back to next on error
+function logoUrls(website: string | null, name: string): string[] {
+  const domain = extractDomain(website);
+  const urls: string[] = [];
+
+  if (domain) {
+    // Google's favicon service — reliable, no API key needed
+    urls.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+  }
+
+  return urls;
 }
 
 export function CompanyLogo({
@@ -40,8 +52,8 @@ export function CompanyLogo({
   className?: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const [imgFailed, setImgFailed] = useState(false);
-  const src = logoUrl(website);
+  const sources = logoUrls(website, name);
+  const [srcIndex, setSrcIndex] = useState(0);
   const color = colorFor(name);
   const initial = name.charAt(0).toUpperCase();
 
@@ -51,15 +63,17 @@ export function CompanyLogo({
     lg: "size-16 text-xl rounded-2xl",
   }[size];
 
-  if (src && !imgFailed) {
+  const currentSrc = sources[srcIndex] ?? null;
+
+  if (currentSrc) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={src}
+        src={currentSrc}
         alt={name}
-        onError={() => setImgFailed(true)}
+        onError={() => setSrcIndex((i) => i + 1)}
         className={cn(
-          "object-contain border border-border/50 bg-white",
+          "object-contain border border-border/50 bg-white p-1",
           sizeClass,
           className
         )}

@@ -1,4 +1,4 @@
-import { type IngestedJob, isRemoteLocation, normalizeJobType } from "./normalize";
+import { type IngestedJob, isRemoteLocation, isUSOrRemote, normalizeJobType } from "./normalize";
 
 type AshbyJob = {
   id: string;
@@ -26,7 +26,7 @@ export async function fetchAshbyJobs(slug: string): Promise<IngestedJob[]> {
 
   const data = await res.json() as AshbyResponse;
 
-  return (data.jobs ?? []).map((p) => ({
+  return (data.jobs ?? []).filter((p) => isUSOrRemote(p.location)).map((p) => ({
     externalJobId: p.id,
     title: p.title,
     description: p.descriptionHtml ?? "",
