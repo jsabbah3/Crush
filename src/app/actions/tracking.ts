@@ -4,7 +4,83 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { trackServerEvent } from "@/lib/analytics-node";
+import { doesJobMatch } from "@/lib/matching";
 import type { JobType } from "@/generated/prisma/enums";
+
+type UserPrefs = {
+  seniority?: string[];
+  remoteOnly?: boolean | null;
+  locationFilter?: string | null;
+};
+
+/**
+ * Backfill matches for a user against already-ingested active jobs.
+ * Called when a user follows a company or adds a new role title.
+ *
+ * @param userId
+ * @param companyIds - if provided, only check jobs from these companies (follow flow)
+ *                    if null, check all tracked companies (add-role flow)
+ */
+export async function backfillMatchesForUser(userId: string) {
+  return backfillMatches(userId, null);
+}
+
+async function backfillMatches(userId: string, companyIds: string[] | null) {
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { defaultCriteria: true },
+  });
+  const prefs = dbUser?.defaultCriteria as UserPrefs | null;
+
+  const roles = await prisma.trackedRole.findMany({
+    where: { userId },
+    select: { title: true },
+  });
+  const roleTitles = roles.map((r) => r.title);
+  if (roleTitles.length === 0) return; // no roles set — nothing to match
+
+  // Get the relevant TrackedCompany rows
+  const trackedCompanies = await prisma.trackedCompany.findMany({
+    where: {
+      userId,
+      ...(companyIds ? { companyId: { in: companyIds } } : {}),
+    },
+    select: { id: true, companyId: true },
+  });
+  if (trackedCompanies.length === 0) return;
+
+  const trackedCompanyIds = trackedCompanies.map((tc) => tc.companyId);
+
+  // Fetch active jobs for those companies
+  const jobs = await prisma.job.findMany({
+    where: {
+      companyId: { in: trackedCompanyIds },
+      status: "ACTIVE",
+    },
+  });
+
+  // Build a map from companyId → trackedCompanyId
+  const tcMap = new Map(trackedCompanies.map((tc) => [tc.companyId, tc.id]));
+
+  for (const job of jobs) {
+    if (!doesJobMatch(
+      job,
+      roleTitles,
+      prefs?.seniority ?? [],
+      prefs?.remoteOnly ?? null,
+      prefs?.locationFilter ?? null,
+    )) continue;
+
+    const trackedCompanyId = tcMap.get(job.companyId);
+    if (!trackedCompanyId) continue;
+
+    try {
+      await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
+    } catch {
+      // Already exists — fine
+    }
+  }
+}
 
 export async function followCompany(
   companyId: string,
@@ -26,6 +102,9 @@ export async function followCompany(
   if (priorCount === 0) {
     await trackServerEvent(user.id, "first_company_tracked", { company_id: companyId, source });
   }
+
+  // Backfill matches for jobs already in the DB at this company
+  await backfillMatches(user.id, [companyId]);
 
   revalidatePath("/companies", "page");
   revalidatePath("/dashboard");
@@ -63,6 +142,8 @@ export async function trackCollection(companyIds: string[]) {
       update: {},
     });
   }
+
+  await backfillMatches(user.id, companyIds);
 
   revalidatePath("/dashboard");
   revalidatePath("/collections");

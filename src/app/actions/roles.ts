@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { backfillMatchesForUser } from "./tracking";
 
 export async function addTrackedRole(title: string) {
   const supabase = await createClient();
@@ -19,6 +20,9 @@ export async function addTrackedRole(title: string) {
   } catch {
     // Unique constraint — already tracking this role
   }
+
+  // Backfill matches across all followed companies with the new role
+  await backfillMatchesForUser(user.id);
 
   revalidatePath("/dashboard");
   revalidatePath("/settings");
