@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertSettingsForm } from "@/components/alert-settings-form";
 import { TrackedRoles } from "@/components/tracked-roles";
+import { ResumeUpload } from "@/components/resume-upload";
 import { signOut } from "@/app/actions/auth";
 
 type UserPrefs = {
@@ -84,6 +85,21 @@ export default async function SettingsPage() {
           <AlertSettingsForm
             alertMode={user.alertMode}
             alertsPaused={user.alertsPaused}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Resume</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            AI-powered role and company suggestions based on your background.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <ResumeUpload
+            initialResumeText={user.resumeText ?? null}
+            userId={user.id}
           />
         </CardContent>
       </Card>

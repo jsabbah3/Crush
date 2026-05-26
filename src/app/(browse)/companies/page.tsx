@@ -28,7 +28,15 @@ export default async function CompaniesPage({
         }),
         ...(industry && { industry: { equals: industry, mode: "insensitive" } }),
       },
-      include: { _count: { select: { trackedBy: true } } },
+      include: {
+        _count: { select: { trackedBy: true } },
+        jobs: {
+          where: { status: "ACTIVE" },
+          orderBy: { postedAt: "desc" },
+          take: 1,
+          select: { postedAt: true },
+        },
+      },
       orderBy: { name: "asc" },
       take: 60,
     }),

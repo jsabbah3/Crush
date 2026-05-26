@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Users } from "lucide-react";
+import { Search, Users, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -17,8 +17,38 @@ type Company = {
   industry: string | null;
   headquarters: string | null;
   website: string | null;
+  size: string | null;
+  fundingStage: string | null;
   _count: { trackedBy: number };
+  jobs: { postedAt: Date | null }[];
 };
+
+function formatLastActive(date: Date | null | undefined): string | null {
+  if (!date) return null;
+  const now = Date.now();
+  const diff = now - new Date(date).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+function formatFundingStage(stage: string | null): string | null {
+  if (!stage) return null;
+  const map: Record<string, string> = {
+    pre_seed: "Pre-seed",
+    seed: "Seed",
+    series_a: "Series A",
+    series_b: "Series B",
+    series_c: "Series C",
+    growth: "Growth",
+    public: "Public",
+  };
+  return map[stage] ?? stage;
+}
 
 export function CompanyBrowser({
   companies,
@@ -124,6 +154,9 @@ function CompanyCard({
   tracked: { id: string } | null;
   userId: string | null;
 }) {
+  const lastActive = formatLastActive(company.jobs[0]?.postedAt);
+  const fundingLabel = formatFundingStage(company.fundingStage);
+
   return (
     <div className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
       <div className="flex items-start gap-3">
@@ -140,9 +173,14 @@ function CompanyCard({
           >
             {company.name}
           </a>
-          {company.industry && (
-            <p className="text-xs text-muted-foreground">{company.industry}</p>
-          )}
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+            {company.industry && (
+              <p className="text-xs text-muted-foreground">{company.industry}</p>
+            )}
+            {fundingLabel && (
+              <p className="text-xs text-muted-foreground">{fundingLabel}</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -153,14 +191,20 @@ function CompanyCard({
       )}
 
       <div className="flex items-center justify-between mt-auto pt-1">
-        {company._count.trackedBy > 0 ? (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users className="size-3" />
-            {company._count.trackedBy.toLocaleString()} following
-          </span>
-        ) : (
-          <span />
-        )}
+        <div className="flex items-center gap-3">
+          {company._count.trackedBy > 0 && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Users className="size-3" />
+              {company._count.trackedBy.toLocaleString()}
+            </span>
+          )}
+          {lastActive && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="size-3" />
+              {lastActive}
+            </span>
+          )}
+        </div>
         <FollowButton
           company={{ id: company.id, name: company.name }}
           tracked={tracked}

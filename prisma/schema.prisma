@@ -17,6 +17,7 @@ model User {
   alertMode          AlertMode @default(instant) @map("alert_mode")
   alertsPaused       Boolean   @default(false) @map("alerts_paused")
   unsubscribeToken   String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("unsubscribe_token")
+  resumeText       String?   @map("resume_text")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -47,6 +48,8 @@ model Company {
   logoUrl      String?       @map("logo_url")
   industry     String?
   headquarters String?
+  size         CompanySize?
+  fundingStage FundingStage? @map("funding_stage")
   sourceType   CompanySource @default(manual) @map("source_type")
   sourceId     String?       @map("source_id")
   tags         String[]      @default([])
@@ -160,6 +163,28 @@ enum CompanySource {
   @@map("company_source")
 }
 
+enum CompanySize {
+  startup
+  small
+  medium
+  large
+  enterprise
+
+  @@map("company_size")
+}
+
+enum FundingStage {
+  pre_seed
+  seed
+  series_a
+  series_b
+  series_c
+  growth
+  public
+
+  @@map("funding_stage")
+}
+
 model TrackedCompany {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId         String    @map("user_id") @db.Uuid
@@ -188,6 +213,7 @@ model Match {
   notifiedAt       DateTime?         @map("notified_at")
   dismissed        Boolean           @default(false)
   seenAt           DateTime?         @map("seen_at")
+  aiScore          Float?            @map("ai_score")
   applicationStatus ApplicationStatus @default(INTERESTED) @map("application_status")
   applicationNote  String?           @map("application_note")
   appliedAt        DateTime?         @map("applied_at")
