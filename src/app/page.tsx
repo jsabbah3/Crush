@@ -34,7 +34,17 @@ const FEATURES = [
   },
 ];
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const { code } = await searchParams;
+  // Safety net: if Supabase redirects the OAuth code to the homepage, forward it to the callback
+  if (code) {
+    redirect(`/api/auth/callback?code=${code}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user: authUser },
