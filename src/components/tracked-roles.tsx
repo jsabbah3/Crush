@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X, Plus } from "lucide-react";
+import { X, Plus, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { addTrackedRole, removeTrackedRole, saveUserPreferences } from "@/app/actions/roles";
@@ -38,6 +38,7 @@ export function TrackedRoles({
   const [location, setLocation] = useState(initialLocationFilter ?? "");
   const [isPending, startTransition] = useTransition();
   const [prefsSaved, setPrefsSaved] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   function handleAdd() {
     const title = input.trim();
@@ -133,68 +134,78 @@ export function TrackedRoles({
         )}
       </div>
 
-      {/* Seniority */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Seniority
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {SENIORITY.map(({ label, kw }) => {
-            const active = seniority.includes(kw);
-            return (
-              <button
-                key={kw}
-                type="button"
-                onClick={() =>
-                  setSeniority((p) =>
-                    p.includes(kw) ? p.filter((k) => k !== kw) : [...p, kw]
-                  )
-                }
-                className={`${pillBase} ${active ? pillActive : pillInactive}`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Leave empty to match any seniority level.
-        </p>
-      </div>
+      {/* Filters: collapsible */}
+      <div className="border rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+        >
+          <span>Filters — seniority &amp; work arrangement</span>
+          <ChevronDown className={`size-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`} />
+        </button>
 
-      {/* Work arrangement */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Work arrangement
-        </p>
-        <div className="flex gap-1.5">
-          {(["any", "remote", "onsite"] as const).map((val) => {
-            const label = val === "any" ? "Any" : val === "remote" ? "Remote" : "On-site";
-            return (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setRemote(val)}
-                className={`${pillBase} ${remote === val ? pillActive : pillInactive}`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-        {remote === "onsite" && (
-          <Input
-            placeholder="City or region (e.g. New York, London)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="h-8 text-sm max-w-xs mt-1.5"
-          />
+        {filtersOpen && (
+          <div className="px-3 pb-3 space-y-4 border-t pt-3">
+            {/* Seniority */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Seniority</p>
+              <div className="flex flex-wrap gap-1.5">
+                {SENIORITY.map(({ label, kw }) => {
+                  const active = seniority.includes(kw);
+                  return (
+                    <button
+                      key={kw}
+                      type="button"
+                      onClick={() =>
+                        setSeniority((p) =>
+                          p.includes(kw) ? p.filter((k) => k !== kw) : [...p, kw]
+                        )
+                      }
+                      className={`${pillBase} ${active ? pillActive : pillInactive}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">Leave empty to match any seniority level.</p>
+            </div>
+
+            {/* Work arrangement */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Work arrangement</p>
+              <div className="flex gap-1.5">
+                {(["any", "remote", "onsite"] as const).map((val) => {
+                  const label = val === "any" ? "Any" : val === "remote" ? "Remote" : "On-site";
+                  return (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setRemote(val)}
+                      className={`${pillBase} ${remote === val ? pillActive : pillInactive}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              {remote === "onsite" && (
+                <Input
+                  placeholder="City or region (e.g. New York, London)"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="h-8 text-sm max-w-xs mt-1.5"
+                />
+              )}
+            </div>
+
+            <Button size="sm" variant="outline" onClick={handleSavePrefs} disabled={isPending}>
+              {prefsSaved ? "Saved!" : isPending ? "Saving…" : "Save preferences"}
+            </Button>
+          </div>
         )}
       </div>
-
-      <Button size="sm" variant="outline" onClick={handleSavePrefs} disabled={isPending}>
-        {prefsSaved ? "Saved!" : isPending ? "Saving…" : "Save preferences"}
-      </Button>
     </div>
   );
 }

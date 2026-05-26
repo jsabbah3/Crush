@@ -99,11 +99,9 @@ export default async function DashboardPage() {
           initialLocationFilter={prefs?.locationFilter ?? null}
         />
 
-        <div className="pt-2 border-t">
-          <TrendingRoles
-            trackedTitles={trackedRoles.map((r) => r.title)}
-          />
-        </div>
+        <TrendingRoles
+          trackedTitles={trackedRoles.map((r) => r.title)}
+        />
       </section>
 
       {tracked.length === 0 ? (

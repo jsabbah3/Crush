@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Check, ChevronDown } from "lucide-react";
 import { addTrackedRole } from "@/app/actions/roles";
 import { useRouter } from "next/navigation";
 
@@ -114,6 +114,7 @@ export function TrendingRoles({
 }) {
   const router = useRouter();
   const [added, setAdded] = useState<Set<string>>(new Set());
+  const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [tooltip, setTooltip] = useState<string | null>(null);
@@ -136,66 +137,72 @@ export function TrendingRoles({
   const remaining = TRENDING_ROLES.length - INITIAL_SHOW;
 
   return (
-    <div className="space-y-3">
-      <div>
-        <h3 className="text-sm font-semibold flex items-center gap-1.5">
+    <div className="border rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+      >
+        <span className="flex items-center gap-1.5">
           <span>🔥</span> Trending roles in AI
-        </h3>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          New job titles worth knowing — hover to learn what they mean, click <span className="font-medium">+</span> to track
-        </p>
-      </div>
+        </span>
+        <ChevronDown className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
 
-      <div className="flex flex-wrap gap-2">
-        {visible.map((role) => {
-          const isTracked = tracked.has(role.title.toLowerCase());
-          const isHovered = tooltip === role.title;
-          return (
-            <div key={role.title} className="relative">
-              <button
-                onClick={() => handleAdd(role)}
-                onMouseEnter={() => setTooltip(role.title)}
-                onMouseLeave={() => setTooltip(null)}
-                disabled={isTracked || isPending}
-                className={[
-                  "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
-                  isTracked
-                    ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400 cursor-default"
-                    : "border-border bg-background hover:border-foreground/40 hover:bg-muted cursor-pointer",
-                ].join(" ")}
-              >
-                {role.title}
-                {isTracked ? (
-                  <Check className="size-3 shrink-0" />
-                ) : (
-                  <Plus className="size-3 shrink-0 text-muted-foreground" />
-                )}
-              </button>
+      {open && (
+        <div className="border-t px-3 py-3 space-y-3">
+          <p className="text-xs text-muted-foreground">
+            New job titles worth knowing — hover to learn what they mean, click <span className="font-medium">+</span> to track
+          </p>
 
-              {/* Tooltip */}
-              {isHovered && (
-                <div className="absolute bottom-full left-0 mb-2 z-50 w-56 rounded-lg border bg-popover px-3 py-2 shadow-md text-xs text-popover-foreground leading-relaxed pointer-events-none">
-                  <span className="font-medium block mb-0.5">{role.title}</span>
-                  {role.description}
-                  <div className="mt-1 text-[10px] text-muted-foreground">{role.category}</div>
+          <div className="flex flex-wrap gap-2">
+            {visible.map((role) => {
+              const isTracked = tracked.has(role.title.toLowerCase());
+              const isHovered = tooltip === role.title;
+              return (
+                <div key={role.title} className="relative">
+                  <button
+                    onClick={() => handleAdd(role)}
+                    onMouseEnter={() => setTooltip(role.title)}
+                    onMouseLeave={() => setTooltip(null)}
+                    disabled={isTracked || isPending}
+                    className={[
+                      "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                      isTracked
+                        ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400 cursor-default"
+                        : "border-border bg-background hover:border-foreground/40 hover:bg-muted cursor-pointer",
+                    ].join(" ")}
+                  >
+                    {role.title}
+                    {isTracked ? (
+                      <Check className="size-3 shrink-0" />
+                    ) : (
+                      <Plus className="size-3 shrink-0 text-muted-foreground" />
+                    )}
+                  </button>
+
+                  {isHovered && (
+                    <div className="absolute bottom-full left-0 mb-2 z-50 w-56 rounded-lg border bg-popover px-3 py-2 shadow-md text-xs text-popover-foreground leading-relaxed pointer-events-none">
+                      <span className="font-medium block mb-0.5">{role.title}</span>
+                      {role.description}
+                      <div className="mt-1 text-[10px] text-muted-foreground">{role.category}</div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
 
-      {TRENDING_ROLES.length > INITIAL_SHOW && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {expanded ? (
-            <>Show less <ChevronUp className="size-3" /></>
-          ) : (
-            <>Show {remaining} more <ChevronDown className="size-3" /></>
+          {TRENDING_ROLES.length > INITIAL_SHOW && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {expanded ? "Show less" : `Show ${remaining} more`}
+              <ChevronDown className={`size-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
+            </button>
           )}
-        </button>
+        </div>
       )}
     </div>
   );
