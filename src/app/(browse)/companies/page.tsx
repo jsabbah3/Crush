@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { CompanyBrowser } from "@/components/company-browser";
 import { FollowingList } from "@/components/following-list";
+import { CompanySearch } from "@/components/company-search";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
@@ -144,19 +145,24 @@ export default async function CompaniesPage({
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h1 className="font-heading text-3xl font-bold">🏢 Companies</h1>
             <p className="text-sm text-muted-foreground">
               {tracked.length} {tracked.length === 1 ? "company" : "companies"} followed
             </p>
           </div>
-          <Link href="/companies?view=browse">
-            <Button size="sm">
-              <Plus className="size-3.5" />
-              Discover companies
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2 pt-1">
+            <CompanySearch
+              trackedCompanyIds={tracked.map((t) => t.companyId)}
+            />
+            <Link href="/companies?view=browse">
+              <Button variant="outline" size="sm" className="shrink-0">
+                <Plus className="size-3.5" />
+                Browse all
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <FollowingList tracked={tracked} userId={authUser.id} />
