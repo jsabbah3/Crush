@@ -18,18 +18,22 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const [user, unreadMatchRows] = await Promise.all([
-    prisma.user.findUnique({ where: { id: authUser.id } }),
-    prisma.match.findMany({
-      where: {
-        trackedCompany: { userId: authUser.id },
-        seenAt: null,
-        dismissed: false,
-      },
-      select: { id: true },
-    }),
-  ]);
-  const unreadMatches = unreadMatchRows.length;
+  const user = await prisma.user.findUnique({ where: { id: authUser.id } });
+
+  const trackedIds = await prisma.trackedCompany.findMany({
+    where: { userId: authUser.id },
+    select: { id: true },
+  });
+
+  const unreadMatches = trackedIds.length > 0
+    ? await prisma.match.count({
+        where: {
+          trackedCompanyId: { in: trackedIds.map((t) => t.id) },
+          seenAt: null,
+          dismissed: false,
+        },
+      })
+    : 0;
 
   if (!user) {
     redirect("/login");
