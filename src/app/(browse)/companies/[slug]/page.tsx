@@ -61,6 +61,14 @@ export default async function CompanyDetailPage({
                 {company.industry}
               </Badge>
             )}
+            {company.fundingStage && (
+              <Badge variant="secondary" className="text-xs capitalize">
+                {company.fundingStage.replace(/_/g, " ")}
+              </Badge>
+            )}
+            {company.size && (
+              <span className="text-xs capitalize text-muted-foreground">{company.size}</span>
+            )}
             {company.headquarters && <span>{company.headquarters}</span>}
             {company.website && (
               <a

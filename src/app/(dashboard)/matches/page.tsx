@@ -4,6 +4,7 @@ import { Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { JobCard } from "@/components/job-card";
+import { AiMatchScorer } from "@/components/ai-match-scorer";
 import { cn } from "@/lib/utils";
 import type { AppStatus } from "@/components/status-picker";
 import { ApplicationStatus } from "@/generated/prisma/enums";
@@ -28,6 +29,11 @@ export default async function MatchesPage({
   const { status: rawStatus } = await searchParams;
   const activeStatus: AppStatus =
     TABS.find((t) => t.value === rawStatus)?.value ?? "INTERESTED";
+
+  const hasResume = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { resumeText: true },
+  }).then((u) => !!u?.resumeText);
 
   const [matches] = await Promise.all([
     prisma.match.findMany({
@@ -85,6 +91,28 @@ export default async function MatchesPage({
           </Link>
         ))}
       </div>
+
+      {/* AI match scoring — only shown on Interested tab when resume exists */}
+      {activeStatus === "INTERESTED" && matches.length > 0 && (
+        <AiMatchScorer
+          jobs={matches.map((m) => ({
+            matchId: m.id,
+            jobId: m.jobId,
+            title: m.job.title,
+            company: m.job.company.name,
+            description: m.job.description,
+          }))}
+        />
+      )}
+      {!hasResume && activeStatus === "INTERESTED" && matches.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Add your resume in{" "}
+          <Link href="/settings" className="underline underline-offset-2 hover:text-foreground">
+            Settings
+          </Link>{" "}
+          to enable AI match scoring.
+        </p>
+      )}
 
       {matches.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">

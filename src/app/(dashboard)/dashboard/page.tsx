@@ -128,8 +128,16 @@ export default async function DashboardPage() {
             {tracked.map((tc) => (
               <Link key={tc.id} href={`/companies/${tc.company.slug}`}>
                 <Card className="hover:shadow-sm transition-shadow cursor-pointer h-full">
-                  <CardContent className="p-4 space-y-1.5">
-                    <p className="text-sm font-semibold leading-snug">{tc.company.name}</p>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center gap-2.5">
+                      <CompanyLogo
+                        name={tc.company.name}
+                        website={tc.company.website}
+                        size="sm"
+                        className="shrink-0"
+                      />
+                      <p className="text-sm font-semibold leading-snug truncate">{tc.company.name}</p>
+                    </div>
                     <div className="flex items-center gap-2">
                       {tc._count.matches > 0 && (
                         <Badge variant="default" className="text-xs">

@@ -9,7 +9,9 @@
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
     "scrape-ats": "tsx scripts/scrape-ats-companies.ts",
-    "scrape-vc": "tsx scripts/scrape-vc-portfolios.ts"
+    "scrape-vc": "tsx scripts/scrape-vc-portfolios.ts",
+    "fetch-logos": "tsx scripts/fetch-logos.ts",
+    "populate-metadata": "tsx scripts/populate-company-metadata.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
