@@ -25,15 +25,17 @@ export default async function DashboardLayout({
     select: { id: true },
   });
 
-  const unreadMatches = trackedIds.length > 0
-    ? await prisma.match.count({
+  const unreadMatchRows = trackedIds.length > 0
+    ? await prisma.match.findMany({
         where: {
           trackedCompanyId: { in: trackedIds.map((t) => t.id) },
           seenAt: null,
           dismissed: false,
         },
+        select: { id: true },
       })
-    : 0;
+    : [];
+  const unreadMatches = unreadMatchRows.length;
 
   if (!user) {
     redirect("/login");
