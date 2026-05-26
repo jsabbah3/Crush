@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter, Geist_Mono } from "next/font/google";
-import { PostHogProvider } from "@/components/posthog-provider";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -37,7 +36,7 @@ export default function RootLayout({
       className={`${playfair.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <PostHogProvider>{children}</PostHogProvider>
+        {children}
       </body>
     </html>
   );

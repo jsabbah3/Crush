@@ -1,29 +1,6 @@
-/**
- * Client-side analytics wrapper.
- * Import this from client components and hooks only.
- * All PostHog captures go through here — never call posthog.capture directly.
- */
-import posthog from "posthog-js";
-
-function safe(fn: () => void) {
-  if (typeof window === "undefined") return;
-  try {
-    fn();
-  } catch {
-    // Never let analytics errors surface to users
-  }
-}
-
+// PostHog removed. Stubs kept so call-sites compile unchanged.
 export const analytics = {
-  identify(userId: string, traits?: Record<string, unknown>) {
-    safe(() => posthog.identify(userId, traits));
-  },
-
-  track(event: string, properties?: Record<string, unknown>) {
-    safe(() => posthog.capture(event, properties));
-  },
-
-  reset() {
-    safe(() => posthog.reset());
-  },
+  identify(_userId: string, _traits?: Record<string, unknown>) {},
+  track(_event: string, _properties?: Record<string, unknown>) {},
+  reset() {},
 };

@@ -22,8 +22,8 @@ export default async function DashboardLayout({
     prisma.user.findUnique({ where: { id: authUser.id } }),
     prisma.match.count({
       where: {
-        trackedCompany: { userId: authUser.id },
-        seenAt: null,
+        trackedCompany: { is: { userId: authUser.id } },
+        seenAt: { equals: null },
         dismissed: false,
       },
     }),
