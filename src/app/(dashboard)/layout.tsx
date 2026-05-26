@@ -18,16 +18,18 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const [user, unreadMatches] = await Promise.all([
+  const [user, unreadMatchRows] = await Promise.all([
     prisma.user.findUnique({ where: { id: authUser.id } }),
-    prisma.match.count({
+    prisma.match.findMany({
       where: {
         trackedCompany: { userId: authUser.id },
         seenAt: null,
         dismissed: false,
       },
+      select: { id: true },
     }),
   ]);
+  const unreadMatches = unreadMatchRows.length;
 
   if (!user) {
     redirect("/login");
