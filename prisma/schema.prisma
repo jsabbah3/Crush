@@ -157,6 +157,7 @@ enum CompanySource {
   greenhouse
   lever
   ashby
+  gem
   workday
   manual
 

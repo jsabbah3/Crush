@@ -3,6 +3,7 @@ import { doesJobMatch } from "@/lib/matching";
 import { fetchGreenhouseJobs } from "./greenhouse";
 import { fetchLeverJobs } from "./lever";
 import { fetchAshbyJobs } from "./ashby";
+import { fetchGemJobs } from "./gem";
 import { fetchRemotiveJobs, normalizeCompanyName } from "./remotive";
 import { fetchTheMuseJobs } from "./the-muse";
 import type { IngestedJob } from "./normalize";
@@ -105,7 +106,7 @@ async function persistJobs(
 async function runAtsIngestion(): Promise<IngestionResult> {
   const companies = await prisma.company.findMany({
     where: {
-      sourceType: { in: ["greenhouse", "lever", "ashby"] },
+      sourceType: { in: ["greenhouse", "lever", "ashby", "gem"] },
       sourceId: { not: null },
     },
   });
@@ -133,6 +134,7 @@ function fetchAtsJobs(sourceType: string, sourceId: string): Promise<IngestedJob
     case "greenhouse": return fetchGreenhouseJobs(sourceId);
     case "lever":      return fetchLeverJobs(sourceId);
     case "ashby":      return fetchAshbyJobs(sourceId);
+    case "gem":        return fetchGemJobs(sourceId);
     default:           return Promise.resolve([]);
   }
 }
