@@ -3,7 +3,6 @@ import { doesJobMatch } from "@/lib/matching";
 import { fetchGreenhouseJobs } from "./greenhouse";
 import { fetchLeverJobs } from "./lever";
 import { fetchAshbyJobs } from "./ashby";
-import { fetchAdzunaJobs } from "./adzuna";
 import { fetchRemotiveJobs, normalizeCompanyName } from "./remotive";
 import { fetchTheMuseJobs } from "./the-muse";
 import type { IngestedJob } from "./normalize";
@@ -173,47 +172,6 @@ async function runAggregateIngestion(
   return { companiesProcessed, newJobs, newMatches, errors };
 }
 
-// ── Adzuna: per-company search ────────────────────────────────────────────────
-// Runs for all manual companies (no ATS source) plus any company a user is
-// actively tracking, deduped by id.
-
-async function runAdzunaIngestion(): Promise<IngestionResult> {
-  const [tracked, manualCompanies] = await Promise.all([
-    prisma.trackedCompany.findMany({
-      where: { emailAlerts: true },
-      select: { company: { select: { id: true, name: true, slug: true } } },
-      distinct: ["companyId"],
-    }),
-    prisma.company.findMany({
-      where: { sourceType: "manual" },
-      select: { id: true, name: true, slug: true },
-    }),
-  ]);
-
-  const byId = new Map<string, { id: string; name: string; slug: string }>();
-  for (const { company } of tracked) byId.set(company.id, company);
-  for (const company of manualCompanies) byId.set(company.id, company);
-  const companies = [...byId.values()];
-
-  let newJobs = 0;
-  let newMatches = 0;
-  const errors: string[] = [];
-
-  for (const company of companies) {
-    try {
-      await sleep(200);
-      const jobs = await fetchAdzunaJobs(company.name);
-      const r = await persistJobs(company.id, company.slug, jobs);
-      newJobs += r.newJobs;
-      newMatches += r.newMatches;
-    } catch (err) {
-      errors.push(`[Adzuna] ${company.name}: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }
-
-  return { companiesProcessed: companies.length, newJobs, newMatches, errors };
-}
-
 // ── main entry point ──────────────────────────────────────────────────────────
 
 export async function runIngestion(): Promise<IngestionResult> {
@@ -221,7 +179,6 @@ export async function runIngestion(): Promise<IngestionResult> {
     runAtsIngestion(),
     runAggregateIngestion("Remotive", fetchRemotiveJobs),
     runAggregateIngestion("The Muse", fetchTheMuseJobs),
-    runAdzunaIngestion(),
   ]);
 
   return results.reduce<IngestionResult>(
@@ -245,8 +202,4 @@ export async function runIngestion(): Promise<IngestionResult> {
 function buildSlug(companySlug: string, externalJobId: string): string {
   const safe = externalJobId.replace(/[^a-z0-9-]/gi, "-").toLowerCase().slice(0, 40);
   return `${companySlug}-${safe}`;
-}
-
-function sleep(ms: number) {
-  return new Promise<void>((r) => setTimeout(r, ms));
 }
