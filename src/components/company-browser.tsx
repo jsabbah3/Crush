@@ -25,7 +25,7 @@ type Company = {
 };
 
 const SORT_OPTIONS: { value: Sort; label: string }[] = [
-  { value: "active", label: "Active" },
+  { value: "active", label: "Most active" },
   { value: "az",     label: "A–Z" },
   { value: "followed", label: "Most followed" },
 ];
@@ -61,29 +61,35 @@ export function CompanyBrowser({
   companies,
   trackedMap,
   industries,
+  vcs,
   userId,
   initialQ,
   initialIndustry,
+  initialVc,
   initialSort,
 }: {
   companies: Company[];
   trackedMap: Map<string, { id: string }>;
   industries: string[];
+  vcs: string[];
   userId: string | null;
   initialQ: string;
   initialIndustry: string;
+  initialVc: string;
   initialSort: Sort;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
   const [industry, setIndustry] = useState(initialIndustry);
+  const [vc, setVc] = useState(initialVc);
   const [sort, setSort] = useState<Sort>(initialSort);
   const [, startTransition] = useTransition();
 
-  function applyFilters(newQ: string, newIndustry: string, newSort: Sort) {
+  function applyFilters(newQ: string, newIndustry: string, newVc: string, newSort: Sort) {
     const params = new URLSearchParams();
     if (newQ) params.set("q", newQ);
     if (newIndustry) params.set("industry", newIndustry);
+    if (newVc) params.set("vc", newVc);
     if (newSort !== "active") params.set("sort", newSort);
     startTransition(() => {
       router.push(`/companies?${params.toString()}`);
@@ -102,10 +108,10 @@ export function CompanyBrowser({
               className="pl-8"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyFilters(q, industry, sort)}
+              onKeyDown={(e) => e.key === "Enter" && applyFilters(q, industry, vc, sort)}
             />
           </div>
-          <Button variant="outline" size="sm" onClick={() => applyFilters(q, industry, sort)}>
+          <Button variant="outline" size="sm" onClick={() => applyFilters(q, industry, vc, sort)}>
             Search
           </Button>
           <select
@@ -113,7 +119,7 @@ export function CompanyBrowser({
             onChange={(e) => {
               const next = e.target.value as Sort;
               setSort(next);
-              applyFilters(q, industry, next);
+              applyFilters(q, industry, vc, next);
             }}
             className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           >
@@ -125,26 +131,56 @@ export function CompanyBrowser({
           </select>
         </div>
 
+        {/* VC filter pills */}
+        {vcs.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Backed by</p>
+            <div className="flex flex-wrap gap-1.5">
+              {["", ...vcs].map((v) => (
+                <button
+                  key={v || "__all__"}
+                  onClick={() => {
+                    setVc(v);
+                    setIndustry("");
+                    applyFilters(q, "", v, sort);
+                  }}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
+                    vc === v
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                  )}
+                >
+                  {v || "All"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Industry pills */}
         {industries.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {["", ...industries].map((ind) => (
-              <button
-                key={ind || "__all__"}
-                onClick={() => {
-                  setIndustry(ind);
-                  applyFilters(q, ind, sort);
-                }}
-                className={cn(
-                  "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
-                  industry === ind
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                )}
-              >
-                {ind || "All"}
-              </button>
-            ))}
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Industry</p>
+            <div className="flex flex-wrap gap-1.5">
+              {["", ...industries].map((ind) => (
+                <button
+                  key={ind || "__all__"}
+                  onClick={() => {
+                    setIndustry(ind);
+                    applyFilters(q, ind, vc, sort);
+                  }}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
+                    industry === ind
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                  )}
+                >
+                  {ind || "All"}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

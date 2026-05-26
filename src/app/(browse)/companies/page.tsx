@@ -11,7 +11,14 @@ export const metadata = {
 export type Sort = "active" | "az" | "followed";
 const VALID_SORTS: Sort[] = ["active", "az", "followed"];
 
-// Shape shared between the raw-SQL and ORM paths
+// Top VC tags to show as filter pills (in display order)
+const FEATURED_VCS = [
+  "a16z", "Sequoia", "YC", "Greylock", "Founders Fund",
+  "Accel", "Kleiner Perkins", "Benchmark", "Index Ventures",
+  "Bessemer", "Spark Capital", "Boldstart", "NEA",
+  "Insight Partners", "Unicorn",
+];
+
 type BrowseCompany = {
   id: string;
   name: string;
@@ -40,7 +47,7 @@ type ActiveRow = {
   last_posted_at: Date | null;
 };
 
-async function fetchByActive(q: string, industry: string): Promise<BrowseCompany[]> {
+async function fetchByActive(q: string, industry: string, vc: string): Promise<BrowseCompany[]> {
   const conditions: Prisma.Sql[] = [];
   if (q) {
     conditions.push(
@@ -49,6 +56,9 @@ async function fetchByActive(q: string, industry: string): Promise<BrowseCompany
   }
   if (industry) {
     conditions.push(Prisma.sql`c.industry ILIKE ${industry}`);
+  }
+  if (vc) {
+    conditions.push(Prisma.sql`${vc} = ANY(c.tags)`);
   }
 
   const where =
@@ -65,16 +75,19 @@ async function fetchByActive(q: string, industry: string): Promise<BrowseCompany
       c.website,
       c.industry,
       c.headquarters,
-      c.size::text        AS size,
+      c.size::text          AS size,
       c.funding_stage::text AS funding_stage,
-      COUNT(DISTINCT tc.id)::int AS tracked_by_count,
+      COUNT(DISTINCT tc.id)::int  AS tracked_by_count,
       MAX(CASE WHEN j.status = 'ACTIVE'::job_status THEN j.posted_at END) AS last_posted_at
     FROM companies c
     LEFT JOIN jobs j ON j.company_id = c.id
     LEFT JOIN tracked_companies tc ON tc.company_id = c.id
     ${where}
     GROUP BY c.id
-    ORDER BY MAX(CASE WHEN j.status = 'ACTIVE'::job_status THEN j.posted_at END) DESC NULLS LAST
+    ORDER BY
+      COUNT(CASE WHEN j.status = 'ACTIVE'::job_status THEN 1 END) DESC,
+      MAX(CASE WHEN j.status = 'ACTIVE'::job_status THEN j.posted_at END) DESC NULLS LAST,
+      c.name ASC
     LIMIT 100
   `;
 
@@ -96,6 +109,7 @@ async function fetchByActive(q: string, industry: string): Promise<BrowseCompany
 async function fetchByOrm(
   q: string,
   industry: string,
+  vc: string,
   sort: "az" | "followed",
 ): Promise<BrowseCompany[]> {
   const rows = await prisma.company.findMany({
@@ -107,6 +121,7 @@ async function fetchByOrm(
         ],
       }),
       ...(industry && { industry: { equals: industry, mode: "insensitive" } }),
+      ...(vc && { tags: { has: vc } }),
     },
     include: {
       _count: { select: { trackedBy: true } },
@@ -142,20 +157,18 @@ async function fetchByOrm(
 export default async function CompaniesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; industry?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; industry?: string; sort?: string; vc?: string }>;
 }) {
   const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
 
-  const { q = "", industry = "", sort: rawSort = "" } = await searchParams;
-  const sort: Sort = VALID_SORTS.includes(rawSort as Sort)
-    ? (rawSort as Sort)
-    : "active";
+  const { q = "", industry = "", sort: rawSort = "", vc = "" } = await searchParams;
+  const sort: Sort = VALID_SORTS.includes(rawSort as Sort) ? (rawSort as Sort) : "active";
 
   const [companies, tracked, industries] = await Promise.all([
-    sort === "active" ? fetchByActive(q, industry) : fetchByOrm(q, industry, sort),
+    sort === "active"
+      ? fetchByActive(q, industry, vc)
+      : fetchByOrm(q, industry, vc, sort),
     authUser
       ? prisma.trackedCompany.findMany({
           where: { userId: authUser.id },
@@ -185,9 +198,11 @@ export default async function CompaniesPage({
         companies={companies}
         trackedMap={trackedMap}
         industries={industries.map((i) => i.industry!)}
+        vcs={FEATURED_VCS}
         userId={authUser?.id ?? null}
         initialQ={q}
         initialIndustry={industry}
+        initialVc={vc}
         initialSort={sort}
       />
     </div>
