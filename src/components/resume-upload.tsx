@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, Trash2, Sparkles } from "lucide-react";
+import { Loader2, Upload, Trash2, Sparkles, Check, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { addTrackedRole } from "@/app/actions/roles";
 
 type AnalysisResult = {
   suggestedRoles: string[];
@@ -12,24 +12,35 @@ type AnalysisResult = {
   strengths: string[];
 };
 
+type TrackedRole = { id: string; title: string };
+
 export function ResumeUpload({
   initialResumeText,
   userId,
+  initialTrackedRoles = [],
 }: {
   initialResumeText: string | null;
   userId: string;
+  initialTrackedRoles?: TrackedRole[];
 }) {
   const router = useRouter();
   const [text, setText] = useState(initialResumeText ?? "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Track which roles have been added this session (optimistic)
+  const [addedRoles, setAddedRoles] = useState<Set<string>>(new Set());
+  const [isPending, startTransition] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const trackedTitles = new Set([
+    ...initialTrackedRoles.map((r) => r.title.toLowerCase()),
+    ...[...addedRoles].map((r) => r.toLowerCase()),
+  ]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Read file as plain text (works for .txt; .pdf extraction is limited in browser)
     const content = await file.text();
     setText(content);
   }
@@ -70,12 +81,20 @@ export function ResumeUpload({
     }
   }
 
+  function handleAddRole(role: string) {
+    startTransition(async () => {
+      await addTrackedRole(role);
+      setAddedRoles((prev) => new Set([...prev, role]));
+      router.refresh();
+    });
+  }
+
   const hasText = text.trim().length >= 50;
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Paste your resume below. Claude will suggest roles and companies to track based on your background.
+        Paste your resume below. Claude will suggest roles you might not have considered based on your background.
       </p>
 
       <div className="space-y-2">
@@ -133,30 +152,53 @@ export function ResumeUpload({
       </Button>
 
       {result && (
-        <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
-          <p className="text-sm">{result.summary}</p>
+        <div className="rounded-lg border bg-muted/40 p-4 space-y-4">
+          <p className="text-sm leading-relaxed">{result.summary}</p>
 
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Suggested roles to track</p>
-            <div className="flex flex-wrap gap-1.5">
-              {result.suggestedRoles.map((role) => (
-                <Badge key={role} variant="secondary" className="text-xs">
-                  {role}
-                </Badge>
-              ))}
+          <div className="space-y-2">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Suggested roles to track</p>
+              <p className="text-xs text-muted-foreground">Click + to add a role to your tracked roles</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {result.suggestedRoles.map((role) => {
+                const isTracked = trackedTitles.has(role.toLowerCase());
+                return (
+                  <button
+                    key={role}
+                    onClick={() => !isTracked && handleAddRole(role)}
+                    disabled={isTracked || isPending}
+                    className={[
+                      "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                      isTracked
+                        ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400 cursor-default"
+                        : "border-border bg-background hover:border-foreground/40 hover:bg-muted cursor-pointer",
+                    ].join(" ")}
+                  >
+                    {role}
+                    {isTracked ? (
+                      <Check className="size-3 shrink-0" />
+                    ) : (
+                      <Plus className="size-3 shrink-0 text-muted-foreground" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Key strengths</p>
-            <div className="flex flex-wrap gap-1.5">
-              {result.strengths.map((s) => (
-                <Badge key={s} variant="outline" className="text-xs">
-                  {s}
-                </Badge>
-              ))}
+          {result.strengths.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Key strengths</p>
+              <div className="flex flex-wrap gap-1.5">
+                {result.strengths.map((s) => (
+                  <span key={s} className="rounded-md border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

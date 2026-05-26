@@ -100,6 +100,7 @@ export default async function SettingsPage() {
           <ResumeUpload
             initialResumeText={user.resumeText ?? null}
             userId={user.id}
+            initialTrackedRoles={trackedRoles}
           />
         </CardContent>
       </Card>

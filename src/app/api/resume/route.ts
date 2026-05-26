@@ -28,10 +28,10 @@ export async function POST(req: Request) {
     messages: [
       {
         role: "user",
-        content: `You are a career coach. Analyze this resume and return a JSON object with:
-- "suggestedRoles": array of 5-8 job title strings the person is well-suited for (short, like "Product Manager", "Growth Engineer", "Data Scientist")
+        content: `You are a career coach specializing in helping people discover roles they haven't considered. Analyze this resume and return a JSON object with:
+- "suggestedRoles": array of 8-12 job title strings. Include a mix of: (1) obvious fits based on their experience, (2) lateral moves they probably haven't considered (e.g. a software engineer might suit "Developer Advocate", "Technical PM", "Solutions Engineer", "ML Engineer", "Platform Engineer"), and (3) emerging/modern role titles at startups (e.g. "GTM Engineer", "Revenue Engineer", "Founding Engineer", "AI Engineer"). Keep titles short (2-4 words). Prioritize variety and surprise over the obvious.
 - "summary": 1-2 sentence plain-English summary of the person's background
-- "strengths": array of 3-5 key skill/domain strengths
+- "strengths": array of 3-5 key skill/domain strengths (short labels, e.g. "TypeScript", "System Design", "Growth Strategy")
 
 Return ONLY valid JSON, no markdown, no explanation.
 
