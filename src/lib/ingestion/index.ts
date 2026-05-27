@@ -118,6 +118,10 @@ async function runAtsIngestion(): Promise<IngestionResult> {
   for (const company of companies) {
     try {
       const jobs = await fetchAtsJobs(company.sourceType, company.sourceId!);
+      if (jobs.length === 0) {
+        // Log a warning — could be a wrong ATS slug or a genuine hiring pause
+        errors.push(`[ATS:zero-jobs] ${company.name} (${company.sourceType}/${company.sourceId}) returned 0 jobs — may need re-validation`);
+      }
       const r = await persistJobs(company.id, company.slug, jobs);
       newJobs += r.newJobs;
       newMatches += r.newMatches;
