@@ -56,6 +56,8 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
   if (q) conditions.push(Prisma.sql`(c.name ILIKE ${`%${q}%`} OR c.description ILIKE ${`%${q}%`})`);
   if (industry) conditions.push(Prisma.sql`c.industry ILIKE ${industry}`);
   if (vc) conditions.push(Prisma.sql`${vc} = ANY(c.tags)`);
+  // When filtering by VC or industry, only show companies that are actively hiring
+  if (vc || industry) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM jobs j2 WHERE j2.company_id = c.id AND j2.status = 'ACTIVE'::job_status)`);
 
   const where = conditions.length > 0
     ? Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`
@@ -95,6 +97,8 @@ async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | 
       ...(q && { OR: [{ name: { contains: q, mode: "insensitive" } }, { description: { contains: q, mode: "insensitive" } }] }),
       ...(industry && { industry: { equals: industry, mode: "insensitive" } }),
       ...(vc && { tags: { has: vc } }),
+      // When filtering by VC or industry, only show actively hiring companies
+      ...((vc || industry) && { jobs: { some: { status: "ACTIVE" } } }),
     },
     include: {
       _count: { select: { trackedBy: true } },
