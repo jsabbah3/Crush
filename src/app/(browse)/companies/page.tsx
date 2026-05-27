@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
@@ -7,7 +7,6 @@ import { CompanyBrowser } from "@/components/company-browser";
 import { FollowingList } from "@/components/following-list";
 import { CompanySearch } from "@/components/company-search";
 import { AddCompanyModal } from "@/components/add-company-modal";
-import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "Companies — Crush",
@@ -150,26 +149,33 @@ export default async function CompaniesPage({
 
     return (
       <div className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="font-heading text-3xl font-bold">🏢 Companies</h1>
-            <p className="text-sm text-muted-foreground">
-              {tracked.length} {tracked.length === 1 ? "company" : "companies"} followed
-            </p>
+        {/* Tab bar */}
+        <div className="flex items-end justify-between gap-4 border-b pb-0">
+          <div className="flex gap-0">
+            <Link href="/companies" className={cn(
+              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              "border-foreground text-foreground"
+            )}>
+              My Companies
+            </Link>
+            <Link href="/companies?view=browse" className={cn(
+              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              "border-transparent text-muted-foreground hover:text-foreground"
+            )}>
+              Discover
+            </Link>
           </div>
-          <div className="flex items-center gap-2 pt-1 flex-wrap">
+          <div className="flex items-center gap-2 pb-2">
             <CompanySearch
               trackedCompanyIds={tracked.map((t) => t.companyId)}
             />
             <AddCompanyModal />
-            <Link href="/companies?view=browse">
-              <Button variant="outline" size="sm" className="shrink-0">
-                <Plus className="size-3.5" />
-                Browse all
-              </Button>
-            </Link>
           </div>
         </div>
+
+        <p className="text-sm text-muted-foreground -mt-2">
+          {tracked.length} {tracked.length === 1 ? "company" : "companies"} followed
+        </p>
 
         <FollowingList tracked={tracked} userId={authUser.id} />
       </div>
@@ -194,19 +200,29 @@ export default async function CompaniesPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="font-heading text-3xl font-bold">🏢 Discover</h1>
-          <p className="text-sm text-muted-foreground">
-            Find companies to follow. We'll alert you when a matching role opens.
-          </p>
-        </div>
-        {authUser && (
-          <Link href="/companies">
-            <Button variant="outline" size="sm">← My companies</Button>
+      {/* Tab bar */}
+      <div className="flex items-end border-b pb-0">
+        <div className="flex gap-0">
+          {authUser ? (
+            <Link href="/companies" className={cn(
+              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              "border-transparent text-muted-foreground hover:text-foreground"
+            )}>
+              My Companies
+            </Link>
+          ) : null}
+          <Link href="/companies?view=browse" className={cn(
+            "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+            "border-foreground text-foreground"
+          )}>
+            Discover
           </Link>
-        )}
+        </div>
       </div>
+
+      <p className="text-sm text-muted-foreground -mt-2">
+        Find companies to follow. We&apos;ll alert you when a matching role opens.
+      </p>
 
       <CompanyBrowser
         companies={companies}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Briefcase, Bell, Settings, LogOut } from "lucide-react";
+import { Building2, Briefcase, Bell, Settings, LogOut, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -24,6 +24,7 @@ type UserProps = {
 const navLinks = [
   { href: "/dashboard",    label: "Dashboard",    icon: Briefcase,    badge: false },
   { href: "/companies",    label: "Companies",    icon: Building2,    badge: false },
+  { href: "/collections",  label: "Collections",  icon: Layers,       badge: false },
   { href: "/matches",      label: "Matches",      icon: Bell,         badge: true  },
 ];
 
@@ -65,6 +66,17 @@ export function DashboardNav({
           </nav>
         </div>
 
+        <div className="flex items-center gap-1">
+        <Link href="/settings">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 text-muted-foreground hover:text-foreground", pathname === "/settings" && "bg-muted text-foreground")}
+            aria-label="Settings"
+          >
+            <Settings className="size-4" />
+          </Button>
+        </Link>
         <DropdownMenu>
           <DropdownMenuTrigger
             className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -96,6 +108,7 @@ export function DashboardNav({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   );

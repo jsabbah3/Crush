@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, ArrowRight } from "lucide-react";
+import { Plus, ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -121,6 +121,51 @@ export default async function DashboardPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Setup checklist — shown until user has both roles and companies */}
+      {(trackedRoles.length === 0 || tracked.length === 0) && (
+        <div className="rounded-xl border bg-muted/30 p-5 space-y-3">
+          <p className="text-sm font-semibold">Get started</p>
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-3 text-sm">
+              <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+              <span className="text-muted-foreground line-through">Create your account</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              {trackedRoles.length > 0
+                ? <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+                : <Circle className="size-4 text-muted-foreground/50 shrink-0" />
+              }
+              <span className={trackedRoles.length > 0 ? "text-muted-foreground line-through" : "font-medium"}>
+                Add your target roles
+              </span>
+              {trackedRoles.length === 0 && (
+                <Link href="/settings" className="ml-auto text-xs text-primary underline underline-offset-2 shrink-0">
+                  Go to Settings →
+                </Link>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              {tracked.length > 0
+                ? <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+                : <Circle className="size-4 text-muted-foreground/50 shrink-0" />
+              }
+              <span className={tracked.length > 0 ? "text-muted-foreground line-through" : "font-medium"}>
+                Follow companies you want to work for
+              </span>
+              {tracked.length === 0 && (
+                <Link href="/companies" className="ml-auto text-xs text-primary underline underline-offset-2 shrink-0">
+                  Browse companies →
+                </Link>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <Circle className="size-4 text-muted-foreground/50 shrink-0" />
+              <span className="text-muted-foreground">Get matched when roles open</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* My Roles */}
       <section className="space-y-3">
