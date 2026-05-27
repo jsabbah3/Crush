@@ -46,7 +46,7 @@ export function TrackedRoles({
   const [location, setLocation] = useState(initialLocationFilter ?? "");
   const [isPending, startTransition] = useTransition();
   const [prefsSaved, setPrefsSaved] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   function handleAdd() {
     const title = input.trim();
