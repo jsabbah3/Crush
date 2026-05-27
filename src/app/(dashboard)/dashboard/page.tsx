@@ -69,6 +69,24 @@ export default async function DashboardPage() {
   // If no matches from followed companies but user has tracked roles,
   // surface discovery jobs from the broader job board
   const trackedCompanyIds = tracked.map((tc) => tc.companyId);
+
+  // Build location filter: respect remoteOnly + locationFilter prefs
+  const locationWhere: Record<string, unknown>[] = [];
+  if (prefs?.remoteOnly === true) {
+    locationWhere.push({ remote: true });
+  } else if (prefs?.remoteOnly === false) {
+    locationWhere.push({ remote: false });
+  }
+  if (prefs?.locationFilter) {
+    const loc = prefs.locationFilter;
+    locationWhere.push({
+      OR: [
+        { remote: true, location: null },          // remote with no location = anywhere
+        { location: { contains: loc, mode: "insensitive" as const } },
+      ],
+    });
+  }
+
   const discoveryJobs =
     recentMatches.length === 0 && trackedRoles.length > 0
       ? await prisma.job.findMany({
@@ -78,6 +96,7 @@ export default async function DashboardPage() {
             OR: trackedRoles.map((r) => ({
               title: { contains: r.title, mode: "insensitive" as const },
             })),
+            ...(locationWhere.length > 0 ? { AND: locationWhere } : {}),
           },
           include: { company: true },
           orderBy: { postedAt: "desc" },
