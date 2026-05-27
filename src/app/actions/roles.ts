@@ -57,6 +57,9 @@ export async function saveUserPreferences(prefs: {
     data: { defaultCriteria: prefs },
   });
 
+  // Re-run backfill in case loosening criteria surfaces new jobs
+  await backfillMatchesForUser(user.id);
+
   revalidatePath("/dashboard");
   revalidatePath("/settings");
   return { success: true };
