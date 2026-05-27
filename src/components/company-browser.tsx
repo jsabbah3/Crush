@@ -142,8 +142,7 @@ export function CompanyBrowser({
                   key={v || "__all__"}
                   onClick={() => {
                     setVc(v);
-                    setIndustry("");
-                    applyFilters(q, "", v, sort);
+                    applyFilters(q, industry, v, sort);
                   }}
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
