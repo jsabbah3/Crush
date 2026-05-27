@@ -180,6 +180,13 @@ async function runAggregateIngestion(
 
 // ── main entry point ──────────────────────────────────────────────────────────
 
+export async function ingestCompanyById(companyId: string): Promise<{ newJobs: number; newMatches: number }> {
+  const company = await prisma.company.findUnique({ where: { id: companyId } });
+  if (!company || !company.sourceId || company.sourceType === "manual") return { newJobs: 0, newMatches: 0 };
+  const jobs = await fetchAtsJobs(company.sourceType, company.sourceId);
+  return persistJobs(company.id, company.slug, jobs);
+}
+
 export async function runIngestion(): Promise<IngestionResult> {
   const results = await Promise.allSettled([
     runAtsIngestion(),
