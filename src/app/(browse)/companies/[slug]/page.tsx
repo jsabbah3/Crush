@@ -41,6 +41,15 @@ export default async function CompanyDetailPage({
 
   if (!company) notFound();
 
+  // Fetch user's matches for this company (only if they follow it)
+  const userMatches = authUser && tracked
+    ? await prisma.match.findMany({
+        where: { trackedCompanyId: tracked.id, dismissed: false },
+        include: { job: true },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
   return (
     <div className="space-y-8 max-w-2xl">
       {/* Company header */}
@@ -105,6 +114,29 @@ export default async function CompanyDetailPage({
       )}
 
       <Separator />
+
+      {/* Your matches */}
+      {userMatches.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="font-medium">
+            Your matches
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              ({userMatches.length})
+            </span>
+          </h2>
+          <div className="space-y-2">
+            {userMatches.map((match) => (
+              <JobCard
+                key={match.id}
+                job={{ ...match.job, company }}
+                matchId={match.id}
+                applicationStatus={match.applicationStatus as "INTERESTED"}
+              />
+            ))}
+          </div>
+          <Separator />
+        </section>
+      )}
 
       {/* Open roles */}
       <section className="space-y-3">
