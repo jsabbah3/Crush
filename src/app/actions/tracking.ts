@@ -25,6 +25,16 @@ export async function backfillMatchesForUser(userId: string) {
   return backfillMatches(userId, null);
 }
 
+export async function refreshMatches(): Promise<{ created: number }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { created: 0 };
+  const created = (await backfillMatches(user.id, null)) ?? 0;
+  revalidatePath("/matches");
+  revalidatePath("/dashboard");
+  return { created };
+}
+
 async function backfillMatches(userId: string, companyIds: string[] | null) {
   const dbUser = await prisma.user.findUnique({
     where: { id: userId },
@@ -37,7 +47,7 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
     select: { title: true },
   });
   const roleTitles = roles.map((r) => r.title);
-  if (roleTitles.length === 0) return; // no roles set — nothing to match
+  if (roleTitles.length === 0) return 0; // no roles set — nothing to match
 
   // Get the relevant TrackedCompany rows
   const trackedCompanies = await prisma.trackedCompany.findMany({
@@ -47,7 +57,7 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
     },
     select: { id: true, companyId: true },
   });
-  if (trackedCompanies.length === 0) return;
+  if (trackedCompanies.length === 0) return 0;
 
   const trackedCompanyIds = trackedCompanies.map((tc) => tc.companyId);
 
@@ -62,6 +72,7 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
   // Build a map from companyId → trackedCompanyId
   const tcMap = new Map(trackedCompanies.map((tc) => [tc.companyId, tc.id]));
 
+  let created = 0;
   for (const job of jobs) {
     if (!doesJobMatch(
       job,
@@ -76,10 +87,12 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
 
     try {
       await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
+      created++;
     } catch {
       // Already exists — fine
     }
   }
+  return created;
 }
 
 export async function followCompany(

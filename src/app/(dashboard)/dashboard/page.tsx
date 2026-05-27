@@ -12,6 +12,7 @@ import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
 import { TrackedRoles } from "@/components/tracked-roles";
 import { TrendingRoles } from "@/components/trending-roles";
+import { RefreshMatchesButton } from "@/components/refresh-matches-button";
 
 type UserPrefs = {
   seniority?: string[];
@@ -234,9 +235,12 @@ export default async function DashboardPage() {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-medium text-muted-foreground">Recent matches</h2>
-            <Link href="/matches">
-              <Button variant="ghost" size="sm">View all</Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <RefreshMatchesButton />
+              <Link href="/matches">
+                <Button variant="ghost" size="sm">View all</Button>
+              </Link>
+            </div>
           </div>
           <div className="space-y-3">
             {recentMatches.map((match) => (
