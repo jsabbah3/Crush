@@ -57,14 +57,14 @@ async function backfillUser(userId: string): Promise<{ checked: number; created:
     },
   });
 
-  // Fetch existing match job IDs for this user so we can skip them quickly
+  // Fetch all existing matches (including dismissed) so we can create or un-dismiss
   const existingMatches = await prisma.match.findMany({
     where: {
       trackedCompanyId: { in: trackedCompanies.map((tc) => tc.id) },
     },
-    select: { jobId: true, trackedCompanyId: true },
+    select: { id: true, jobId: true, trackedCompanyId: true, dismissed: true },
   });
-  const existingSet = new Set(existingMatches.map((m) => `${m.trackedCompanyId}:${m.jobId}`));
+  const existingMap = new Map(existingMatches.map((m) => [`${m.trackedCompanyId}:${m.jobId}`, m]));
 
   let checked = 0;
   let created = 0;
@@ -83,15 +83,22 @@ async function backfillUser(userId: string): Promise<{ checked: number; created:
     if (!trackedCompanyId) continue;
 
     const key = `${trackedCompanyId}:${job.id}`;
-    if (existingSet.has(key)) continue; // already exists
+    const existing = existingMap.get(key);
+
+    if (existing && !existing.dismissed) continue; // already active — skip
 
     created++;
     if (!DRY_RUN) {
-      try {
-        await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
-      } catch {
-        // race condition / unique constraint — fine
-        created--;
+      if (existing?.dismissed) {
+        // Un-dismiss match that was auto-dismissed by role removal
+        await prisma.match.update({ where: { id: existing.id }, data: { dismissed: false } });
+      } else {
+        try {
+          await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
+        } catch {
+          // race condition / unique constraint — fine
+          created--;
+        }
       }
     }
   }

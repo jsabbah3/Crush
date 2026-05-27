@@ -85,11 +85,18 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
     const trackedCompanyId = tcMap.get(job.companyId);
     if (!trackedCompanyId) continue;
 
-    try {
-      await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
+    // Upsert: create if missing, un-dismiss if it was auto-dismissed by role removal
+    const existing = await prisma.match.findFirst({ where: { trackedCompanyId, jobId: job.id } });
+    if (!existing) {
+      try {
+        await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
+        created++;
+      } catch {
+        // Race condition — fine
+      }
+    } else if (existing.dismissed) {
+      await prisma.match.update({ where: { id: existing.id }, data: { dismissed: false } });
       created++;
-    } catch {
-      // Already exists — fine
     }
   }
   return created;
