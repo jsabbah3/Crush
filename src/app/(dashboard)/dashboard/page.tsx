@@ -136,6 +136,7 @@ export default async function DashboardPage() {
           initialSeniority={prefs?.seniority ?? []}
           initialRemoteOnly={prefs?.remoteOnly ?? null}
           initialLocationFilter={prefs?.locationFilter ?? null}
+          showFilters={false}
         />
 
         <TrendingRoles

@@ -30,12 +30,14 @@ export function TrackedRoles({
   initialSeniority,
   initialRemoteOnly,
   initialLocationFilter,
+  showFilters = true,
 }: {
   initialRoles: Role[];
   trackedCount: number;
   initialSeniority: string[];
   initialRemoteOnly: boolean | null;
   initialLocationFilter: string | null;
+  showFilters?: boolean;
 }) {
   const [roles, setRoles] = useState<Role[]>(initialRoles);
   const [input, setInput] = useState("");
@@ -154,8 +156,8 @@ export function TrackedRoles({
         )}
       </div>
 
-      {/* Filters: collapsible */}
-      <div className="border rounded-lg overflow-hidden">
+      {/* Filters: collapsible — only shown in settings */}
+      {showFilters && <div className="border rounded-lg overflow-hidden">
         <button
           type="button"
           onClick={toggleFilters}
@@ -250,7 +252,7 @@ export function TrackedRoles({
             </Button>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
