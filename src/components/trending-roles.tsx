@@ -163,7 +163,10 @@ export function TrendingRoles({
     if (tracked.has(role.title.toLowerCase())) return;
     setAdded((prev) => new Set([...prev, role.title]));
     startTransition(async () => {
-      await addTrackedRole(role.title);
+      const res = await addTrackedRole(role.title);
+      if (res.role) {
+        window.dispatchEvent(new CustomEvent("crush:roleAdded", { detail: res.role }));
+      }
       router.refresh();
     });
   }

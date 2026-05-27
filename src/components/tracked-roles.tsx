@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { X, Plus, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,14 +40,18 @@ export function TrackedRoles({
   showFilters?: boolean;
 }) {
   const [roles, setRoles] = useState<Role[]>(initialRoles);
-  const mountedRef = useRef(false);
 
-  // Sync when server refreshes props (e.g. TrendingRoles adds a role and calls router.refresh())
+  // Instantly add a role when TrendingRoles dispatches the event (before router.refresh() lands)
   useEffect(() => {
-    if (!mountedRef.current) { mountedRef.current = true; return; }
-    setRoles(initialRoles);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialRoles.map((r) => r.id).join(",")]);
+    function handleRoleAdded(e: Event) {
+      const role = (e as CustomEvent<Role>).detail;
+      setRoles((prev) =>
+        prev.some((r) => r.id === role.id) ? prev : [...prev, role]
+      );
+    }
+    window.addEventListener("crush:roleAdded", handleRoleAdded);
+    return () => window.removeEventListener("crush:roleAdded", handleRoleAdded);
+  }, []);
 
   const [input, setInput] = useState("");
   const [seniority, setSeniority] = useState<string[]>(initialSeniority);

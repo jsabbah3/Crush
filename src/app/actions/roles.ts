@@ -14,9 +14,11 @@ export async function addTrackedRole(title: string) {
   const normalized = title.trim();
   if (!normalized) return { error: "Title required" };
 
+  let role: { id: string; title: string } | null = null;
   try {
-    await prisma.trackedRole.create({
+    role = await prisma.trackedRole.create({
       data: { userId: user.id, title: normalized },
+      select: { id: true, title: true },
     });
   } catch {
     // Unique constraint — already tracking this role
@@ -27,7 +29,7 @@ export async function addTrackedRole(title: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/settings");
-  return { success: true };
+  return { success: true, role };
 }
 
 export async function removeTrackedRole(id: string) {
