@@ -46,7 +46,19 @@ export function TrackedRoles({
   const [location, setLocation] = useState(initialLocationFilter ?? "");
   const [isPending, startTransition] = useTransition();
   const [prefsSaved, setPrefsSaved] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("crush:filtersOpen");
+    return saved === null ? true : saved === "true";
+  });
+
+  function toggleFilters() {
+    setFiltersOpen((v) => {
+      const next = !v;
+      localStorage.setItem("crush:filtersOpen", String(next));
+      return next;
+    });
+  }
 
   function handleAdd() {
     const title = input.trim();
@@ -146,7 +158,7 @@ export function TrackedRoles({
       <div className="border rounded-lg overflow-hidden">
         <button
           type="button"
-          onClick={() => setFiltersOpen((v) => !v)}
+          onClick={toggleFilters}
           className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
         >
           <span>Filters — seniority, location &amp; work arrangement</span>
