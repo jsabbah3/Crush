@@ -25,7 +25,7 @@ const FEATURES = [
   {
     emoji: "🎯",
     title: "Define your criteria",
-    body: "Set role titles, seniority, and remote preference. We match every new posting against your exact spec.",
+    body: "Set role titles, seniority, and location — e.g. \"Senior Engineer, Remote, Seed–Series B\". We match every new posting against your exact spec.",
   },
   {
     emoji: "🔔",
@@ -68,7 +68,7 @@ export default async function HomePage({
             </Link>
             <form action={signInWithGoogle}>
               <Button size="sm" type="submit" className="text-xs h-7 px-3">
-                Get started →
+                Sign up free →
               </Button>
             </form>
           </div>
@@ -79,22 +79,21 @@ export default async function HomePage({
       <section className="flex-1 flex flex-col items-center justify-center px-4 py-28 text-center">
         <div className="max-w-3xl space-y-8">
           <h1 className="font-heading text-6xl font-bold tracking-tight leading-[1.05] sm:text-7xl lg:text-[5rem]">
-            The role you want,
+            Get the alert
             <br />
-            at the companies
+            before it hits
             <br />
-            you care about.
+            LinkedIn.
           </h1>
 
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Pick the companies you&apos;d actually work for. Set your role criteria. Get one email
-            the moment your exact match opens — before it hits LinkedIn.
+            Pick the companies you&apos;d actually work for. Set your role criteria — like &ldquo;Senior Engineer, Remote, Series B+&rdquo; — and get one email the moment your exact match opens up.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <form action={signInWithGoogle}>
               <Button size="lg" type="submit" className="gap-2 px-8">
-                Get started free
+                Create free account
                 <ArrowRight className="size-4" />
               </Button>
             </form>
