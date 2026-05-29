@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { Check, X, ArrowRight, Linkedin } from "lucide-react";
+import { Check, X, ArrowRight, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -112,7 +112,7 @@ export function OnboardingWizard({ collections }: Props) {
           {/* LinkedIn URL */}
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1.5">
-              <Linkedin className="size-3.5 text-muted-foreground" />
+              <Link2 className="size-3.5 text-muted-foreground" />
               LinkedIn profile URL
             </label>
             <Input
