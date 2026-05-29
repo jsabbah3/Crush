@@ -45,24 +45,33 @@ export function DashboardNav({
           <Link href="/dashboard" className="font-heading font-bold text-lg tracking-tight">
             Crush
           </Link>
-          <nav className="flex items-center gap-1">
-            {navLinks.map(({ href, label, icon: Icon, badge }) => (
-              <Link key={href} href={href}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(pathname === href && "bg-muted text-foreground")}
+          <nav className="flex items-center">
+            {navLinks.map(({ href, label, icon: Icon, badge }) => {
+              const active = pathname === href || pathname.startsWith(href + "/");
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "relative flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors",
+                    active
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
                 >
                   <Icon className="size-3.5" />
                   {label}
                   {badge && unreadMatches > 0 && (
-                    <span className="ml-1 h-4 min-w-4 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center px-1">
+                    <span className="h-4 min-w-4 rounded-full bg-amber text-amber-foreground text-[10px] font-bold leading-none flex items-center justify-center px-1">
                       {unreadMatches > 99 ? "99+" : unreadMatches}
                     </span>
                   )}
-                </Button>
-              </Link>
-            ))}
+                  {active && (
+                    <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-foreground" />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 

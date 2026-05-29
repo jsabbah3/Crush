@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-playfair);
+  --color-amber: var(--amber);
+  --color-amber-foreground: var(--amber-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -95,8 +97,12 @@
   --chart-4: oklch(0.75 0.004 73);
   --chart-5: oklch(0.90 0.003 73);
 
-  /* Very small radius — Notion is nearly square */
-  --radius: 0.25rem;
+  /* Amber accent — warm gold for match badges, highlights */
+  --amber: oklch(0.80 0.13 58);
+  --amber-foreground: oklch(0.28 0.08 55);
+
+  /* Slightly more refined radius */
+  --radius: 0.4rem;
 
   /* Sidebar */
   --sidebar: oklch(0.972 0.004 73);
@@ -152,5 +158,10 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  /* Smooth color transitions on interactive elements */
+  a, button {
+    @apply transition-colors duration-150;
   }
 }

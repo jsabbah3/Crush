@@ -217,7 +217,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {tracked.map((tc) => (
               <Link key={tc.id} href={`/companies/${tc.company.slug}`}>
-                <Card className="hover:shadow-sm transition-shadow cursor-pointer h-full">
+                <Card className="hover:shadow-sm hover:border-foreground/20 transition-all duration-150 cursor-pointer h-full">
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-center gap-2.5">
                       <CompanyLogo
@@ -230,7 +230,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {tc._count.matches > 0 && (
-                        <Badge variant="default" className="text-xs">
+                        <Badge className="text-xs bg-amber text-amber-foreground border-transparent">
                           {tc._count.matches} new
                         </Badge>
                       )}
@@ -268,7 +268,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {featuredCollections.map((col) => (
               <Link key={col.id} href={`/collections/${col.slug}`} className="group">
-                <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm h-full">
+                <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full">
                   <div className="flex -space-x-1.5">
                     {col.companies.map(({ company }, i) => (
                       <div

@@ -59,7 +59,7 @@ export function FollowingList({
         return (
           <div
             key={trackedId}
-            className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm"
+            className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-all duration-150 hover:border-foreground/20 hover:shadow-sm"
           >
             <div className="flex items-start gap-3">
               <CompanyLogo
@@ -80,7 +80,7 @@ export function FollowingList({
                 )}
               </div>
               {_count.matches > 0 && (
-                <span className="shrink-0 rounded-full bg-foreground text-background text-xs font-semibold px-2 py-0.5">
+                <span className="shrink-0 rounded-full bg-amber text-amber-foreground text-xs font-semibold px-2 py-0.5">
                   {_count.matches} new
                 </span>
               )}
