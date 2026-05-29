@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Bell, Building2, Filter } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
@@ -18,19 +18,32 @@ const FEATURED = [
 
 const FEATURES = [
   {
-    emoji: "🏢",
-    title: "Pick your companies",
-    body: "Browse a curated list and follow the companies you'd actually want to work for — not job listings.",
+    icon: Building2,
+    title: "Your list, not a job board",
+    body: "Browse a curated set of VC-backed companies and follow the ones you'd actually leave for. Not a feed of thousands — a focused watchlist you control.",
   },
   {
-    emoji: "🎯",
-    title: "Define your criteria",
-    body: "Set role titles, seniority, and location — e.g. \"Senior Engineer, Remote, Seed–Series B\". We match every new posting against your exact spec.",
+    icon: Filter,
+    title: "Set your exact criteria",
+    body: "Define your role, seniority, and location — like \"Senior Engineer, Remote, Series B+\". We match every new opening against your spec, not a keyword cloud.",
   },
   {
-    emoji: "🔔",
-    title: "Get the alert first",
-    body: "One email the moment a matching role goes live. No daily digests, no noise — just signal.",
+    icon: Bell,
+    title: "One alert. Zero noise.",
+    body: "When your exact match opens at a company you follow, you get one email. No daily digests, no sponsored posts, no irrelevant listings. Just the signal.",
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    quote: "I had 15 companies I'd actually consider. Checking each one's careers page every week was exhausting. Crush does it for me.",
+    name: "Senior Engineer",
+    context: "Previously at a FAANG, watching frontier AI labs",
+  },
+  {
+    quote: "I'm not job hunting — but I know exactly where I'd go if the right role opened. Crush is the only thing that would actually tell me.",
+    name: "Product Manager",
+    context: "Passively watching 12 growth-stage companies",
   },
 ];
 
@@ -40,15 +53,12 @@ export default async function HomePage({
   searchParams: Promise<{ code?: string }>;
 }) {
   const { code } = await searchParams;
-  // Safety net: if Supabase redirects the OAuth code to the homepage, forward it to the callback
   if (code) {
     redirect(`/api/auth/callback?code=${code}`);
   }
 
   const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
 
   if (authUser) redirect("/dashboard");
 
@@ -68,7 +78,7 @@ export default async function HomePage({
             </Link>
             <form action={signInWithGoogle}>
               <Button size="sm" type="submit" className="text-xs h-7 px-3">
-                Sign up free →
+                Get started free →
               </Button>
             </form>
           </div>
@@ -76,36 +86,41 @@ export default async function HomePage({
       </header>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-4 py-28 text-center">
-        <div className="max-w-3xl space-y-8">
-          <h1 className="font-heading text-6xl font-bold tracking-tight leading-[1.05] sm:text-7xl lg:text-[5rem]">
-            Get the alert
+      <section className="flex-1 flex flex-col items-center justify-center px-4 py-24 text-center">
+        <div className="max-w-3xl space-y-7">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            {companyCount}+ companies monitored daily
+          </div>
+
+          <h1 className="font-heading text-5xl font-bold tracking-tight leading-[1.08] sm:text-6xl lg:text-[4.5rem]">
+            The companies
             <br />
-            before it hits
+            you&apos;d actually
             <br />
-            LinkedIn.
+            <span className="italic">leave for.</span>
           </h1>
 
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Pick the companies you&apos;d actually work for. Set your role criteria — like &ldquo;Senior Engineer, Remote, Series B+&rdquo; — and get one email the moment your exact match opens up.
+            You&apos;re not job hunting. But you have a shortlist. Crush watches those companies every day and sends one targeted alert the moment your exact role opens up.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <form action={signInWithGoogle}>
               <Button size="lg" type="submit" className="gap-2 px-8">
-                Create free account
+                Start tracking for free
                 <ArrowRight className="size-4" />
               </Button>
             </form>
             <Link href="/companies">
               <Button size="lg" variant="outline" className="px-8">
-                Browse {companyCount} companies
+                Browse companies
               </Button>
             </Link>
           </div>
 
           {/* Company logo strip */}
-          <div className="pt-6 space-y-3">
+          <div className="pt-4 space-y-3">
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
               Companies on Crush
             </p>
@@ -120,7 +135,7 @@ export default async function HomePage({
                 </div>
               ))}
               <span className="text-xs text-muted-foreground">
-                + {companyCount - FEATURED.length} more
+                + {Math.max(0, companyCount - FEATURED.length)} more
               </span>
             </div>
           </div>
@@ -130,11 +145,21 @@ export default async function HomePage({
       {/* How it works */}
       <section className="border-t bg-card">
         <div className="mx-auto max-w-5xl px-4 py-20">
-          <h2 className="font-heading text-3xl font-bold mb-12">How it works</h2>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-            {FEATURES.map(({ emoji, title, body }) => (
+          <div className="mb-12 space-y-2">
+            <h2 className="font-heading text-3xl font-bold">How it works</h2>
+            <p className="text-muted-foreground text-sm max-w-md">
+              Three steps. Set it once. Let Crush do the daily checking you&apos;ve been doing manually.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
+            {FEATURES.map(({ icon: Icon, title, body }, i) => (
               <div key={title} className="space-y-3">
-                <div className="text-3xl">{emoji}</div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border bg-background">
+                    <Icon className="size-3.5 text-muted-foreground" />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">Step {i + 1}</span>
+                </div>
                 <h3 className="font-heading font-bold text-base">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
               </div>
@@ -143,20 +168,47 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Positioning */}
+      {/* Social proof */}
       <section className="border-t">
+        <div className="mx-auto max-w-5xl px-4 py-20">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {TESTIMONIALS.map((t) => (
+              <div key={t.name} className="rounded-xl border bg-card p-6 space-y-4">
+                <p className="text-sm leading-relaxed text-foreground">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div>
+                  <p className="text-xs font-semibold">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">{t.context}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Positioning */}
+      <section className="border-t bg-card">
         <div className="mx-auto max-w-3xl px-4 py-24 space-y-6">
           <h2 className="font-heading text-4xl font-bold leading-tight">
-            Built for people who know exactly what they&apos;re looking for.
+            Not a job board.
+            <br />
+            A watchlist.
           </h2>
-          <p className="text-muted-foreground leading-relaxed max-w-xl">
-            Not a job board. Not a recruiter inbox. Crush is for senior tech professionals with
-            a shortlist of dream companies and a specific role in mind. We monitor those
-            companies every day so you don&apos;t have to.
-          </p>
+          <div className="space-y-3 text-muted-foreground leading-relaxed max-w-xl">
+            <p>
+              LinkedIn shows you everything. Indeed shows you everything. That&apos;s the problem.
+            </p>
+            <p>
+              Crush shows you exactly one thing: when a company you care about posts a role you&apos;d actually apply for. Nothing more.
+            </p>
+            <p>
+              Built for senior professionals who have a shortlist and want to be the first to know — not the thousandth person to see it on a job board.
+            </p>
+          </div>
           <form action={signInWithGoogle}>
             <Button size="lg" type="submit" className="gap-2 mt-2">
-              Start tracking for free
+              Build your watchlist
               <ArrowRight className="size-4" />
             </Button>
           </form>

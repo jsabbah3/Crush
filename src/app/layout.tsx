@@ -21,9 +21,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Crush — The role you want, at the companies you care about",
+  title: "Crush — Track the companies you'd actually leave for",
   description:
-    "Track the companies you'd actually work for. Set your role criteria. Get one email the moment your match opens — before it's on LinkedIn.",
+    "You're not job hunting. But you have a shortlist. Crush watches your dream companies every day and sends one alert the moment your exact role opens — no noise, no job board.",
 };
 
 export default function RootLayout({

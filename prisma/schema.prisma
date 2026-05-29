@@ -53,12 +53,15 @@ model Company {
   sourceType   CompanySource @default(manual) @map("source_type")
   sourceId     String?       @map("source_id")
   tags         String[]      @default([])
+  blogRssUrl   String?       @map("blog_rss_url")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
   jobs        Job[]
   trackedBy   TrackedCompany[]
   collections CollectionCompany[]
+  signals     CompanySignal[]
+  insights    CompanyInsight[]
 
   @@map("companies")
 }
@@ -204,6 +207,48 @@ model TrackedCompany {
 
   @@unique([userId, companyId])
   @@map("tracked_companies")
+}
+
+// ─── Company intelligence signals (blog posts, etc.) ──────────────────────────
+
+enum SignalType {
+  blog_post
+  news
+
+  @@map("signal_type")
+}
+
+model CompanySignal {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String     @map("company_id") @db.Uuid
+  type        SignalType @default(blog_post)
+  title       String
+  url         String?
+  summary     String?
+  publishedAt DateTime?  @map("published_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, url])
+  @@map("company_signals")
+}
+
+// ─── Insider content (getting hired guides, etc.) ─────────────────────────────
+
+model CompanyInsight {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String   @map("company_id") @db.Uuid
+  slug        String   @unique
+  title       String
+  body        String   // markdown
+  author      String?
+  publishedAt DateTime @default(now()) @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("company_insights")
 }
 
 model Match {

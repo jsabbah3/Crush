@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { ExternalLink, Users } from "lucide-react";
+import type { Metadata } from "next";
+import { ExternalLink, Users, Rss, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,28 @@ import { Separator } from "@/components/ui/separator";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
 import { JobCard } from "@/components/job-card";
+import { MarkdownBody } from "@/components/markdown-body";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const company = await prisma.company.findUnique({
+    where: { slug },
+    select: { name: true, description: true, industry: true },
+  });
+  if (!company) return {};
+
+  return {
+    title: `${company.name} — Jobs & Hiring | Crush`,
+    description:
+      company.description
+        ? `${company.description.slice(0, 140)} — Track ${company.name} on Crush to get alerted when they hire.`
+        : `Track ${company.name} on Crush. Get one alert the moment a role opens that matches your criteria.`,
+  };
+}
 
 export default async function CompanyDetailPage({
   params,
@@ -27,6 +50,14 @@ export default async function CompanyDetailPage({
           where: { status: "ACTIVE" },
           orderBy: { postedAt: "desc" },
           take: 20,
+        },
+        signals: {
+          where: { type: "blog_post" },
+          orderBy: { publishedAt: "desc" },
+          take: 5,
+        },
+        insights: {
+          orderBy: { publishedAt: "desc" },
         },
         _count: { select: { trackedBy: true } },
       },
@@ -163,6 +194,82 @@ export default async function CompanyDetailPage({
           </div>
         )}
       </section>
+
+      {/* Insider guides */}
+      {company.insights.length > 0 && (
+        <>
+          <Separator />
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="size-4 text-muted-foreground" />
+              <h2 className="font-medium text-sm">Getting hired here</h2>
+            </div>
+            {company.insights.map((insight) => (
+              <div key={insight.id} className="rounded-xl border bg-card p-5 space-y-4">
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-base">{insight.title}</h3>
+                  {insight.author && (
+                    <p className="text-xs text-muted-foreground">{insight.author}</p>
+                  )}
+                </div>
+                <MarkdownBody markdown={insight.body} />
+              </div>
+            ))}
+          </section>
+        </>
+      )}
+
+      {/* Engineering blog signals */}
+      {company.signals.length > 0 && (
+        <>
+          <Separator />
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Rss className="size-4 text-muted-foreground" />
+              <h2 className="font-medium text-sm">From the engineering blog</h2>
+            </div>
+            <div className="space-y-2">
+              {company.signals.map((signal) => (
+                <a
+                  key={signal.id}
+                  href={signal.url ?? "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col gap-1 rounded-lg border bg-card p-3.5 transition-all duration-150 hover:border-foreground/20 hover:shadow-sm"
+                >
+                  <p className="text-sm font-medium leading-snug group-hover:text-foreground transition-colors">
+                    {signal.title}
+                  </p>
+                  {signal.summary && (
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                      {signal.summary}
+                    </p>
+                  )}
+                  {signal.publishedAt && (
+                    <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                      {new Date(signal.publishedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  )}
+                </a>
+              ))}
+              {company.blogRssUrl && (
+                <a
+                  href={company.website ?? "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2 pl-0.5"
+                >
+                  View all posts →
+                </a>
+              )}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
