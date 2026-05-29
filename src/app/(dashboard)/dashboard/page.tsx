@@ -13,6 +13,7 @@ import { CompanyLogo } from "@/components/company-logo";
 import { TrackedRoles } from "@/components/tracked-roles";
 import { TrendingRoles } from "@/components/trending-roles";
 import { RefreshMatchesButton } from "@/components/refresh-matches-button";
+import { SuggestedRoles } from "@/components/suggested-roles";
 
 type UserPrefs = {
   seniority?: string[];
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
     }),
     prisma.user.findUnique({
       where: { id: authUser.id },
-      select: { defaultCriteria: true },
+      select: { defaultCriteria: true, currentTitle: true },
     }),
   ]);
 
@@ -183,6 +184,10 @@ export default async function DashboardPage() {
           initialLocationFilter={prefs?.locationFilter ?? null}
           showFilters={false}
         />
+
+        {trackedRoles.length === 0 && dbUser?.currentTitle && (
+          <SuggestedRoles currentTitle={dbUser.currentTitle} />
+        )}
 
         <TrendingRoles
           trackedTitles={trackedRoles.map((r) => r.title)}

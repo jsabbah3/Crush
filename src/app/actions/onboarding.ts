@@ -10,6 +10,8 @@ type Criteria = {
   seniority: string[];
   remoteOnly: boolean | null;
   locationFilter: string | null;
+  linkedinUrl?: string | null;
+  currentTitle?: string | null;
 };
 
 export async function saveOnboarding(
@@ -30,6 +32,8 @@ export async function saveOnboarding(
           locationFilter: criteria.locationFilter,
         },
         onboardingComplete: true,
+        ...(criteria.linkedinUrl != null && { linkedinUrl: criteria.linkedinUrl }),
+        ...(criteria.currentTitle != null && { currentTitle: criteria.currentTitle }),
       },
     });
 

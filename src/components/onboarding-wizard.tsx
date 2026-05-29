@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { Check, X, ArrowRight } from "lucide-react";
+import { Check, X, ArrowRight, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/company-logo";
 import { saveOnboarding } from "@/app/actions/onboarding";
 import { analytics } from "@/lib/analytics";
+import { getRoleSuggestions, normalizeLinkedinUrl } from "@/lib/role-suggestions";
 
 const SENIORITY = [
   { label: "Junior", kw: "junior" },
@@ -31,48 +32,61 @@ type Props = {
 };
 
 export function OnboardingWizard({ collections }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     analytics.track("onboarding_screen_viewed", { screen_number: step });
   }, [step]);
 
-  // Step 1 state
+  // Step 1 state — LinkedIn profile
+  const [linkedinInput, setLinkedinInput] = useState("");
+  const [currentTitleInput, setCurrentTitleInput] = useState("");
+
+  // Step 2 state — roles & preferences
   const [roleInput, setRoleInput] = useState("");
   const [roles, setRoles] = useState<string[]>([]);
   const [seniority, setSeniority] = useState<string[]>([]);
   const [remote, setRemote] = useState<"any" | "remote" | "onsite">("any");
   const [location, setLocation] = useState("");
 
-  // Step 2 state
+  // Step 3 state — collection
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
-  function addRole() {
-    const title = roleInput.trim();
-    if (title && !roles.some((r) => r.toLowerCase() === title.toLowerCase())) {
-      setRoles((p) => [...p, title]);
+  // Derived: suggestions from current title
+  const suggestions = getRoleSuggestions(currentTitleInput, 6);
+
+  function addRole(title: string) {
+    const normalized = title.trim();
+    if (normalized && !roles.some((r) => r.toLowerCase() === normalized.toLowerCase())) {
+      setRoles((p) => [...p, normalized]);
     }
     setRoleInput("");
   }
-
-  const criteria = {
-    roles,
-    seniority,
-    remoteOnly: remote === "remote" ? true : remote === "onsite" ? false : null,
-    locationFilter: remote === "onsite" && location.trim() ? location.trim() : null,
-  };
 
   function handleFinish(collectionSlug: string | null) {
     analytics.track("onboarding_completed", {
       role_count: roles.length,
       collection_slug: collectionSlug ?? undefined,
+      has_linkedin: !!linkedinInput.trim(),
     });
     if (collectionSlug) {
       analytics.track("first_collection_followed", { collection_slug: collectionSlug });
     }
+    const linkedinUrl = normalizeLinkedinUrl(linkedinInput) ?? null;
+    const currentTitle = currentTitleInput.trim() || null;
     startTransition(async () => {
-      await saveOnboarding(criteria, collectionSlug);
+      await saveOnboarding(
+        {
+          roles,
+          seniority,
+          remoteOnly: remote === "remote" ? true : remote === "onsite" ? false : null,
+          locationFilter: remote === "onsite" && location.trim() ? location.trim() : null,
+          linkedinUrl,
+          currentTitle,
+        },
+        collectionSlug
+      );
     });
   }
 
@@ -80,12 +94,93 @@ export function OnboardingWizard({ collections }: Props) {
   const pillActive = "border-primary bg-primary text-primary-foreground";
   const pillInactive = "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground";
 
+  // ─── Step 1: LinkedIn ───────────────────────────────────────────────────────
   if (step === 1) {
     return (
       <div className="space-y-8">
         <div className="space-y-1.5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 1 of 3
+            Step 1 of 4
+          </p>
+          <h1 className="text-2xl font-bold">Let&apos;s personalize your experience</h1>
+          <p className="text-sm text-muted-foreground">
+            We&apos;ll use this to suggest relevant roles for you to track. Both fields are optional.
+          </p>
+        </div>
+
+        <div className="space-y-5">
+          {/* LinkedIn URL */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1.5">
+              <Linkedin className="size-3.5 text-muted-foreground" />
+              LinkedIn profile URL
+            </label>
+            <Input
+              type="url"
+              placeholder="https://linkedin.com/in/yourname"
+              value={linkedinInput}
+              onChange={(e) => setLinkedinInput(e.target.value)}
+              className="max-w-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              We store this for future personalization — we don&apos;t scrape or share it.
+            </p>
+          </div>
+
+          {/* Current role */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Your current role title</label>
+            <Input
+              placeholder="e.g. Senior Software Engineer, Product Manager…"
+              value={currentTitleInput}
+              onChange={(e) => setCurrentTitleInput(e.target.value)}
+              className="max-w-sm"
+            />
+            {currentTitleInput.trim() && (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-xs text-muted-foreground">
+                  People in this role often track:
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestions.map((s) => (
+                    <span
+                      key={s}
+                      className="text-xs px-2.5 py-1 rounded-full border border-border bg-muted/50 text-muted-foreground"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
+          <button
+            type="button"
+            onClick={() => setStep(2)}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Skip this step
+          </button>
+          <Button onClick={() => setStep(2)}>
+            Continue <ArrowRight className="size-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Step 2: Roles & preferences ───────────────────────────────────────────
+  if (step === 2) {
+    const hasSuggestions = currentTitleInput.trim().length > 0;
+
+    return (
+      <div className="space-y-8">
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Step 2 of 4
           </p>
           <h1 className="text-2xl font-bold">What roles are you looking for?</h1>
           <p className="text-sm text-muted-foreground">
@@ -94,9 +189,46 @@ export function OnboardingWizard({ collections }: Props) {
         </div>
 
         <div className="space-y-6">
+          {/* Suggested roles — only shown if they gave a current title */}
+          {hasSuggestions && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                Suggested for you
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  based on your role as {currentTitleInput.trim()}
+                </span>
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestions.map((s) => {
+                  const already = roles.some((r) => r.toLowerCase() === s.toLowerCase());
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => already
+                        ? setRoles((p) => p.filter((r) => r.toLowerCase() !== s.toLowerCase()))
+                        : addRole(s)
+                      }
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                        already
+                          ? "border-primary/40 bg-primary/10 text-primary"
+                          : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                      }`}
+                    >
+                      {already ? <Check className="size-3" /> : null}
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Role titles */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Role titles</p>
+            <p className="text-sm font-medium">
+              {hasSuggestions ? "Or add your own" : "Role titles"}
+            </p>
             <p className="text-xs text-muted-foreground">
               Be specific or broad — e.g. &ldquo;GTM Engineer&rdquo;, &ldquo;Product Designer&rdquo;, &ldquo;Engineer&rdquo;
             </p>
@@ -108,12 +240,12 @@ export function OnboardingWizard({ collections }: Props) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === ",") {
                     e.preventDefault();
-                    addRole();
+                    addRole(roleInput);
                   }
                 }}
                 className="max-w-xs"
               />
-              <Button type="button" variant="outline" size="sm" onClick={addRole}>
+              <Button type="button" variant="outline" size="sm" onClick={() => addRole(roleInput)}>
                 Add
               </Button>
             </div>
@@ -191,28 +323,35 @@ export function OnboardingWizard({ collections }: Props) {
         <div className="flex items-center justify-between pt-2">
           <button
             type="button"
-            onClick={() => {
-              analytics.track("onboarding_completed", { skipped_at_screen: 1 });
-              setStep(2);
-            }}
+            onClick={() => setStep(1)}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            Skip this step
+            Back
           </button>
-          <Button onClick={() => setStep(2)}>
-            Continue <ArrowRight className="size-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Skip this step
+            </button>
+            <Button onClick={() => setStep(3)}>
+              Continue <ArrowRight className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (step === 2) {
+  // ─── Step 3: Collection ─────────────────────────────────────────────────────
+  if (step === 3) {
     return (
       <div className="space-y-8">
         <div className="space-y-1.5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 2 of 3
+            Step 3 of 4
           </p>
           <h1 className="text-2xl font-bold">Pick a collection to start tracking</h1>
           <p className="text-sm text-muted-foreground">
@@ -271,23 +410,20 @@ export function OnboardingWizard({ collections }: Props) {
         <div className="flex items-center justify-between pt-2">
           <button
             type="button"
-            onClick={() => setStep(1)}
+            onClick={() => setStep(2)}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Back
           </button>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => {
-                analytics.track("onboarding_completed", { skipped_at_screen: 2 });
-                setStep(3);
-              }}
+              onClick={() => setStep(4)}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Skip this step
             </button>
-            <Button onClick={() => setStep(3)}>
+            <Button onClick={() => setStep(4)}>
               Continue <ArrowRight className="size-4" />
             </Button>
           </div>
@@ -296,14 +432,14 @@ export function OnboardingWizard({ collections }: Props) {
     );
   }
 
-  // Step 3 — confirmation
+  // ─── Step 4: Confirm ────────────────────────────────────────────────────────
   const chosenCollection = collections.find((c) => c.slug === selectedCollection);
 
   return (
     <div className="space-y-8">
       <div className="space-y-1.5">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Step 3 of 3
+          Step 4 of 4
         </p>
         <h1 className="text-2xl font-bold">You&apos;re all set.</h1>
         <p className="text-sm text-muted-foreground">
@@ -312,9 +448,18 @@ export function OnboardingWizard({ collections }: Props) {
       </div>
 
       <div className="rounded-xl border bg-card p-5 space-y-4">
+        {currentTitleInput.trim() && (
+          <div className="space-y-1 pb-3 border-b">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Your current role
+            </p>
+            <p className="text-sm">{currentTitleInput.trim()}</p>
+          </div>
+        )}
+
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Your roles
+            Roles you&apos;re tracking
           </p>
           {roles.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
@@ -363,7 +508,7 @@ export function OnboardingWizard({ collections }: Props) {
       <div className="flex items-center justify-between pt-2">
         <button
           type="button"
-          onClick={() => setStep(2)}
+          onClick={() => setStep(3)}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Back

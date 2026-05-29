@@ -18,6 +18,8 @@ model User {
   alertsPaused       Boolean   @default(false) @map("alerts_paused")
   unsubscribeToken   String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("unsubscribe_token")
   resumeText       String?   @map("resume_text")
+  linkedinUrl      String?   @map("linkedin_url")
+  currentTitle     String?   @map("current_title")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
