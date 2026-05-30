@@ -55,9 +55,10 @@ model Company {
   sourceType   CompanySource @default(manual) @map("source_type")
   sourceId     String?       @map("source_id")
   tags         String[]      @default([])
-  blogRssUrl   String?       @map("blog_rss_url")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  blogRssUrl       String?       @map("blog_rss_url")
+  recentlyFundedAt DateTime?     @map("recently_funded_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
 
   jobs        Job[]
   trackedBy   TrackedCompany[]
@@ -251,6 +252,36 @@ model CompanyInsight {
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("company_insights")
+}
+
+// ─── Funding signals (from TechCrunch RSS etc.) ──────────────────────────────
+
+enum FundingSignalStatus {
+  pending
+  approved
+  rejected
+  added
+
+  @@map("funding_signal_status")
+}
+
+model FundingSignal {
+  id          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyName String              @map("company_name")
+  website     String?
+  amount      String?
+  round       String?
+  investors   String?
+  sourceUrl   String              @unique @map("source_url")
+  atsUrl      String?             @map("ats_url")
+  atsPlatform String?             @map("ats_platform")
+  atsSlug     String?             @map("ats_slug")
+  status      FundingSignalStatus @default(pending)
+  autoApproved Boolean            @default(false) @map("auto_approved")
+  companyId   String?             @map("company_id") @db.Uuid
+  detectedAt  DateTime            @default(now()) @map("detected_at")
+
+  @@map("funding_signals")
 }
 
 model Match {

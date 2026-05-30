@@ -20,6 +20,7 @@ type Company = {
   website: string | null;
   size: string | null;
   fundingStage: string | null;
+  recentlyFundedAt: Date | null;
   _count: { trackedBy: number };
   jobs: { postedAt: Date | null }[];
 };
@@ -208,6 +209,13 @@ export function CompanyBrowser({
   );
 }
 
+const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+
+function isRecentlyFunded(date: Date | null): boolean {
+  if (!date) return false;
+  return Date.now() - new Date(date).getTime() < NINETY_DAYS_MS;
+}
+
 function CompanyCard({
   company,
   tracked,
@@ -219,6 +227,7 @@ function CompanyCard({
 }) {
   const lastActive = formatLastActive(company.jobs[0]?.postedAt);
   const fundingLabel = formatFundingStage(company.fundingStage);
+  const recentlyFunded = isRecentlyFunded(company.recentlyFundedAt);
 
   return (
     <div className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
@@ -230,17 +239,25 @@ function CompanyCard({
           className="shrink-0"
         />
         <div className="flex-1 min-w-0 space-y-0.5">
-          <a
-            href={`/companies/${company.slug}`}
-            className="font-semibold text-sm leading-snug hover:underline underline-offset-2"
-          >
-            {company.name}
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={`/companies/${company.slug}`}
+              className="font-semibold text-sm leading-snug hover:underline underline-offset-2"
+            >
+              {company.name}
+            </a>
+            {recentlyFunded && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 leading-none shrink-0">
+                <span className="h-1 w-1 rounded-full bg-emerald-500" />
+                {fundingLabel ?? "Recently funded"}
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap gap-x-2 gap-y-0.5">
             {company.industry && (
               <p className="text-xs text-muted-foreground">{company.industry}</p>
             )}
-            {fundingLabel && (
+            {fundingLabel && !recentlyFunded && (
               <p className="text-xs text-muted-foreground">{fundingLabel}</p>
             )}
           </div>

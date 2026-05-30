@@ -33,6 +33,7 @@ type BrowseCompany = {
   headquarters: string | null;
   size: string | null;
   fundingStage: string | null;
+  recentlyFundedAt: Date | null;
   _count: { trackedBy: number };
   jobs: { postedAt: Date | null }[];
 };
@@ -47,6 +48,7 @@ type ActiveRow = {
   headquarters: string | null;
   size: string | null;
   funding_stage: string | null;
+  recently_funded_at: Date | null;
   tracked_by_count: bigint | number;
   last_posted_at: Date | null;
 };
@@ -68,6 +70,7 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
       c.id, c.name, c.slug, c.description, c.website, c.industry, c.headquarters,
       c.size::text AS size,
       c.funding_stage::text AS funding_stage,
+      c.recently_funded_at,
       COUNT(DISTINCT tc.id)::int AS tracked_by_count,
       MAX(CASE WHEN j.status = 'ACTIVE'::job_status THEN j.posted_at END) AS last_posted_at
     FROM companies c
@@ -86,6 +89,7 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
     id: r.id, name: r.name, slug: r.slug, description: r.description,
     website: r.website, industry: r.industry, headquarters: r.headquarters,
     size: r.size, fundingStage: r.funding_stage,
+    recentlyFundedAt: r.recently_funded_at ? new Date(r.recently_funded_at) : null,
     _count: { trackedBy: Number(r.tracked_by_count) },
     jobs: r.last_posted_at ? [{ postedAt: new Date(r.last_posted_at) }] : [],
   }));
@@ -112,6 +116,7 @@ async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | 
     id: r.id, name: r.name, slug: r.slug, description: r.description,
     website: r.website, industry: r.industry, headquarters: r.headquarters,
     size: r.size, fundingStage: r.fundingStage,
+    recentlyFundedAt: r.recentlyFundedAt,
     _count: { trackedBy: r._count.trackedBy },
     jobs: r.jobs,
   }));

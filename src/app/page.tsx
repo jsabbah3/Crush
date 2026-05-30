@@ -5,8 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
 import { signInWithGoogle } from "@/app/actions/auth";
-import { prisma } from "@/lib/prisma";
-
 const FEATURED = [
   { name: "Stripe",    website: "https://stripe.com" },
   { name: "Vercel",    website: "https://vercel.com" },
@@ -62,8 +60,6 @@ export default async function HomePage({
 
   if (authUser) redirect("/dashboard");
 
-  const companyCount = await prisma.company.count();
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
@@ -90,7 +86,7 @@ export default async function HomePage({
         <div className="max-w-3xl space-y-7">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            {companyCount}+ companies monitored daily
+            Not every company. The ones worth watching.
           </div>
 
           <h1 className="font-heading text-5xl font-bold tracking-tight leading-[1.08] sm:text-6xl lg:text-[4.5rem]">
@@ -122,7 +118,7 @@ export default async function HomePage({
           {/* Company logo strip */}
           <div className="pt-4 space-y-3">
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-              Companies on Crush
+              A few of the companies on Crush
             </p>
             <div className="flex items-center gap-4 flex-wrap justify-center">
               {FEATURED.map((c) => (
@@ -134,9 +130,6 @@ export default async function HomePage({
                   <CompanyLogo name={c.name} website={c.website} size="sm" />
                 </div>
               ))}
-              <span className="text-xs text-muted-foreground">
-                + {Math.max(0, companyCount - FEATURED.length)} more
-              </span>
             </div>
           </div>
         </div>
@@ -203,7 +196,7 @@ export default async function HomePage({
               Crush shows you exactly one thing: when a company you care about posts a role you&apos;d actually apply for. Nothing more.
             </p>
             <p>
-              Built for senior professionals who have a shortlist and want to be the first to know — not the thousandth person to see it on a job board.
+              Every company on Crush was added because someone smart would want to work there. Not because they have a job board budget. The curation is the product.
             </p>
           </div>
           <form action={signInWithGoogle}>
