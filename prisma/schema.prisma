@@ -23,8 +23,9 @@ model User {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  tracked      TrackedCompany[]
-  trackedRoles TrackedRole[]
+  tracked             TrackedCompany[]
+  trackedRoles        TrackedRole[]
+  linkedInConnections LinkedInConnection[]
 
   @@map("users")
 }
@@ -60,11 +61,12 @@ model Company {
   createdAt        DateTime      @default(now()) @map("created_at")
   updatedAt        DateTime      @updatedAt @map("updated_at")
 
-  jobs        Job[]
-  trackedBy   TrackedCompany[]
-  collections CollectionCompany[]
-  signals     CompanySignal[]
-  insights    CompanyInsight[]
+  jobs                Job[]
+  trackedBy           TrackedCompany[]
+  collections         CollectionCompany[]
+  signals             CompanySignal[]
+  insights            CompanyInsight[]
+  linkedInConnections LinkedInConnection[]
 
   @@map("companies")
 }
@@ -303,4 +305,24 @@ model Match {
 
   @@unique([trackedCompanyId, jobId])
   @@map("matches")
+}
+
+model LinkedInConnection {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  linkedinUrl String?   @map("linkedin_url")
+  company     String
+  title       String?
+  connectedOn DateTime? @map("connected_on")
+  companyId   String?   @map("company_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchedCompany Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([companyId])
+  @@map("linkedin_connections")
 }

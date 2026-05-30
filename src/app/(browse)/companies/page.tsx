@@ -188,7 +188,7 @@ export default async function CompaniesPage({
   }
 
   // Browse view (logged out or ?view=browse)
-  const [companies, tracked, industries] = await Promise.all([
+  const [companies, tracked, industries, connectionRows] = await Promise.all([
     sort === "active" ? fetchByActive(q, industry, vc) : fetchByOrm(q, industry, vc, sort),
     authUser
       ? prisma.trackedCompany.findMany({ where: { userId: authUser.id }, select: { id: true, companyId: true } })
@@ -199,9 +199,20 @@ export default async function CompaniesPage({
       distinct: ["industry"],
       orderBy: { industry: "asc" },
     }),
+    authUser
+      ? prisma.linkedInConnection.groupBy({
+          by: ["companyId"],
+          where: { userId: authUser.id, companyId: { not: null } },
+          _count: { companyId: true },
+        })
+      : Promise.resolve([] as { companyId: string | null; _count: { companyId: number } }[]),
   ]);
 
   const trackedMap = new Map(tracked.map((t) => [t.companyId, { id: t.id }]));
+  const connectionCounts: Record<string, number> = {};
+  for (const row of connectionRows) {
+    if (row.companyId) connectionCounts[row.companyId] = row._count.companyId;
+  }
 
   return (
     <div className="space-y-6">
@@ -239,6 +250,7 @@ export default async function CompaniesPage({
         initialIndustry={industry}
         initialVc={vc}
         initialSort={sort}
+        connectionCounts={connectionCounts}
       />
     </div>
   );

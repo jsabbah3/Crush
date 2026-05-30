@@ -68,6 +68,7 @@ export function CompanyBrowser({
   initialIndustry,
   initialVc,
   initialSort,
+  connectionCounts = {},
 }: {
   companies: Company[];
   trackedMap: Map<string, { id: string }>;
@@ -78,6 +79,7 @@ export function CompanyBrowser({
   initialIndustry: string;
   initialVc: string;
   initialSort: Sort;
+  connectionCounts?: Record<string, number>;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
@@ -194,12 +196,14 @@ export function CompanyBrowser({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {companies.map((company) => {
             const tracked = trackedMap.get(company.id) ?? null;
+            const connections = connectionCounts[company.id] ?? 0;
             return (
               <CompanyCard
                 key={company.id}
                 company={company}
                 tracked={tracked}
                 userId={userId}
+                connectionCount={connections}
               />
             );
           })}
@@ -220,10 +224,12 @@ function CompanyCard({
   company,
   tracked,
   userId,
+  connectionCount = 0,
 }: {
   company: Company;
   tracked: { id: string } | null;
   userId: string | null;
+  connectionCount?: number;
 }) {
   const lastActive = formatLastActive(company.jobs[0]?.postedAt);
   const fundingLabel = formatFundingStage(company.fundingStage);
@@ -282,6 +288,17 @@ function CompanyCard({
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="size-3" />
               {lastActive}
+            </span>
+          )}
+          {connectionCount > 0 && (
+            <span className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+              <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
             </span>
           )}
         </div>

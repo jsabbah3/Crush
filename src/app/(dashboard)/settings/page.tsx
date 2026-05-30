@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AlertSettingsForm } from "@/components/alert-settings-form";
 import { TrackedRoles } from "@/components/tracked-roles";
 import { ResumeUpload } from "@/components/resume-upload";
+import { NetworkImport } from "@/components/network-import";
 import { signOut } from "@/app/actions/auth";
 
 type UserPrefs = {
@@ -22,13 +23,14 @@ export default async function SettingsPage() {
   const user = await prisma.user.findUnique({ where: { id: authUser.id } });
   if (!user) redirect("/login");
 
-  const [trackedCount, trackedRoles] = await Promise.all([
+  const [trackedCount, trackedRoles, connectionCount] = await Promise.all([
     prisma.trackedCompany.count({ where: { userId: user.id } }),
     prisma.trackedRole.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "asc" },
       select: { id: true, title: true },
     }),
+    prisma.linkedInConnection.count({ where: { userId: user.id } }),
   ]);
 
   const prefs = user.defaultCriteria as UserPrefs | null;
@@ -102,6 +104,18 @@ export default async function SettingsPage() {
             userId={user.id}
             initialTrackedRoles={trackedRoles}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Your network</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            See who you know at companies on Crush.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <NetworkImport existingCount={connectionCount} />
         </CardContent>
       </Card>
 

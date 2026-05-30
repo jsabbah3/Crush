@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ExternalLink, Users, Rss, BookOpen } from "lucide-react";
+import { ExternalLink, Users, Rss, BookOpen, Network } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +76,16 @@ export default async function CompanyDetailPage({
 
   if (!company) notFound();
 
+  // Fetch LinkedIn connections at this company
+  const networkConnections = authUser
+    ? await prisma.linkedInConnection.findMany({
+        where: { userId: authUser.id, companyId: company.id },
+        select: { firstName: true, lastName: true, title: true, linkedinUrl: true },
+        orderBy: { firstName: "asc" },
+        take: 10,
+      })
+    : [];
+
   // Fetch user's matches for this company (only if they follow it)
   const userMatches = authUser && tracked
     ? await prisma.match.findMany({
@@ -146,6 +156,39 @@ export default async function CompanyDetailPage({
           </a>
           .
         </p>
+      )}
+
+      {/* People you know */}
+      {networkConnections.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Users className="size-4 text-muted-foreground" />
+            <h2 className="font-medium text-sm">
+              {networkConnections.length === 1 ? "1 connection here" : `${networkConnections.length} connections here`}
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {networkConnections.map((c, i) => (
+              c.linkedinUrl ? (
+                <a
+                  key={i}
+                  href={c.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm hover:border-foreground/20 hover:shadow-sm transition-all"
+                >
+                  <span className="font-medium">{c.firstName} {c.lastName}</span>
+                  {c.title && <span className="text-xs text-muted-foreground">{c.title}</span>}
+                </a>
+              ) : (
+                <div key={i} className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm">
+                  <span className="font-medium">{c.firstName} {c.lastName}</span>
+                  {c.title && <span className="text-xs text-muted-foreground">{c.title}</span>}
+                </div>
+              )
+            ))}
+          </div>
+        </section>
       )}
 
       <Separator />

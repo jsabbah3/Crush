@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import { Check, X, ArrowRight, Link2 } from "lucide-react";
+import { useState, useTransition, useEffect, useRef } from "react";
+import { Check, X, ArrowRight, Link2, Upload, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,7 @@ type Props = {
 };
 
 export function OnboardingWizard({ collections }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -52,6 +52,11 @@ export function OnboardingWizard({ collections }: Props) {
 
   // Step 3 state — collection
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+
+  // Step 4 state — LinkedIn CSV import
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importStatus, setImportStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [importResult, setImportResult] = useState<{ imported: number; matched: number } | null>(null);
 
   // Derived: suggestions from current title
   const suggestions = getRoleSuggestions(currentTitleInput, 6);
@@ -100,7 +105,7 @@ export function OnboardingWizard({ collections }: Props) {
       <div className="space-y-8">
         <div className="space-y-1.5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 1 of 4
+            Step 1 of 5
           </p>
           <h1 className="text-2xl font-bold">Let&apos;s personalize your experience</h1>
           <p className="text-sm text-muted-foreground">
@@ -180,7 +185,7 @@ export function OnboardingWizard({ collections }: Props) {
       <div className="space-y-8">
         <div className="space-y-1.5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 2 of 4
+            Step 2 of 5
           </p>
           <h1 className="text-2xl font-bold">What roles are you looking for?</h1>
           <p className="text-sm text-muted-foreground">
@@ -351,7 +356,7 @@ export function OnboardingWizard({ collections }: Props) {
       <div className="space-y-8">
         <div className="space-y-1.5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 3 of 4
+            Step 3 of 5
           </p>
           <h1 className="text-2xl font-bold">Pick a collection to start tracking</h1>
           <p className="text-sm text-muted-foreground">
@@ -432,14 +437,129 @@ export function OnboardingWizard({ collections }: Props) {
     );
   }
 
-  // ─── Step 4: Confirm ────────────────────────────────────────────────────────
+  // ─── Step 4: LinkedIn network import ────────────────────────────────────────
+  if (step === 4) {
+    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setImportStatus("loading");
+      try {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/connections/import", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Import failed");
+        setImportResult(data);
+        setImportStatus("done");
+      } catch {
+        setImportStatus("error");
+      }
+    }
+
+    return (
+      <div className="space-y-8">
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Step 4 of 5
+          </p>
+          <h1 className="text-2xl font-bold">See who you know</h1>
+          <p className="text-sm text-muted-foreground">
+            Import your LinkedIn connections to see which companies you already have a foot in the door at.
+          </p>
+        </div>
+
+        <div className="space-y-5">
+          {/* Export instructions */}
+          <div className="rounded-xl border bg-muted/30 p-4 space-y-2">
+            <p className="text-sm font-medium">How to export from LinkedIn</p>
+            <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+              <li>Go to <span className="font-medium text-foreground">LinkedIn → Me → Settings & Privacy</span></li>
+              <li>Click <span className="font-medium text-foreground">Data privacy → Get a copy of your data</span></li>
+              <li>Select <span className="font-medium text-foreground">Connections</span> only, then <span className="font-medium text-foreground">Request archive</span></li>
+              <li>LinkedIn emails you a link — download the CSV and upload it here</li>
+            </ol>
+          </div>
+
+          {/* Upload area */}
+          {importStatus === "done" && importResult ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30 p-5 flex items-start gap-3">
+              <Users className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                  {importResult.imported.toLocaleString()} connections imported
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
+                  {importResult.matched.toLocaleString()} matched to companies on Crush — you&apos;ll see them on company pages.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                className="sr-only"
+                onChange={handleFileChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={importStatus === "loading"}
+                className="w-full rounded-xl border-2 border-dashed border-border hover:border-foreground/30 transition-colors p-8 flex flex-col items-center gap-3 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Upload className="size-6" />
+                <div className="text-center">
+                  <p className="text-sm font-medium">
+                    {importStatus === "loading" ? "Importing…" : "Upload Connections.csv"}
+                  </p>
+                  <p className="text-xs mt-0.5">From your LinkedIn data export</p>
+                </div>
+              </button>
+              {importStatus === "error" && (
+                <p className="text-xs text-destructive mt-2">
+                  Something went wrong. Make sure you&apos;re uploading the Connections.csv from LinkedIn.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
+          <button
+            type="button"
+            onClick={() => setStep(3)}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Back
+          </button>
+          <div className="flex items-center gap-3">
+            {importStatus !== "done" && (
+              <button
+                type="button"
+                onClick={() => setStep(5)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Skip this step
+              </button>
+            )}
+            <Button onClick={() => setStep(5)}>
+              {importStatus === "done" ? "Continue" : "Skip"} <ArrowRight className="size-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Step 5: Confirm ────────────────────────────────────────────────────────
   const chosenCollection = collections.find((c) => c.slug === selectedCollection);
 
   return (
     <div className="space-y-8">
       <div className="space-y-1.5">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Step 4 of 4
+          Step 5 of 5
         </p>
         <h1 className="text-2xl font-bold">You&apos;re all set.</h1>
         <p className="text-sm text-muted-foreground">
@@ -508,7 +628,7 @@ export function OnboardingWizard({ collections }: Props) {
       <div className="flex items-center justify-between pt-2">
         <button
           type="button"
-          onClick={() => setStep(3)}
+          onClick={() => setStep(4)}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Back
