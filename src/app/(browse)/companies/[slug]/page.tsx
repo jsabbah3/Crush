@@ -19,12 +19,16 @@ export async function generateMetadata({
   const { slug } = await params;
   const company = await prisma.company.findUnique({
     where: { slug },
-    select: { name: true, description: true, industry: true },
+    select: { name: true, description: true, industry: true, insights: { select: { id: true }, take: 1 } },
   });
   if (!company) return {};
 
+  const hasGuide = company.insights.length > 0;
+
   return {
-    title: `${company.name} — Jobs & Hiring | Crush`,
+    title: hasGuide
+      ? `Getting hired at ${company.name} — Process, culture, and what they look for | Crush`
+      : `${company.name} — Jobs & Hiring | Crush`,
     description:
       company.description
         ? `${company.description.slice(0, 140)} — Track ${company.name} on Crush to get alerted when they hire.`
@@ -146,6 +150,28 @@ export default async function CompanyDetailPage({
 
       <Separator />
 
+      {/* Insider guides — shown first when they exist */}
+      {company.insights.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="size-4" />
+            <h2 className="font-semibold text-sm tracking-tight">Getting hired here</h2>
+          </div>
+          {company.insights.map((insight) => (
+            <div key={insight.id} className="rounded-xl border bg-card p-5 space-y-4">
+              <div className="space-y-1">
+                <h3 className="font-semibold text-base">{insight.title}</h3>
+                {insight.author && (
+                  <p className="text-xs text-muted-foreground">{insight.author}</p>
+                )}
+              </div>
+              <MarkdownBody markdown={insight.body} />
+            </div>
+          ))}
+          <Separator />
+        </section>
+      )}
+
       {/* Your matches */}
       {userMatches.length > 0 && (
         <section className="space-y-3">
@@ -194,30 +220,6 @@ export default async function CompanyDetailPage({
           </div>
         )}
       </section>
-
-      {/* Insider guides */}
-      {company.insights.length > 0 && (
-        <>
-          <Separator />
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="size-4 text-muted-foreground" />
-              <h2 className="font-medium text-sm">Getting hired here</h2>
-            </div>
-            {company.insights.map((insight) => (
-              <div key={insight.id} className="rounded-xl border bg-card p-5 space-y-4">
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-base">{insight.title}</h3>
-                  {insight.author && (
-                    <p className="text-xs text-muted-foreground">{insight.author}</p>
-                  )}
-                </div>
-                <MarkdownBody markdown={insight.body} />
-              </div>
-            ))}
-          </section>
-        </>
-      )}
 
       {/* Engineering blog signals */}
       {company.signals.length > 0 && (
