@@ -153,20 +153,29 @@ export default async function CompanyDetailPage({
       {/* Insider guides — shown first when they exist */}
       {company.insights.length > 0 && (
         <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <BookOpen className="size-4" />
-            <h2 className="font-semibold text-sm tracking-tight">Getting hired here</h2>
-          </div>
           {company.insights.map((insight) => (
-            <div key={insight.id} className="rounded-xl border bg-card p-5 space-y-4">
-              <div className="space-y-1">
-                <h3 className="font-semibold text-base">{insight.title}</h3>
-                {insight.author && (
-                  <p className="text-xs text-muted-foreground">{insight.author}</p>
-                )}
+            <details key={insight.id} open className="group rounded-xl border bg-card">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 [&::-webkit-details-marker]:hidden">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="size-4 shrink-0" />
+                  <span className="font-semibold text-sm">{insight.title}</span>
+                  {insight.author && (
+                    <span className="text-xs text-muted-foreground hidden sm:inline">— {insight.author}</span>
+                  )}
+                </div>
+                <svg
+                  className="size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180 shrink-0"
+                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <div className="border-t px-5 py-5">
+                <MarkdownBody markdown={insight.body} />
               </div>
-              <MarkdownBody markdown={insight.body} />
-            </div>
+            </details>
           ))}
           <Separator />
         </section>
