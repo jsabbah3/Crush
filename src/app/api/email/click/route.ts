@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { trackServerEvent } from "@/lib/analytics-node";
 
-const APP_ORIGIN = new URL(process.env.APP_URL ?? "https://crush.so").origin;
+const APP_ORIGIN = new URL(process.env.APP_URL ?? "https://crushco.app").origin;
 
 function isSafeDestination(url: string): boolean {
   try {

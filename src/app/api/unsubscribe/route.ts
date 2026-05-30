@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const APP_URL = process.env.APP_URL ?? "https://crush.so";
+const APP_URL = process.env.APP_URL ?? "https://crushco.app";
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");

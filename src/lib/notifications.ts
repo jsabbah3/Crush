@@ -4,7 +4,7 @@ import { AlertMode } from "@/generated/prisma/enums";
 import { trackServerEvent } from "@/lib/analytics-node";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const APP_URL = process.env.APP_URL ?? "https://crush.so";
+const APP_URL = process.env.APP_URL ?? "https://crushco.app";
 
 type MatchRow = {
   id: string;
@@ -180,7 +180,7 @@ async function sendEmail({
   emailType: string;
 }): Promise<boolean> {
   const { error } = await resend.emails.send({
-    from: "Crush <alerts@crush.so>",
+    from: "Crush <alerts@crushco.app>",
     to,
     subject,
     html: buildHtml(name ?? "there", matches, unsubscribeToken, userId, emailType),

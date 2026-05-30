@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { trackServerEvent } from "@/lib/analytics-node";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const APP_URL = process.env.APP_URL ?? "https://crush.so";
+const APP_URL = process.env.APP_URL ?? "https://crushco.app";
 const BATCH_SIZE = 100; // Resend batch limit
 
 type WeeklyPayload = {
@@ -205,7 +205,7 @@ function buildEmailPayload(p: WeeklyPayload) {
     : "Your weekly Crush update — here's what's trending";
 
   return {
-    from: "Crush <weekly@crush.so>",
+    from: "Crush <weekly@crushco.app>",
     to: p.user.email,
     subject,
     html: buildHtml(name, p),
