@@ -259,9 +259,14 @@ function CompanyCard({
               </span>
             )}
           </div>
-          {fundingLabel && !recentlyFunded && (
-            <p className="text-xs text-muted-foreground">{fundingLabel}</p>
-          )}
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+            {company.industry && (
+              <p className="text-xs text-muted-foreground">{company.industry}</p>
+            )}
+            {fundingLabel && !recentlyFunded && (
+              <p className="text-xs text-muted-foreground">{fundingLabel}</p>
+            )}
+          </div>
         </div>
       </div>
 
