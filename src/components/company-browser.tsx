@@ -237,36 +237,31 @@ function CompanyCard({
 
   return (
     <div className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         <CompanyLogo
           name={company.name}
           website={company.website}
-          size="md"
+          size="lg"
           className="shrink-0"
         />
-        <div className="flex-1 min-w-0 space-y-0.5">
-          <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-start gap-2 flex-wrap">
             <a
               href={`/companies/${company.slug}`}
-              className="font-semibold text-sm leading-snug hover:underline underline-offset-2"
+              className="font-semibold text-base leading-snug hover:underline underline-offset-2"
             >
               {company.name}
             </a>
             {recentlyFunded && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 leading-none shrink-0">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 leading-none shrink-0 mt-0.5">
                 <span className="h-1 w-1 rounded-full bg-emerald-500" />
                 {fundingLabel ?? "Recently funded"}
               </span>
             )}
           </div>
-          <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-            {company.industry && (
-              <p className="text-xs text-muted-foreground">{company.industry}</p>
-            )}
-            {fundingLabel && !recentlyFunded && (
-              <p className="text-xs text-muted-foreground">{fundingLabel}</p>
-            )}
-          </div>
+          {fundingLabel && !recentlyFunded && (
+            <p className="text-xs text-muted-foreground">{fundingLabel}</p>
+          )}
         </div>
       </div>
 
