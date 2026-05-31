@@ -40,6 +40,23 @@ export async function addCustomCompany(
     where: { name: { equals: trimName, mode: "insensitive" } },
   });
   if (existing) {
+    // If this company has no ATS connected, try to detect and wire it up now
+    if (!existing.sourceId) {
+      const atsMatch = await detectAts(trimName, websiteUrl ?? existing.website);
+      if (atsMatch) {
+        await prisma.company.update({
+          where: { id: existing.id },
+          data: { sourceType: atsMatch.type, sourceId: atsMatch.slug },
+        });
+        try {
+          const { ingestCompanyById } = await import("@/lib/ingestion/index");
+          await ingestCompanyById(existing.id);
+        } catch {
+          // Non-fatal
+        }
+      }
+    }
+
     // Follow it if not already followed, then return
     await prisma.trackedCompany.upsert({
       where: { userId_companyId: { userId: user.id, companyId: existing.id } },
