@@ -63,7 +63,7 @@ export default async function HomePage({
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Nav */}
-      <header className="border-b sticky top-0 z-10 bg-background">
+      <header className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-5xl flex items-center justify-between px-4 h-12">
           <span className="font-heading font-bold text-lg tracking-tight">Crush</span>
           <div className="flex items-center gap-2">
@@ -82,19 +82,19 @@ export default async function HomePage({
       </header>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-4 py-24 text-center">
-        <div className="max-w-3xl space-y-7">
+      <section className="flex-1 flex flex-col items-center justify-center px-4 py-20 text-center">
+        <div className="max-w-4xl space-y-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Not every company. The ones worth watching.
           </div>
 
-          <h1 className="font-heading text-5xl font-bold tracking-tight leading-[1.08] sm:text-6xl lg:text-[4.5rem]">
+          <h1 className="font-heading font-bold tracking-tight leading-[1.04] text-[3.25rem] sm:text-[4.5rem] lg:text-[6rem]">
             The companies
             <br />
             you&apos;d actually
             <br />
-            <span className="italic">leave for.</span>
+            <span className="italic text-primary">leave for.</span>
           </h1>
 
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
@@ -103,7 +103,7 @@ export default async function HomePage({
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <form action={signInWithGoogle}>
-              <Button size="lg" type="submit" className="gap-2 px-8">
+              <Button size="lg" type="submit" className="gap-2 px-8 shadow-sm">
                 Start tracking for free
                 <ArrowRight className="size-4" />
               </Button>
@@ -116,7 +116,7 @@ export default async function HomePage({
           </div>
 
           {/* Company logo strip */}
-          <div className="pt-4 space-y-3">
+          <div className="pt-2 space-y-3">
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
               A few of the companies on Crush
             </p>
@@ -125,7 +125,7 @@ export default async function HomePage({
                 <div
                   key={c.name}
                   title={c.name}
-                  className="opacity-40 hover:opacity-70 transition-opacity grayscale"
+                  className="opacity-35 hover:opacity-65 transition-opacity grayscale"
                 >
                   <CompanyLogo name={c.name} website={c.website} size="sm" />
                 </div>
@@ -148,8 +148,8 @@ export default async function HomePage({
             {FEATURES.map(({ icon: Icon, title, body }, i) => (
               <div key={title} className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border bg-background">
-                    <Icon className="size-3.5 text-muted-foreground" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/8">
+                    <Icon className="size-3.5 text-primary" />
                   </div>
                   <span className="text-xs font-medium text-muted-foreground">Step {i + 1}</span>
                 </div>
@@ -180,15 +180,15 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Positioning */}
-      <section className="border-t bg-card">
+      {/* Positioning — dark inverted */}
+      <section className="border-t bg-foreground text-background">
         <div className="mx-auto max-w-3xl px-4 py-24 space-y-6">
-          <h2 className="font-heading text-4xl font-bold leading-tight">
+          <h2 className="font-heading text-4xl font-bold leading-tight sm:text-5xl">
             Not a job board.
             <br />
-            A watchlist.
+            <span className="text-primary italic">A watchlist.</span>
           </h2>
-          <div className="space-y-3 text-muted-foreground leading-relaxed max-w-xl">
+          <div className="space-y-3 leading-relaxed max-w-xl opacity-70">
             <p>
               LinkedIn shows you everything. Indeed shows you everything. That&apos;s the problem.
             </p>

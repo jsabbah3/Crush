@@ -55,7 +55,7 @@ export function DashboardNav({
                   className={cn(
                     "relative flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors",
                     active
-                      ? "text-foreground"
+                      ? "text-foreground font-semibold"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -67,7 +67,7 @@ export function DashboardNav({
                     </span>
                   )}
                   {active && (
-                    <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-foreground" />
+                    <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
                   )}
                 </Link>
               );
