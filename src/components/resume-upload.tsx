@@ -41,8 +41,28 @@ export function ResumeUpload({
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const content = await file.text();
-    setText(content);
+
+    // Plain text — read directly in browser
+    if (file.name.endsWith(".txt") || file.name.endsWith(".md")) {
+      setText(await file.text());
+      return;
+    }
+
+    // PDF / DOCX — parse server-side
+    setLoading(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/resume/parse", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to read file");
+      setText(data.text);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to read file");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function analyzeResume() {
@@ -94,7 +114,7 @@ export function ResumeUpload({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Paste your resume below. Claude will suggest roles you might not have considered based on your background.
+        Upload your resume or paste it below. Claude will suggest roles you might not have considered based on your background.
       </p>
 
       <div className="space-y-2">
@@ -109,7 +129,7 @@ export function ResumeUpload({
           <input
             ref={fileRef}
             type="file"
-            accept=".txt,.md"
+            accept=".pdf,.docx,.txt,.md"
             className="hidden"
             onChange={handleFileUpload}
           />
@@ -117,10 +137,12 @@ export function ResumeUpload({
             variant="outline"
             size="sm"
             onClick={() => fileRef.current?.click()}
+            disabled={loading}
           >
             <Upload className="size-3.5 mr-1.5" />
-            Upload .txt file
+            Upload resume
           </Button>
+          <span className="text-xs text-muted-foreground">PDF, DOCX, or TXT</span>
           {initialResumeText && (
             <Button
               variant="ghost"
