@@ -89,7 +89,7 @@ export default async function DashboardPage() {
   }
 
   const discoveryJobs =
-    recentMatches.length === 0 && trackedRoles.length > 0
+    trackedRoles.length > 0
       ? await prisma.job.findMany({
           where: {
             status: "ACTIVE",
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
           },
           include: { company: true },
           orderBy: { postedAt: "desc" },
-          take: 8,
+          take: 5,
         })
       : [];
 
@@ -328,25 +328,27 @@ export default async function DashboardPage() {
       {/* Discovery: role-matching jobs outside followed companies */}
       {discoveryJobs.length > 0 && (
         <section className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold flex items-center gap-2">
-              🔍 Jobs matching your roles
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              These are from companies outside your list — follow one to get alerts when new roles open.
-            </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">Also open right now</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Roles matching yours at companies you haven't followed yet.
+              </p>
+            </div>
           </div>
           <div className="space-y-2">
             {discoveryJobs.map((job) => (
-              <div key={job.id} className="relative">
-                <JobCard job={{ ...job, company: { name: job.company.name, slug: job.company.slug } }} />
-                <div className="mt-1 flex items-center justify-between px-1">
-                  <span className="text-[11px] text-muted-foreground">Not in your list</span>
+              <div key={job.id}>
+                <JobCard
+                  job={{ ...job, company: { name: job.company.name, slug: job.company.slug } }}
+                  className="border-dashed rounded-b-none border-b-0"
+                />
+                <div className="flex items-center justify-end px-4 py-1.5 border border-dashed border-t-0 rounded-b-lg bg-muted/30">
                   <Link
                     href={`/companies/${job.company.slug}`}
-                    className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+                    className="text-[11px] font-medium text-primary hover:underline underline-offset-2 transition-colors"
                   >
-                    Follow {job.company.name} →
+                    Follow {job.company.name} to get alerts →
                   </Link>
                 </div>
               </div>
