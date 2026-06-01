@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import pdfParse from "pdf-parse";
+// pdf-parse ESM types lack a default export — require() picks up the CJS build correctly
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
 import mammoth from "mammoth";
 
 export async function POST(req: NextRequest) {
