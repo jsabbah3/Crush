@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Briefcase, Bell, Settings, LogOut, Layers } from "lucide-react";
+import { Building2, Briefcase, Bell, Settings, LogOut, Layers, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -106,6 +106,10 @@ export function DashboardNav({
             <DropdownMenuItem onClick={() => router.push("/settings")}>
               <Settings className="size-3.5 mr-2" />
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/blog")}>
+              <BookOpen className="size-3.5 mr-2" />
+              Blog
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
