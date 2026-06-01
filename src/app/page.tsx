@@ -212,9 +212,14 @@ export default async function HomePage({
       <footer className="border-t py-5">
         <div className="mx-auto max-w-5xl px-4 flex items-center justify-between">
           <span className="font-heading font-bold text-sm">Crush</span>
-          <span className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Crush
-          </span>
+          <div className="flex items-center gap-5">
+            <Link href="/blog" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Blog
+            </Link>
+            <span className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} Crush
+            </span>
+          </div>
         </div>
       </footer>
     </div>

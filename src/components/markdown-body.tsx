@@ -16,11 +16,13 @@ function renderInline(text: string): string {
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 hover:text-foreground transition-colors">$1</a>');
 }
 
-function parseMarkdown(md: string): string {
+function parseMarkdown(md: string, prose = false): string {
   const lines = md.split("\n");
   const html: string[] = [];
   let inList = false;
   let listType: "ul" | "ol" | null = null;
+
+  const p = prose;
 
   function closeList() {
     if (inList) {
@@ -33,27 +35,25 @@ function parseMarkdown(md: string): string {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Blank line
-    if (line.trim() === "") {
-      closeList();
-      continue;
-    }
+    if (line.trim() === "") { closeList(); continue; }
+
+    // Horizontal rule
+    if (/^---+$/.test(line.trim())) { closeList(); html.push(`<hr class="border-border my-8" />`); continue; }
 
     // Headings
-    if (/^### /.test(line)) { closeList(); html.push(`<h3 class="font-semibold text-sm mt-5 mb-1">${renderInline(line.slice(4))}</h3>`); continue; }
-    if (/^## /.test(line))  { closeList(); html.push(`<h2 class="font-semibold text-base mt-6 mb-2">${renderInline(line.slice(3))}</h2>`); continue; }
-    if (/^# /.test(line))   { closeList(); html.push(`<h1 class="font-bold text-lg mt-6 mb-2">${renderInline(line.slice(2))}</h1>`); continue; }
+    if (/^### /.test(line)) { closeList(); html.push(`<h3 class="${p ? "font-heading font-bold text-lg mt-8 mb-2" : "font-semibold text-sm mt-5 mb-1"}">${renderInline(line.slice(4))}</h3>`); continue; }
+    if (/^## /.test(line))  { closeList(); html.push(`<h2 class="${p ? "font-heading font-bold text-2xl mt-10 mb-3" : "font-semibold text-base mt-6 mb-2"}">${renderInline(line.slice(3))}</h2>`); continue; }
+    if (/^# /.test(line))   { closeList(); html.push(`<h1 class="${p ? "font-heading font-bold text-3xl mt-8 mb-4" : "font-bold text-lg mt-6 mb-2"}">${renderInline(line.slice(2))}</h1>`); continue; }
 
     // Unordered list
     const ulMatch = line.match(/^[-*] (.+)/);
     if (ulMatch) {
       if (!inList || listType !== "ul") {
         closeList();
-        html.push('<ul class="list-disc pl-4 space-y-1 my-2">');
-        inList = true;
-        listType = "ul";
+        html.push(`<ul class="${p ? "list-disc pl-6 space-y-2 my-4" : "list-disc pl-4 space-y-1 my-2"}">`);
+        inList = true; listType = "ul";
       }
-      html.push(`<li class="text-sm leading-relaxed">${renderInline(ulMatch[1])}</li>`);
+      html.push(`<li class="${p ? "text-base leading-relaxed" : "text-sm leading-relaxed"}">${renderInline(ulMatch[1])}</li>`);
       continue;
     }
 
@@ -62,28 +62,27 @@ function parseMarkdown(md: string): string {
     if (olMatch) {
       if (!inList || listType !== "ol") {
         closeList();
-        html.push('<ol class="list-decimal pl-4 space-y-1 my-2">');
-        inList = true;
-        listType = "ol";
+        html.push(`<ol class="${p ? "list-decimal pl-6 space-y-2 my-4" : "list-decimal pl-4 space-y-1 my-2"}">`);
+        inList = true; listType = "ol";
       }
-      html.push(`<li class="text-sm leading-relaxed">${renderInline(olMatch[1])}</li>`);
+      html.push(`<li class="${p ? "text-base leading-relaxed" : "text-sm leading-relaxed"}">${renderInline(olMatch[1])}</li>`);
       continue;
     }
 
     // Default: paragraph
     closeList();
-    html.push(`<p class="text-sm leading-relaxed text-muted-foreground">${renderInline(line)}</p>`);
+    html.push(`<p class="${p ? "text-base leading-[1.8] text-foreground/80" : "text-sm leading-relaxed text-muted-foreground"}">${renderInline(line)}</p>`);
   }
 
   closeList();
   return html.join("\n");
 }
 
-export function MarkdownBody({ markdown, className = "" }: { markdown: string; className?: string }) {
+export function MarkdownBody({ markdown, className = "", prose = false }: { markdown: string; className?: string; prose?: boolean }) {
   return (
     <div
-      className={`space-y-2 ${className}`}
-      dangerouslySetInnerHTML={{ __html: parseMarkdown(markdown) }}
+      className={`${prose ? "space-y-4" : "space-y-2"} ${className}`}
+      dangerouslySetInnerHTML={{ __html: parseMarkdown(markdown, prose) }}
     />
   );
 }

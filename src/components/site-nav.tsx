@@ -19,6 +19,7 @@ type User = { email: string; name: string | null; avatarUrl: string | null } | n
 
 const NAV_LINKS = [
   { href: "/companies", label: "Companies" },
+  { href: "/blog", label: "Blog" },
   { href: "/dashboard", label: "Dashboard", authOnly: true },
 ];
 
