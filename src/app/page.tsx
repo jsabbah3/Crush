@@ -1,34 +1,42 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Bell, Building2, Filter } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
 import { signInWithGoogle } from "@/app/actions/auth";
+
 const FEATURED = [
   { name: "Stripe",    website: "https://stripe.com" },
-  { name: "Vercel",    website: "https://vercel.com" },
-  { name: "Linear",    website: "https://linear.app" },
   { name: "Anthropic", website: "https://anthropic.com" },
+  { name: "Linear",    website: "https://linear.app" },
+  { name: "Vercel",    website: "https://vercel.com" },
   { name: "OpenAI",    website: "https://openai.com" },
   { name: "Figma",     website: "https://figma.com" },
 ];
 
+const MOCK_WATCHLIST = [
+  { name: "Anthropic", website: "https://anthropic.com", industry: "AI Research", matches: 2 },
+  { name: "Linear",    website: "https://linear.app",    industry: "Dev Tools",   matches: 1 },
+  { name: "Stripe",    website: "https://stripe.com",    industry: "Fintech",     matches: 0 },
+  { name: "Vercel",    website: "https://vercel.com",    industry: "Dev Tools",   matches: 0 },
+];
+
 const FEATURES = [
   {
-    icon: Building2,
-    title: "Your list, not a job board",
+    step: "01",
+    title: "Build your watchlist",
     body: "Browse a curated set of VC-backed companies and follow the ones you'd actually leave for. Not a feed of thousands — a focused watchlist you control.",
   },
   {
-    icon: Filter,
+    step: "02",
     title: "Set your exact criteria",
-    body: "Define your role, seniority, and location — like \"Senior Engineer, Remote, Series B+\". We match every new opening against your spec, not a keyword cloud.",
+    body: "Define your role, seniority, and location. We match every new opening against your spec, not a keyword cloud.",
   },
   {
-    icon: Bell,
+    step: "03",
     title: "One alert. Zero noise.",
-    body: "When your exact match opens at a company you follow, you get one email. No daily digests, no sponsored posts, no irrelevant listings. Just the signal.",
+    body: "When your exact match opens at a company you follow, you get one email. No daily digests, no sponsored posts. Just the signal.",
   },
 ];
 
@@ -36,12 +44,12 @@ const TESTIMONIALS = [
   {
     quote: "I had 15 companies I'd actually consider. Checking each one's careers page every week was exhausting. Crush does it for me.",
     name: "Senior Engineer",
-    context: "Previously at a FAANG, watching frontier AI labs",
+    context: "Watching frontier AI labs",
   },
   {
     quote: "I'm not job hunting — but I know exactly where I'd go if the right role opened. Crush is the only thing that would actually tell me.",
     name: "Product Manager",
-    context: "Passively watching 12 growth-stage companies",
+    context: "Watching 12 growth-stage companies",
   },
 ];
 
@@ -51,30 +59,36 @@ export default async function HomePage({
   searchParams: Promise<{ code?: string }>;
 }) {
   const { code } = await searchParams;
-  if (code) {
-    redirect(`/api/auth/callback?code=${code}`);
-  }
+  if (code) redirect(`/api/auth/callback?code=${code}`);
 
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
-
   if (authUser) redirect("/dashboard");
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+
       {/* Nav */}
-      <header className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur">
-        <div className="mx-auto max-w-5xl flex items-center justify-between px-4 h-12">
-          <span className="font-heading font-bold text-lg tracking-tight">Crush</span>
-          <div className="flex items-center gap-2">
-            <Link href="/companies">
-              <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
-                Browse companies
-              </Button>
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/50">
+        <div className="mx-auto max-w-6xl flex items-center justify-between px-6 h-14">
+          <span className="font-heading font-bold text-base tracking-tight">Crush</span>
+          <nav className="hidden sm:flex items-center gap-6">
+            <Link href="/companies" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Browse
             </Link>
+            <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Blog
+            </Link>
+          </nav>
+          <div className="flex items-center gap-2">
             <form action={signInWithGoogle}>
-              <Button size="sm" type="submit" className="text-xs h-7 px-3">
-                Get started free →
+              <Button variant="ghost" size="sm" type="submit" className="text-sm font-normal text-muted-foreground hover:text-foreground">
+                Log in
+              </Button>
+            </form>
+            <form action={signInWithGoogle}>
+              <Button size="sm" type="submit" className="text-sm bg-foreground text-background hover:bg-foreground/90 rounded-lg px-4">
+                Sign up
               </Button>
             </form>
           </div>
@@ -82,78 +96,133 @@ export default async function HomePage({
       </header>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-4 py-20 text-center">
-        <div className="max-w-4xl space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Not every company. The ones worth watching.
-          </div>
+      <section className="flex-1 mx-auto max-w-6xl w-full px-6 py-20 lg:py-28">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-          <h1 className="font-heading font-bold tracking-tight leading-[1.04] text-[3.25rem] sm:text-[4.5rem] lg:text-[6rem]">
-            The companies
-            <br />
-            you&apos;d actually
-            <br />
-            <span className="italic text-primary">leave for.</span>
-          </h1>
+          {/* Left — text */}
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Now tracking 300+ companies
+            </div>
 
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            You&apos;re not job hunting. But you have a shortlist. Crush watches those companies every day and sends one targeted alert the moment your exact role opens up.
-          </p>
+            <div>
+              <h1 className="font-heading font-bold tracking-tight leading-[1.06]">
+                <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-foreground">
+                  The companies
+                </span>
+                <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-muted-foreground/60">
+                  you&apos;d actually
+                </span>
+                <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-primary italic">
+                  leave for.
+                </span>
+              </h1>
+            </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <form action={signInWithGoogle}>
-              <Button size="lg" type="submit" className="gap-2 px-8 shadow-sm">
-                Start tracking for free
-                <ArrowRight className="size-4" />
-              </Button>
-            </form>
-            <Link href="/companies">
-              <Button size="lg" variant="outline" className="px-8">
-                Browse companies
-              </Button>
-            </Link>
-          </div>
-
-          {/* Company logo strip */}
-          <div className="pt-2 space-y-3">
-            <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-              A few of the companies on Crush
+            <p className="text-base text-muted-foreground leading-relaxed max-w-sm">
+              You&apos;re not job hunting. But you have a shortlist. Crush watches those companies every day and sends one alert the moment your exact role opens.
             </p>
-            <div className="flex items-center gap-4 flex-wrap justify-center">
-              {FEATURED.map((c) => (
-                <div
-                  key={c.name}
-                  title={c.name}
-                  className="opacity-35 hover:opacity-65 transition-opacity grayscale"
-                >
-                  <CompanyLogo name={c.name} website={c.website} size="sm" />
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <form action={signInWithGoogle}>
+                <Button size="lg" type="submit" className="gap-2 bg-foreground text-background hover:bg-foreground/90 rounded-lg w-full sm:w-auto">
+                  Start tracking free
+                  <ArrowRight className="size-4" />
+                </Button>
+              </form>
+              <Link href="/companies">
+                <Button size="lg" variant="outline" className="rounded-lg w-full sm:w-auto border-border/60">
+                  Browse companies
+                </Button>
+              </Link>
+            </div>
+
+            {/* Logo strip */}
+            <div className="pt-2 space-y-3">
+              <p className="text-[11px] text-muted-foreground/60 uppercase tracking-widest font-medium">
+                A few of the companies on Crush
+              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                {FEATURED.map((c) => (
+                  <div key={c.name} title={c.name} className="opacity-30 hover:opacity-55 transition-opacity grayscale">
+                    <CompanyLogo name={c.name} website={c.website} size="sm" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right — product mockup */}
+          <div className="hidden lg:block">
+            <div className="rounded-2xl border border-border/70 bg-card shadow-xl overflow-hidden">
+              {/* Browser chrome */}
+              <div className="border-b border-border/50 bg-muted/30 px-4 py-2.5 flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
                 </div>
-              ))}
+                <div className="flex-1 mx-3 rounded bg-background/80 border border-border/40 px-3 py-1">
+                  <span className="text-[11px] text-muted-foreground/50 font-mono">crushco.app/dashboard</span>
+                </div>
+              </div>
+
+              {/* Dashboard content */}
+              <div className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">My watchlist</p>
+                  <span className="text-[11px] text-primary font-medium">3 new matches</span>
+                </div>
+
+                {/* Company rows */}
+                <div className="space-y-2">
+                  {MOCK_WATCHLIST.map((c) => (
+                    <div key={c.name} className="flex items-center justify-between rounded-xl border border-border/60 bg-background p-3 hover:border-border transition-colors">
+                      <div className="flex items-center gap-3">
+                        <CompanyLogo name={c.name} website={c.website} size="sm" />
+                        <div>
+                          <p className="text-sm font-semibold leading-none">{c.name}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">{c.industry}</p>
+                        </div>
+                      </div>
+                      {c.matches > 0 ? (
+                        <span className="text-[11px] font-bold bg-amber text-amber-foreground rounded-full px-2 py-0.5">
+                          {c.matches} new
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground/40">Watching</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Match card */}
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    <p className="text-[11px] font-semibold text-primary uppercase tracking-wide">New match</p>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">Staff Engineer, ML Infrastructure</p>
+                  <p className="text-[11px] text-muted-foreground">Anthropic · Remote · Full-time · posted today</p>
+                  <p className="text-[11px] font-medium text-primary mt-1 cursor-pointer hover:underline underline-offset-2">
+                    View role →
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section className="border-t bg-card">
-        <div className="mx-auto max-w-5xl px-4 py-20">
-          <div className="mb-12 space-y-2">
-            <h2 className="font-heading text-3xl font-bold">How it works</h2>
-            <p className="text-muted-foreground text-sm max-w-md">
-              Three steps. Set it once. Let Crush do the daily checking you&apos;ve been doing manually.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
-            {FEATURES.map(({ icon: Icon, title, body }, i) => (
-              <div key={title} className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/8">
-                    <Icon className="size-3.5 text-primary" />
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground">Step {i + 1}</span>
-                </div>
-                <h3 className="font-heading font-bold text-base">{title}</h3>
+      <section className="border-t border-border/50">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="grid grid-cols-1 gap-12 sm:grid-cols-3">
+            {FEATURES.map(({ step, title, body }) => (
+              <div key={title} className="space-y-4">
+                <span className="text-xs font-mono text-muted-foreground/50">{step}</span>
+                <h3 className="font-heading font-bold text-lg">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
               </div>
             ))}
@@ -161,18 +230,18 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Social proof */}
-      <section className="border-t">
-        <div className="mx-auto max-w-5xl px-4 py-20">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      {/* Testimonials */}
+      <section className="border-t border-border/50">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="rounded-xl border bg-card p-6 space-y-4">
-                <p className="text-sm leading-relaxed text-foreground">
+              <div key={t.name} className="space-y-5">
+                <p className="text-lg leading-relaxed text-foreground font-heading">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div>
-                  <p className="text-xs font-semibold">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.context}</p>
+                  <p className="text-sm font-semibold">{t.name}</p>
+                  <p className="text-sm text-muted-foreground">{t.context}</p>
                 </div>
               </div>
             ))}
@@ -180,48 +249,48 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Positioning — dark inverted */}
+      {/* Positioning — dark */}
       <section className="border-t bg-foreground text-background">
-        <div className="mx-auto max-w-3xl px-4 py-24 space-y-6">
-          <h2 className="font-heading text-4xl font-bold leading-tight sm:text-5xl">
-            Not a job board.
-            <br />
-            <span className="text-primary italic">A watchlist.</span>
-          </h2>
-          <div className="space-y-3 leading-relaxed max-w-xl opacity-70">
-            <p>
-              LinkedIn shows you everything. Indeed shows you everything. That&apos;s the problem.
-            </p>
-            <p>
-              Crush shows you exactly one thing: when a company you care about posts a role you&apos;d actually apply for. Nothing more.
-            </p>
-            <p>
-              Every company on Crush was added because someone smart would want to work there. Not because they have a job board budget. The curation is the product.
-            </p>
+        <div className="mx-auto max-w-6xl px-6 py-24">
+          <div className="max-w-xl space-y-6">
+            <h2 className="font-heading text-4xl font-bold leading-tight sm:text-5xl">
+              Not a job board.
+              <br />
+              <span className="text-primary italic">A watchlist.</span>
+            </h2>
+            <div className="space-y-3 text-sm leading-relaxed opacity-60 max-w-md">
+              <p>LinkedIn shows you everything. Indeed shows you everything. That&apos;s the problem.</p>
+              <p>Crush shows you exactly one thing: when a company you care about posts a role you&apos;d actually apply for.</p>
+              <p>Every company on Crush was added because someone smart would want to work there. The curation is the product.</p>
+            </div>
+            <form action={signInWithGoogle}>
+              <Button size="lg" type="submit" className="gap-2 bg-background text-foreground hover:bg-background/90 rounded-lg">
+                Build your watchlist
+                <ArrowRight className="size-4" />
+              </Button>
+            </form>
           </div>
-          <form action={signInWithGoogle}>
-            <Button size="lg" type="submit" className="gap-2 mt-2">
-              Build your watchlist
-              <ArrowRight className="size-4" />
-            </Button>
-          </form>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-5">
-        <div className="mx-auto max-w-5xl px-4 flex items-center justify-between">
+      <footer className="border-t border-border/50 py-6">
+        <div className="mx-auto max-w-6xl px-6 flex items-center justify-between">
           <span className="font-heading font-bold text-sm">Crush</span>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-6">
             <Link href="/blog" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Blog
             </Link>
-            <span className="text-xs text-muted-foreground">
+            <Link href="/companies" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Browse
+            </Link>
+            <span className="text-xs text-muted-foreground/50">
               © {new Date().getFullYear()} Crush
             </span>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
