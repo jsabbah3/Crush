@@ -103,6 +103,35 @@ async function persistJobs(
 
 // ── ATS sources: Greenhouse / Lever / Ashby ───────────────────────────────────
 
+/**
+ * Close any jobs in our DB that are no longer present in the ATS feed.
+ * Only called for ATS sources where the API returns the complete active listing.
+ * Returns the number of jobs closed.
+ */
+async function closeStaleJobs(companyId: string, fetchedIds: string[]): Promise<number> {
+  if (fetchedIds.length === 0) return 0; // Safety: don't close everything if the fetch returned nothing
+
+  const fetchedSet = new Set(fetchedIds);
+
+  const activeJobs = await prisma.job.findMany({
+    where: { companyId, status: "ACTIVE" },
+    select: { id: true, externalJobId: true },
+  });
+
+  const staleIds = activeJobs
+    .filter((j) => j.externalJobId && !fetchedSet.has(j.externalJobId))
+    .map((j) => j.id);
+
+  if (staleIds.length === 0) return 0;
+
+  await prisma.job.updateMany({
+    where: { id: { in: staleIds } },
+    data: { status: "CLOSED" },
+  });
+
+  return staleIds.length;
+}
+
 async function runAtsIngestion(): Promise<IngestionResult> {
   const companies = await prisma.company.findMany({
     where: {
@@ -122,7 +151,10 @@ async function runAtsIngestion(): Promise<IngestionResult> {
         // Log a warning — could be a wrong ATS slug or a genuine hiring pause
         errors.push(`[ATS:zero-jobs] ${company.name} (${company.sourceType}/${company.sourceId}) returned 0 jobs — may need re-validation`);
       }
-      const r = await persistJobs(company.id, company.slug, jobs);
+      const [r] = await Promise.all([
+        persistJobs(company.id, company.slug, jobs),
+        closeStaleJobs(company.id, jobs.map((j) => j.externalJobId)),
+      ]);
       newJobs += r.newJobs;
       newMatches += r.newMatches;
     } catch (err) {
@@ -184,7 +216,11 @@ export async function ingestCompanyById(companyId: string): Promise<{ newJobs: n
   const company = await prisma.company.findUnique({ where: { id: companyId } });
   if (!company || !company.sourceId || company.sourceType === "manual") return { newJobs: 0, newMatches: 0 };
   const jobs = await fetchAtsJobs(company.sourceType, company.sourceId);
-  return persistJobs(company.id, company.slug, jobs);
+  const [result] = await Promise.all([
+    persistJobs(company.id, company.slug, jobs),
+    closeStaleJobs(company.id, jobs.map((j) => j.externalJobId)),
+  ]);
+  return result;
 }
 
 export async function runIngestion(): Promise<IngestionResult> {
