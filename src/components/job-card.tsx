@@ -72,7 +72,7 @@ export function JobCard({
 
   return (
     <Card className={cn(
-      "relative group hover:border-foreground/25 transition-all duration-150",
+      "relative group border-border/60 hover:border-border hover:shadow-sm transition-all duration-150",
       className
     )}>
       <CardHeader className="pb-2">

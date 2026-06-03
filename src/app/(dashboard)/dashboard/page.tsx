@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, ArrowRight, CheckCircle2, Circle } from "lucide-react";
+import { Plus, ArrowRight, CheckCircle2, Circle, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -110,15 +110,15 @@ export default async function DashboardPage() {
       <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold">Dashboard</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {tracked.length} {tracked.length === 1 ? "company" : "companies"} tracked
+            {tracked.length} {tracked.length === 1 ? "company" : "companies"} on your watchlist
           </p>
         </div>
         <Link href="/companies">
-          <Button size="sm">
+          <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
             <Plus className="size-3.5" />
-            Track a company
+            Add company
           </Button>
         </Link>
       </div>
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
       {/* My Roles */}
       <section className="space-y-3">
         <div>
-          <h2 className="font-heading text-lg font-bold flex items-center gap-2">🎯 My roles</h2>
+          <h2 className="font-heading text-lg font-bold tracking-tight">My roles</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Role titles matched against every company you track. Generic (&ldquo;engineer&rdquo;) or specific (&ldquo;GTM engineer&rdquo;) — both work.
           </p>
@@ -197,8 +197,8 @@ export default async function DashboardPage() {
       {tracked.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-            <div className="text-4xl">🎯</div>
-            <p className="font-medium">No companies tracked yet</p>
+            <Building2 className="size-8 text-muted-foreground/30" />
+            <p className="font-medium">No companies on your watchlist yet</p>
             <p className="text-sm text-muted-foreground max-w-xs">
               Follow companies you want to work for and we'll alert you when a matching role opens.
             </p>
@@ -218,11 +218,11 @@ export default async function DashboardPage() {
         </Card>
       ) : (
         <section>
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">Tracked companies</h2>
+          <h2 className="font-heading text-lg font-bold tracking-tight mb-4">Watchlist</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {tracked.map((tc) => (
               <Link key={tc.id} href={`/companies/${tc.company.slug}`}>
-                <Card className="hover:shadow-sm hover:border-foreground/20 transition-all duration-150 cursor-pointer h-full">
+                <Card className="border-border/60 hover:border-border hover:shadow-sm transition-all duration-150 cursor-pointer h-full">
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-center gap-2.5">
                       <CompanyLogo
@@ -303,8 +303,8 @@ export default async function DashboardPage() {
       {/* Recent matches */}
       {recentMatches.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-medium text-muted-foreground">Recent matches</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-lg font-bold tracking-tight">Recent matches</h2>
             <div className="flex items-center gap-3">
               <RefreshMatchesButton />
               <Link href="/matches">
@@ -330,9 +330,9 @@ export default async function DashboardPage() {
         <section className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold">Also open right now</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Roles matching yours at companies you haven't followed yet.
+              <h2 className="font-heading text-lg font-bold tracking-tight">Also open right now</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Roles matching yours at companies you haven&apos;t followed yet.
               </p>
             </div>
           </div>

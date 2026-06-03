@@ -236,7 +236,7 @@ function CompanyCard({
   const recentlyFunded = isRecentlyFunded(company.recentlyFundedAt);
 
   return (
-    <div className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
+    <div className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm">
       <div className="flex items-start gap-4">
         <CompanyLogo
           name={company.name}

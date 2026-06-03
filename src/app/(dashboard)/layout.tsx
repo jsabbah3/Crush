@@ -50,7 +50,7 @@ export default async function DashboardLayout({
         createdAt={user.createdAt}
       />
       <DashboardNav user={user} unreadMatches={unreadMatches} />
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
     </div>
   );
 }
