@@ -248,9 +248,15 @@ export default async function CompaniesPage({
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground -mt-2">
-        Find companies to follow. We&apos;ll alert you when a matching role opens.
-      </p>
+      <div className="flex items-center justify-between -mt-2">
+        <p className="text-sm text-muted-foreground">
+          Find companies to follow. We&apos;ll alert you when a matching role opens.
+        </p>
+        <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Updated weekly with newly funded companies
+        </div>
+      </div>
 
       <CompanyBrowser
         companies={companies}

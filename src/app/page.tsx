@@ -2,18 +2,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
 import { signInWithGoogle } from "@/app/actions/auth";
 
-const FEATURED = [
-  { name: "Stripe",    website: "https://stripe.com" },
-  { name: "Anthropic", website: "https://anthropic.com" },
-  { name: "Linear",    website: "https://linear.app" },
-  { name: "Vercel",    website: "https://vercel.com" },
-  { name: "OpenAI",    website: "https://openai.com" },
-  { name: "Figma",     website: "https://figma.com" },
-];
 
 const MOCK_WATCHLIST = [
   { name: "Anthropic", website: "https://anthropic.com", industry: "AI Research", matches: 2 },
@@ -65,6 +58,21 @@ export default async function HomePage({
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (authUser) redirect("/dashboard");
 
+  const recentlyFunded = await prisma.company.findMany({
+    where: { recentlyFundedAt: { not: null } },
+    orderBy: { recentlyFundedAt: "desc" },
+    take: 6,
+    select: { name: true, website: true, slug: true, fundingStage: true, recentlyFundedAt: true },
+  });
+
+  function fundingLabel(stage: string | null): string {
+    const map: Record<string, string> = {
+      seed: "Seed", series_a: "Series A", series_b: "Series B",
+      series_c: "Series C", growth: "Growth", public: "Public",
+    };
+    return stage ? (map[stage] ?? stage) : "Funded";
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
 
@@ -102,8 +110,8 @@ export default async function HomePage({
           {/* Left — text */}
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Now tracking 300+ companies
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Updated weekly with newly funded companies
             </div>
 
             <div>
@@ -138,19 +146,28 @@ export default async function HomePage({
               </Link>
             </div>
 
-            {/* Logo strip */}
-            <div className="pt-2 space-y-3">
-              <p className="text-[11px] text-muted-foreground/60 uppercase tracking-widest font-medium">
-                A few of the companies on Crush
-              </p>
-              <div className="flex items-center gap-3 flex-wrap">
-                {FEATURED.map((c) => (
-                  <div key={c.name} title={c.name} className="opacity-30 hover:opacity-55 transition-opacity grayscale">
-                    <CompanyLogo name={c.name} website={c.website} size="sm" />
-                  </div>
-                ))}
+            {/* Recently funded strip */}
+            {recentlyFunded.length > 0 && (
+              <div className="pt-2 space-y-3">
+                <p className="text-[11px] text-muted-foreground/60 uppercase tracking-widest font-medium flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Recently added to Crush
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {recentlyFunded.map((c) => (
+                    <Link
+                      key={c.slug}
+                      href={`/companies/${c.slug}`}
+                      className="flex items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-1.5 hover:border-border hover:bg-muted/60 transition-all"
+                    >
+                      <CompanyLogo name={c.name} website={c.website} size="sm" className="size-5 rounded-md" />
+                      <span className="text-xs font-medium">{c.name}</span>
+                      <span className="text-[11px] text-emerald-600 font-medium">{fundingLabel(c.fundingStage)}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Right — product mockup */}
