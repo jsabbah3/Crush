@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { getAllPosts } from "@/lib/blog";
 
+// Run at request time so the build doesn't need a DB connection
+export const dynamic = "force-dynamic";
+
 const BASE = "https://crushco.app";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

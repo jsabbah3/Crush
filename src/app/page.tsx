@@ -63,7 +63,7 @@ export default async function HomePage({
     orderBy: { recentlyFundedAt: "desc" },
     take: 6,
     select: { name: true, website: true, slug: true, fundingStage: true, recentlyFundedAt: true },
-  });
+  }).catch(() => []);
 
   function fundingLabel(stage: string | null): string {
     const map: Record<string, string> = {
