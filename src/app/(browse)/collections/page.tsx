@@ -33,7 +33,7 @@ export default async function CollectionsPage() {
           const preview = col.companies.slice(0, 5);
           return (
             <Link key={col.id} href={`/collections/${col.slug}`} className="group">
-              <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 transition-shadow hover:shadow-sm h-full">
+              <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm h-full">
                 {/* Logo stack */}
                 <div className="flex -space-x-2">
                   {preview.map(({ company }, i) => (
@@ -57,7 +57,7 @@ export default async function CollectionsPage() {
 
                 {/* Text */}
                 <div className="flex-1 space-y-1">
-                  <p className="font-semibold text-sm leading-snug group-hover:text-primary transition-colors">
+                  <p className="font-semibold text-sm leading-snug group-hover:text-foreground transition-colors">
                     {col.name}
                   </p>
                   {col.description && (

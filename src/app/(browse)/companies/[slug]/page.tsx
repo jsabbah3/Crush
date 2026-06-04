@@ -102,7 +102,7 @@ export default async function CompanyDetailPage({
         <CompanyLogo name={company.name} website={company.website} size="lg" />
         <div className="flex-1 min-w-0 space-y-1.5">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-2xl font-bold leading-tight">{company.name}</h1>
+            <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight">{company.name}</h1>
             <FollowButton
               company={{ id: company.id, name: company.name }}
               tracked={tracked}
@@ -175,7 +175,7 @@ export default async function CompanyDetailPage({
                   href={c.linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm hover:border-foreground/20 hover:shadow-sm transition-all"
+                  className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm hover:border-border hover:shadow-sm transition-all"
                 >
                   <span className="font-medium">{c.firstName} {c.lastName}</span>
                   {c.title && <span className="text-xs text-muted-foreground">{c.title}</span>}
@@ -227,7 +227,7 @@ export default async function CompanyDetailPage({
       {/* Your matches */}
       {userMatches.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-medium">
+          <h2 className="font-heading font-semibold tracking-tight">
             Your matches
             <span className="ml-2 text-sm font-normal text-muted-foreground">
               ({userMatches.length})
@@ -249,7 +249,7 @@ export default async function CompanyDetailPage({
 
       {/* Open roles */}
       <section className="space-y-3">
-        <h2 className="font-medium">
+        <h2 className="font-heading font-semibold tracking-tight">
           Open roles
           <span className="ml-2 text-sm font-normal text-muted-foreground">
             ({company.jobs.length})
