@@ -9,7 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-playfair);
+  --font-heading: var(--font-jakarta);
   --color-amber: var(--amber);
   --color-amber-foreground: var(--amber-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
