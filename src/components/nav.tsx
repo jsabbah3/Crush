@@ -26,6 +26,7 @@ const navLinks = [
   { href: "/companies",    label: "Companies",    icon: Building2,    badge: false },
   { href: "/collections",  label: "Collections",  icon: Layers,       badge: false },
   { href: "/matches",      label: "Matches",      icon: Bell,         badge: true  },
+  { href: "/blog",         label: "Blog",         icon: BookOpen,     badge: false },
 ];
 
 export function DashboardNav({
@@ -106,10 +107,6 @@ export function DashboardNav({
             <DropdownMenuItem onClick={() => router.push("/settings")}>
               <Settings className="size-3.5 mr-2" />
               Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/blog")}>
-              <BookOpen className="size-3.5 mr-2" />
-              Blog
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
