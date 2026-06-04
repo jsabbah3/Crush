@@ -50,7 +50,7 @@ export async function dispatchInstantAlerts(): Promise<{ sent: number; errors: n
       to: email,
       name,
       matches,
-      subject: `${matches.length} new role${matches.length > 1 ? "s" : ""} at companies you're tracking`,
+      subject: buildInstantSubject(matches),
       unsubscribeToken,
       emailType: "instant_alert",
     });
@@ -88,7 +88,7 @@ export async function sendDailyDigest(): Promise<{ sent: number; errors: number 
       to: email,
       name,
       matches,
-      subject: `Your daily job digest — ${matches.length} new match${matches.length > 1 ? "es" : ""}`,
+      subject: buildDailySubject(matches),
       unsubscribeToken,
       emailType: "daily_digest",
     });
@@ -106,6 +106,28 @@ export async function sendDailyDigest(): Promise<{ sent: number; errors: number 
   }
 
   return { sent, errors };
+}
+
+// ─── Subject line builders ────────────────────────────────────────────────────
+
+function buildInstantSubject(matches: MatchRow[]): string {
+  const companies = [...new Set(matches.map((m) => m.trackedCompany.company.name))];
+  if (matches.length === 1) {
+    // "Senior Engineer just opened at Stripe"
+    return `${matches[0].job.title} just opened at ${companies[0]}`;
+  }
+  if (companies.length === 1) {
+    // "3 new roles just opened at Anthropic"
+    return `${matches.length} new roles just opened at ${companies[0]}`;
+  }
+  // "Staff Engineer at Stripe + 2 more new matches"
+  return `${matches[0].job.title} at ${companies[0]} + ${matches.length - 1} more new match${matches.length - 1 > 1 ? "es" : ""}`;
+}
+
+function buildDailySubject(matches: MatchRow[]): string {
+  const companies = [...new Set(matches.map((m) => m.trackedCompany.company.name))];
+  const companyList = companies.slice(0, 2).join(", ") + (companies.length > 2 ? ` + ${companies.length - 2} more` : "");
+  return `${matches.length} new match${matches.length > 1 ? "es" : ""} — ${companyList}`;
 }
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────

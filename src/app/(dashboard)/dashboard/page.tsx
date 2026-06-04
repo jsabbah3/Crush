@@ -14,6 +14,7 @@ import { TrackedRoles } from "@/components/tracked-roles";
 import { TrendingRoles } from "@/components/trending-roles";
 import { RefreshMatchesButton } from "@/components/refresh-matches-button";
 import { SuggestedRoles } from "@/components/suggested-roles";
+import { ShareWatchlistButton } from "@/components/share-watchlist-button";
 
 type UserPrefs = {
   seniority?: string[];
@@ -115,12 +116,15 @@ export default async function DashboardPage() {
             {tracked.length} {tracked.length === 1 ? "company" : "companies"} on your watchlist
           </p>
         </div>
-        <Link href="/companies">
-          <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
-            <Plus className="size-3.5" />
-            Add company
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          {tracked.length > 0 && <ShareWatchlistButton userId={authUser.id} />}
+          <Link href="/companies">
+            <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
+              <Plus className="size-3.5" />
+              Add company
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Setup checklist — shown until user has both roles and companies */}

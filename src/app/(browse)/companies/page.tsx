@@ -138,19 +138,31 @@ export default async function CompaniesPage({
 
   if (!isBrowse && authUser) {
     // Following view: show tracked companies
-    const tracked = await prisma.trackedCompany.findMany({
-      where: { userId: authUser.id },
-      include: {
-        company: {
-          include: {
-            jobs: { where: { status: "ACTIVE" }, orderBy: { postedAt: "desc" }, take: 1, select: { postedAt: true } },
-            _count: { select: { trackedBy: true } },
+    const [tracked, connectionRows] = await Promise.all([
+      prisma.trackedCompany.findMany({
+        where: { userId: authUser.id },
+        include: {
+          company: {
+            include: {
+              jobs: { where: { status: "ACTIVE" }, orderBy: { postedAt: "desc" }, take: 1, select: { postedAt: true } },
+              _count: { select: { trackedBy: true } },
+            },
           },
+          _count: { select: { matches: { where: { dismissed: false, seenAt: null } } } },
         },
-        _count: { select: { matches: { where: { dismissed: false, seenAt: null } } } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.linkedInConnection.groupBy({
+        by: ["companyId"],
+        where: { userId: authUser.id, companyId: { not: null } },
+        _count: { companyId: true },
+      }),
+    ]);
+
+    const connectionCounts: Record<string, number> = {};
+    for (const row of connectionRows) {
+      if (row.companyId) connectionCounts[row.companyId] = row._count.companyId;
+    }
 
     return (
       <div className="space-y-6">
@@ -182,7 +194,7 @@ export default async function CompaniesPage({
           {tracked.length} {tracked.length === 1 ? "company" : "companies"} followed
         </p>
 
-        <FollowingList tracked={tracked} userId={authUser.id} />
+        <FollowingList tracked={tracked} userId={authUser.id} connectionCounts={connectionCounts} />
       </div>
     );
   }

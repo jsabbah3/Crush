@@ -36,17 +36,18 @@ function formatLastActive(date: Date | null | undefined): string | null {
 export function FollowingList({
   tracked,
   userId,
+  connectionCounts = {},
 }: {
   tracked: TrackedWithCompany[];
   userId: string;
+  connectionCounts?: Record<string, number>;
 }) {
   if (tracked.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-        <p className="text-2xl">🏢</p>
         <p className="font-medium">No companies followed yet</p>
         <p className="text-sm text-muted-foreground">
-          Click "Discover companies" to find companies you'd want to work at.
+          Click &ldquo;Discover companies&rdquo; to find companies you&apos;d want to work at.
         </p>
       </div>
     );
@@ -56,10 +57,11 @@ export function FollowingList({
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {tracked.map(({ id: trackedId, company, _count }) => {
         const lastActive = formatLastActive(company.jobs[0]?.postedAt);
+        const connections = connectionCounts[company.id] ?? 0;
         return (
           <div
             key={trackedId}
-            className="group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition-all duration-150 hover:border-foreground/20 hover:shadow-sm"
+            className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 transition-all duration-150 hover:border-border hover:shadow-sm"
           >
             <div className="flex items-start gap-3">
               <CompanyLogo
@@ -93,14 +95,27 @@ export function FollowingList({
             )}
 
             <div className="flex items-center justify-between mt-auto pt-1">
-              {lastActive ? (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="size-3" />
-                  {lastActive}
-                </span>
-              ) : (
-                <span className="text-xs text-muted-foreground">No open roles</span>
-              )}
+              <div className="flex items-center gap-3">
+                {lastActive ? (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="size-3" />
+                    {lastActive}
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">No open roles</span>
+                )}
+                {connections > 0 && (
+                  <span className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+                    <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    {connections}
+                  </span>
+                )}
+              </div>
               <FollowButton
                 company={{ id: company.id, name: company.name }}
                 tracked={{ id: trackedId }}
