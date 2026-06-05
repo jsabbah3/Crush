@@ -63,29 +63,40 @@ const SENIORITY_KEYWORDS: Record<string, string> = {
   "national":        "senior",
   "global":          "senior",
 
+  // Senior — CS & recruiting segment signals (mirrors enterprise AE logic)
+  "named ":          "senior",   // Named Account CSM = strategic/senior territory
+  "hrbp":            "senior",   // HR Business Partner = senior HR role
+  "hr business partner": "senior",
+  "business partner":    "senior",  // Finance/HR/People Business Partner
+
   // Mid
   "mid-level":       "mid",
   "mid level":       "mid",
-  "mid market":      "mid",      // Mid Market AE = mid-level territory
+  "mid market":      "mid",      // Mid Market AE/CSM = mid territory
   "mid-market":      "mid",
-  "commercial":      "mid",      // Commercial AE = mid-level territory
+  "commercial":      "mid",      // Commercial AE/CSM = mid territory
+  "velocity":        "mid",      // Velocity CSM = mid-tier, higher-volume accounts
 
-  // Junior / early career
+  // Junior / early career (universal + role-specific)
   "junior":          "junior",
   "jr.":             "junior",
   "jr ":             "junior",
-  "associate ":      "junior",   // Associate SWE, Associate PM etc.
+  "associate ":      "junior",   // Associate SWE, Associate PM, Associate Designer etc.
   "entry level":     "junior",
   "entry-level":     "junior",
   "new grad":        "junior",
   "new graduate":    "junior",
   "early career":    "junior",
   "graduate ":       "junior",
-  "smb":             "junior",   // SMB AE = entry/junior territory
+  "coordinator":     "junior",   // Marketing/Ops/Recruiting/HR Coordinator — universally junior
+  "sourcer":         "junior",   // Sourcer in recruiting = entry-level
+  "smb":             "junior",   // SMB AE/CSM = entry/junior territory
+  "tech touch":      "junior",   // Tech Touch/Digital Success CSM = low-touch, high-volume
+  "digital success": "junior",   // Digital Customer Success = low-touch/scale segment
 
   // Intern
   "intern":          "intern",
-  "internship":      "internship",
+  "internship":      "intern",
   "co-op":           "intern",
   "coop":            "intern",
 };
