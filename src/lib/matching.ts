@@ -27,33 +27,67 @@ const ROLE_CLUSTERS: string[][] = [
   ["technical writer", "documentation engineer", "developer advocate", "developer relations", "devrel"],
 ];
 
-// Seniority keywords mapped to canonical level
+// Seniority keywords mapped to canonical level.
+// Order matters — more specific terms first to avoid partial-match conflicts.
 const SENIORITY_KEYWORDS: Record<string, string> = {
-  "intern":     "intern",
-  "internship": "intern",
-  "junior":     "junior",
-  "jr.":        "junior",
-  "associate":  "junior",
-  "entry level":"junior",
-  "entry-level":"junior",
-  "mid":        "mid",
-  "mid-level":  "mid",
-  "senior":     "senior",
-  "sr.":        "senior",
-  "sr ":        "senior",
-  "staff":      "staff",
-  "principal":  "principal",
-  "lead":       "lead",
-  "tech lead":  "lead",
-  "director":   "director",
-  "head of":    "director",
-  "vp ":        "vp",
-  "vice president": "vp",
-  "c-level":    "executive",
-  "cto":        "executive",
-  "cpo":        "executive",
-  "cmo":        "executive",
-  "founder":    "executive",
+  // Executive
+  "c-level":        "executive",
+  "cto":            "executive",
+  "cpo":            "executive",
+  "cmo":            "executive",
+  "coo":            "executive",
+  "chief ":         "executive",
+  "founder":        "executive",
+
+  // VP
+  "vice president":  "vp",
+  "vp of":           "vp",
+  "vp, ":            "vp",
+
+  // Director
+  "director":        "director",
+  "head of":         "director",
+
+  // Staff / Principal
+  "staff ":          "staff",
+  "principal ":      "principal",
+
+  // Senior — explicit + sales territory signals
+  "senior":          "senior",
+  "sr.":             "senior",
+  "sr ":             "senior",
+  "tech lead":       "lead",
+  "lead ":           "lead",
+  "enterprise":      "senior",   // Enterprise AE = senior territory
+  "strategic":       "senior",   // Strategic AE = senior territory
+  "national":        "senior",
+  "global":          "senior",
+
+  // Mid
+  "mid-level":       "mid",
+  "mid level":       "mid",
+  "mid market":      "mid",      // Mid Market AE = mid-level territory
+  "mid-market":      "mid",
+  "commercial":      "mid",      // Commercial AE = mid-level territory
+
+  // Junior / early career
+  "junior":          "junior",
+  "jr.":             "junior",
+  "jr ":             "junior",
+  "associate ":      "junior",   // Associate SWE, Associate PM etc.
+  "entry level":     "junior",
+  "entry-level":     "junior",
+  "new grad":        "junior",
+  "new graduate":    "junior",
+  "early career":    "junior",
+  "graduate ":       "junior",
+  "smb":             "junior",   // SMB AE = entry/junior territory
+
+  // Intern
+  "intern":          "intern",
+  "internship":      "internship",
+  "co-op":           "intern",
+  "coop":            "intern",
 };
 
 export function detectSeniority(title: string, description?: string): string | null {
@@ -117,8 +151,23 @@ export function doesJobMatch(
   // Seniority filter: if user specified levels, check title AND description
   if (seniority.length > 0) {
     const detectedLevel = detectSeniority(job.title, job.description);
-    if (detectedLevel && !seniority.includes(detectedLevel)) return false;
-    // If no seniority detected in job, don't exclude — benefit of the doubt
+    if (detectedLevel) {
+      if (!seniority.includes(detectedLevel)) return false;
+    } else {
+      // No seniority detected — benefit of the doubt for most roles,
+      // but senior+ users should not see roles that are clearly scoped
+      // below their level even if we couldn't parse the exact keyword.
+      // This catches patterns like "Level I", "I (", "- I " in titles.
+      const isSeniorUser = seniority.some((s) =>
+        ["senior", "staff", "principal", "lead", "director", "vp", "executive"].includes(s)
+      );
+      if (isSeniorUser) {
+        const t = job.title.toLowerCase();
+        // Exclude obvious junior-tier patterns not caught by keyword map
+        const juniorPatterns = [/ i$/, / i /, /\(i\)/, /level i\b/, /- i$/, /grade [1-2]\b/];
+        if (juniorPatterns.some((p) => p.test(t))) return false;
+      }
+    }
   }
 
   return true;
