@@ -1,4 +1,4 @@
-import { type IngestedJob, isRemoteLocation, isUSOrRemote, normalizeJobType } from "./normalize";
+import { type IngestedJob, isRemoteLocation, isUSOrRemote, normalizeJobType, parseSalary } from "./normalize";
 
 type GemJob = {
   id: string;
@@ -38,10 +38,12 @@ export async function fetchGemJobs(slug: string): Promise<IngestedJob[]> {
     .map((p) => {
       const locationName = p.location?.name ?? null;
       const remote = p.location_type === "remote" || isRemoteLocation(locationName);
+      const description = p.content ?? p.content_plain ?? "";
+      const salary = parseSalary(description);
       return {
         externalJobId: p.id,
         title: p.title,
-        description: p.content ?? p.content_plain ?? "",
+        description,
         type: normalizeJobType(p.employment_type),
         location: locationName,
         remote,
@@ -51,6 +53,9 @@ export async function fetchGemJobs(slug: string): Promise<IngestedJob[]> {
           : p.created_at
             ? new Date(p.created_at)
             : null,
+        salaryMin: salary?.min ?? null,
+        salaryMax: salary?.max ?? null,
+        currency: salary?.currency ?? "USD",
       };
     });
 }

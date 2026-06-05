@@ -1,4 +1,4 @@
-import { type IngestedJob, isRemoteLocation, isUSOrRemote, normalizeJobType } from "./normalize";
+import { type IngestedJob, isRemoteLocation, isUSOrRemote, normalizeJobType, parseSalary } from "./normalize";
 
 type LeverPosting = {
   id: string;
@@ -31,15 +31,20 @@ export async function fetchLeverJobs(slug: string): Promise<IngestedJob[]> {
     .filter((p) => isUSOrRemote(p.categories?.location))
     .map((p) => {
       const location = p.categories?.location ?? null;
+      const description = p.description ?? p.descriptionPlain ?? "";
+      const salary = parseSalary(description);
       return {
         externalJobId: p.id,
         title: p.text,
-        description: p.description ?? p.descriptionPlain ?? "",
+        description,
         type: normalizeJobType(p.categories?.commitment),
         location,
         remote: isRemoteLocation(location),
         url: p.hostedUrl ?? p.applyUrl ?? null,
         postedAt: p.createdAt ? new Date(p.createdAt) : null,
+        salaryMin: salary?.min ?? null,
+        salaryMax: salary?.max ?? null,
+        currency: salary?.currency ?? "USD",
       };
     });
 }

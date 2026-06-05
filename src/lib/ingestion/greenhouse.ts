@@ -1,5 +1,5 @@
 import { JobType } from "@/generated/prisma/enums";
-import { type IngestedJob, isRemoteLocation, isUSOrRemote } from "./normalize";
+import { type IngestedJob, isRemoteLocation, isUSOrRemote, parseSalary } from "./normalize";
 
 type GreenhouseJob = {
   id: number;
@@ -25,15 +25,20 @@ export async function fetchGreenhouseJobs(slug: string): Promise<IngestedJob[]> 
     .filter((job) => isUSOrRemote(job.location?.name))
     .map((job) => {
       const location = job.location?.name ?? null;
+      const description = job.content ?? "";
+      const salary = parseSalary(description);
       return {
         externalJobId: job.id.toString(),
         title: job.title,
-        description: job.content ?? "",
+        description,
         type: JobType.FULL_TIME,
         location,
         remote: isRemoteLocation(location),
         url: job.absolute_url ?? null,
         postedAt: job.updated_at ? new Date(job.updated_at) : null,
+        salaryMin: salary?.min ?? null,
+        salaryMax: salary?.max ?? null,
+        currency: salary?.currency ?? "USD",
       };
     });
 }

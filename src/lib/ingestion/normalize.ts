@@ -63,4 +63,44 @@ export type IngestedJob = {
   remote: boolean;
   url: string | null;
   postedAt: Date | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  currency?: string;
 };
+
+/**
+ * Extract a salary range from a job description.
+ * Handles formats like: $150k–$200k, $150,000 - $200,000, $180K to $220K
+ * Returns null when no credible range is found.
+ */
+export function parseSalary(text: string | null | undefined): {
+  min: number; max: number; currency: string;
+} | null {
+  if (!text) return null;
+
+  // Strip HTML tags
+  const plain = text.replace(/<[^>]+>/g, " ");
+
+  // Skip non-USD descriptions (avoid misparse of GBP/EUR)
+  if (/£|\bGBP\b|€|\bEUR\b/i.test(plain)) return null;
+
+  // Match: $150k - $200k  |  $150,000–$200,000  |  $150K to $220K
+  const rangeRe =
+    /\$\s*([\d,]+(?:\.\d+)?)\s*(k|K)?\s*(?:[-–—]|to)\s*\$?\s*([\d,]+(?:\.\d+)?)\s*(k|K)?/;
+
+  const m = rangeRe.exec(plain);
+  if (m) {
+    const parse = (val: string, k: string | undefined) => {
+      const n = parseFloat(val.replace(/,/g, ""));
+      return k ? Math.round(n * 1000) : Math.round(n);
+    };
+    const min = parse(m[1], m[2]);
+    const max = parse(m[3], m[4]);
+    // Sanity check: realistic annual salary range
+    if (min >= 20_000 && max <= 2_000_000 && min < max) {
+      return { min, max, currency: "USD" };
+    }
+  }
+
+  return null;
+}

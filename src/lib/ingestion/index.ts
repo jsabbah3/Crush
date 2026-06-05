@@ -54,6 +54,9 @@ async function persistJobs(
       postedAt: job.postedAt,
       externalJobId: job.externalJobId,
       companyId,
+      salaryMin: job.salaryMin ?? null,
+      salaryMax: job.salaryMax ?? null,
+      currency: job.currency ?? "USD",
     })),
     skipDuplicates: true,
   });
