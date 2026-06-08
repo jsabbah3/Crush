@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllPosts, formatDate } from "@/lib/blog";
+import { getAllPosts } from "@/lib/blog";
 
 export const metadata = {
   title: "Blog — Crush",
@@ -25,12 +25,9 @@ export default function BlogIndexPage() {
           {posts.map((post) => (
             <li key={post.slug}>
               <Link href={`/blog/${post.slug}`} className="group block -mx-4 px-4 py-4 rounded-xl hover:bg-muted/40 transition-colors">
-                <p className="text-xs text-muted-foreground mb-2 font-mono">
-                  {formatDate(post.publishedAt)}
-                  {post.readTime && (
-                    <span className="ml-3">{post.readTime}</span>
-                  )}
-                </p>
+                {post.readTime && (
+                  <p className="text-xs text-muted-foreground mb-2">{post.readTime}</p>
+                )}
                 <h2 className="text-xl font-semibold group-hover:text-primary transition-colors mb-2 leading-snug">
                   {post.title}
                 </h2>

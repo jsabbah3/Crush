@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getAllPosts, getPost, formatDate } from "@/lib/blog";
+import { getAllPosts, getPost } from "@/lib/blog";
 import { MarkdownBody } from "@/components/markdown-body";
 import type { Metadata } from "next";
 
@@ -51,10 +51,9 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Header */}
       <header className="mb-10">
-        <p className="text-xs text-muted-foreground font-mono mb-4">
-          {formatDate(post.publishedAt)}
-          {post.readTime && <span className="ml-3">{post.readTime}</span>}
-        </p>
+        {post.readTime && (
+          <p className="text-xs text-muted-foreground mb-4">{post.readTime}</p>
+        )}
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight mb-4">
           {post.title}
         </h1>
