@@ -72,7 +72,7 @@ export function CompanySearch({
   }
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-sm">
+    <div ref={containerRef} className="relative w-full max-w-md">
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
         {fetching && (
@@ -90,7 +90,7 @@ export function CompanySearch({
       </div>
 
       {open && results.length > 0 && (
-        <div className="absolute top-full mt-1.5 w-full z-50 rounded-xl border border-border/60 bg-popover shadow-lg overflow-hidden">
+        <div className="absolute top-full mt-1.5 left-0 min-w-[360px] w-full z-50 rounded-xl border border-border/60 bg-popover shadow-lg overflow-hidden">
           {results.map((company, i) => {
             const isTracked = trackedSet.has(company.id);
             return (
