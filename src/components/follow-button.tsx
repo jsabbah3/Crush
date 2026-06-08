@@ -47,12 +47,12 @@ export function FollowButton({
       {isFollowing ? (
         <>
           <Check className="size-3.5" />
-          Following
+          Getting alerts
         </>
       ) : (
         <>
           <Plus className="size-3.5" />
-          Follow
+          Get alerts
         </>
       )}
     </Button>

@@ -29,6 +29,9 @@ const navLinks = [
   { href: "/blog",         label: "Blog",         icon: BookOpen,     badge: false },
 ];
 
+// Bottom nav shows on mobile only — just the 4 core app links (no Blog)
+const bottomNavLinks = navLinks.filter(l => l.href !== "/blog");
+
 export function DashboardNav({
   user,
   unreadMatches,
@@ -40,86 +43,126 @@ export function DashboardNav({
   const router = useRouter();
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
-      <div className="mx-auto max-w-6xl flex items-center justify-between px-6 h-14">
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="font-heading font-bold text-lg tracking-tight">
-            Crush
-          </Link>
-          <nav className="flex items-center">
-            {navLinks.map(({ href, label, icon: Icon, badge }) => {
-              const active = pathname === href || pathname.startsWith(href + "/");
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    "relative flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors",
-                    active
-                      ? "text-foreground font-semibold"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
+    <>
+      {/* ── Top nav (desktop) ── */}
+      <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
+        <div className="mx-auto max-w-6xl flex items-center justify-between px-4 sm:px-6 h-14">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <Link href="/dashboard" className="font-heading font-bold text-base tracking-tight">
+              Crush
+            </Link>
+            {/* Desktop nav — hidden on mobile */}
+            <nav className="hidden sm:flex items-center">
+              {navLinks.map(({ href, label, icon: Icon, badge }) => {
+                const active = pathname === href || pathname.startsWith(href + "/");
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      "relative flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors",
+                      active
+                        ? "text-foreground font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="size-3.5" />
+                    {label}
+                    {badge && unreadMatches > 0 && (
+                      <span className="h-4 min-w-4 rounded-full bg-amber text-amber-foreground text-[10px] font-bold leading-none flex items-center justify-center px-1">
+                        {unreadMatches > 99 ? "99+" : unreadMatches}
+                      </span>
+                    )}
+                    {active && (
+                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Link href="/settings">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn("size-8 text-muted-foreground hover:text-foreground", pathname === "/settings" && "bg-muted text-foreground")}
+                aria-label="Settings"
+              >
+                <Settings className="size-4" />
+              </Button>
+            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Account menu"
+              >
+                <Avatar className="size-7">
+                  <AvatarImage src={user.avatarUrl ?? undefined} />
+                  <AvatarFallback>
+                    {(user.name ?? user.email).charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">
+                  {user.email}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  <Settings className="size-3.5 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/blog")}>
+                  <BookOpen className="size-3.5 mr-2" />
+                  Blog
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => signOut()}
                 >
-                  <Icon className="size-3.5" />
-                  {label}
+                  <LogOut className="size-3.5 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      {/* ── Bottom nav (mobile only) ── */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur border-t">
+        <div className="flex items-center justify-around h-16 px-2">
+          {bottomNavLinks.map(({ href, label, icon: Icon, badge }) => {
+            const active = pathname === href || pathname.startsWith(href + "/");
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors flex-1",
+                  active ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                <div className="relative">
+                  <Icon className={cn("size-5", active && "stroke-[2.5]")} />
                   {badge && unreadMatches > 0 && (
-                    <span className="h-4 min-w-4 rounded-full bg-amber text-amber-foreground text-[10px] font-bold leading-none flex items-center justify-center px-1">
+                    <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 rounded-full bg-amber text-amber-foreground text-[9px] font-bold leading-none flex items-center justify-center px-0.5">
                       {unreadMatches > 99 ? "99+" : unreadMatches}
                     </span>
                   )}
-                  {active && (
-                    <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+                </div>
+                <span className={cn("text-[10px] font-medium", active && "font-semibold")}>{label}</span>
+              </Link>
+            );
+          })}
         </div>
+      </nav>
 
-        <div className="flex items-center gap-1">
-        <Link href="/settings">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn("size-8 text-muted-foreground hover:text-foreground", pathname === "/settings" && "bg-muted text-foreground")}
-            aria-label="Settings"
-          >
-            <Settings className="size-4" />
-          </Button>
-        </Link>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Account menu"
-          >
-            <Avatar className="size-7">
-              <AvatarImage src={user.avatarUrl ?? undefined} />
-              <AvatarFallback>
-                {(user.name ?? user.email).charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">
-              {user.email}
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/settings")}>
-              <Settings className="size-3.5 mr-2" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => signOut()}
-            >
-              <LogOut className="size-3.5 mr-2" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        </div>
-      </div>
-    </header>
+      {/* Bottom nav spacer so content isn't hidden behind it on mobile */}
+      <div className="sm:hidden h-16" aria-hidden="true" />
+    </>
   );
 }

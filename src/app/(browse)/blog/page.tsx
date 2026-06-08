@@ -24,7 +24,7 @@ export default function BlogIndexPage() {
         <ul className="space-y-10">
           {posts.map((post) => (
             <li key={post.slug}>
-              <Link href={`/blog/${post.slug}`} className="group block">
+              <Link href={`/blog/${post.slug}`} className="group block -mx-4 px-4 py-4 rounded-xl hover:bg-muted/40 transition-colors">
                 <p className="text-xs text-muted-foreground mb-2 font-mono">
                   {formatDate(post.publishedAt)}
                   {post.readTime && (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Inbox } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { RefreshMatchesButton } from "@/components/refresh-matches-button";
@@ -51,15 +52,24 @@ export default async function MatchesPage() {
       </div>
 
       {matches.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-          <Inbox className="size-10 text-muted-foreground/40" />
-          <p className="font-medium">No matches yet</p>
-          <p className="text-sm text-muted-foreground max-w-xs">
-            When new jobs open at companies you're tracking that match your criteria, they'll appear here.
-          </p>
-          <Link href="/companies" className="text-sm underline underline-offset-2 hover:text-foreground text-muted-foreground">
-            Follow some companies →
-          </Link>
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <div className="rounded-full bg-muted/50 p-4">
+            <Inbox className="size-8 text-muted-foreground/40" />
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-semibold">You&apos;re all set up</p>
+            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+              We&apos;re watching your companies daily. The moment a role opens that matches your criteria, it&apos;ll appear here — and you&apos;ll get an email.
+            </p>
+          </div>
+          <div className="flex gap-2 mt-1">
+            <Link href="/companies">
+              <Button size="sm" variant="outline">Add more companies</Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button size="sm" variant="ghost" className="text-muted-foreground">Back to dashboard</Button>
+            </Link>
+          </div>
         </div>
       ) : (
         <MatchesList matches={matches} />

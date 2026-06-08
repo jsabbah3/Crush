@@ -27,11 +27,13 @@ export default async function DashboardPage() {
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) redirect("/login");
 
-  const [tracked, recentMatches, featuredCollections, trackedRoles, dbUser] = await Promise.all([
+  const [tracked, recentMatches, featuredCollections, trackedRoles, dbUser, totalMatches] = await Promise.all([
     prisma.trackedCompany.findMany({
       where: { userId: authUser.id },
       include: {
-        company: true,
+        company: {
+          include: { _count: { select: { jobs: { where: { status: "ACTIVE" } } } } },
+        },
         _count: { select: { matches: { where: { dismissed: false } } } },
       },
       orderBy: { createdAt: "desc" },
@@ -63,10 +65,12 @@ export default async function DashboardPage() {
       where: { id: authUser.id },
       select: { defaultCriteria: true, currentTitle: true },
     }),
+    prisma.match.count({ where: { trackedCompany: { userId: authUser.id } } }),
   ]);
 
   const prefs = dbUser?.defaultCriteria as UserPrefs | null;
   const showCollections = tracked.length < 5;
+  const openRolesCount = tracked.reduce((sum, tc) => sum + (tc.company._count?.jobs ?? 0), 0);
 
   // If no matches from followed companies but user has tracked roles,
   // surface discovery jobs from the broader job board
@@ -112,9 +116,6 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {tracked.length} {tracked.length === 1 ? "company" : "companies"} on your watchlist
-          </p>
         </div>
         <div className="flex items-center gap-2">
           {tracked.length > 0 && <ShareWatchlistButton userId={authUser.id} />}
@@ -126,6 +127,22 @@ export default async function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Stats strip */}
+      {tracked.length > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Companies watched", value: tracked.length },
+            { label: "Open roles", value: openRolesCount.toLocaleString() },
+            { label: "Total matches", value: totalMatches.toLocaleString() },
+          ].map(({ label, value }) => (
+            <div key={label} className="rounded-xl border border-border/60 bg-card px-4 py-3">
+              <p className="text-2xl font-bold tracking-tight">{value}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Setup checklist — shown until user has both roles and companies */}
       {(trackedRoles.length === 0 || tracked.length === 0) && (
@@ -202,13 +219,15 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
             <Building2 className="size-8 text-muted-foreground/30" />
-            <p className="font-medium">No companies on your watchlist yet</p>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              Follow companies you want to work for and we'll alert you when a matching role opens.
-            </p>
+            <div className="space-y-1">
+              <p className="font-semibold">Add your first company</p>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Pick companies you&apos;d actually leave for. We&apos;ll watch their job pages daily and alert you the moment your role opens.
+              </p>
+            </div>
             <div className="flex gap-2 mt-2">
               <Link href="/collections">
-                <Button size="sm" variant="default">
+                <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
                   Browse collections
                 </Button>
               </Link>
