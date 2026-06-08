@@ -26,7 +26,7 @@ export default async function MatchesPage() {
             trackedCompanyId: { in: idList },
             dismissed: false,
           },
-          include: { job: { include: { company: true } } },
+          include: { job: { include: { company: { select: { name: true, slug: true, website: true } } } } },
           orderBy: { createdAt: "desc" },
         })
       : (Promise.resolve([]) as ReturnType<typeof prisma.match.findMany<{ include: { job: { include: { company: true } } } }>>),

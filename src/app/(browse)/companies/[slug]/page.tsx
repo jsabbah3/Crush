@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { ExternalLink, Users, Rss, BookOpen, Network } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CompanyLogo } from "@/components/company-logo";
@@ -99,8 +98,8 @@ export default async function CompanyDetailPage({
     <div className="space-y-8 max-w-2xl">
       {/* Company header */}
       <div className="flex items-start gap-4">
-        <CompanyLogo name={company.name} website={company.website} size="lg" />
-        <div className="flex-1 min-w-0 space-y-1.5">
+        <CompanyLogo name={company.name} website={company.website} size="lg" className="shrink-0" />
+        <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight">{company.name}</h1>
             <FollowButton
@@ -109,34 +108,37 @@ export default async function CompanyDetailPage({
               userId={authUser?.id ?? null}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-            {company.industry && (
-              <Badge variant="outline" className="text-xs">
-                {company.industry}
-              </Badge>
-            )}
-            {company.fundingStage && (
-              <Badge variant="secondary" className="text-xs capitalize">
-                {company.fundingStage.replace(/_/g, " ")}
-              </Badge>
-            )}
-            {company.size && (
-              <span className="text-xs capitalize text-muted-foreground">{company.size}</span>
-            )}
-            {company.headquarters && <span>{company.headquarters}</span>}
+          {/* Metadata — plain text, middot-separated */}
+          <p className="text-sm text-muted-foreground mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            {[
+              company.industry,
+              company.fundingStage ? company.fundingStage.replace(/_/g, " ") : null,
+              company.size,
+              company.headquarters,
+            ].filter(Boolean).map((item, i, arr) => (
+              <span key={i} className="flex items-center gap-1.5 capitalize">
+                {item}
+                {i < arr.length - 1 && <span className="text-border">·</span>}
+              </span>
+            ))}
             {company.website && (
-              <a
-                href={company.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-foreground transition-colors"
-              >
-                Website <ExternalLink className="size-3" />
-              </a>
+              <>
+                {[company.industry, company.fundingStage, company.size, company.headquarters].some(Boolean) && (
+                  <span className="text-border">·</span>
+                )}
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 hover:text-foreground transition-colors normal-case"
+                >
+                  Website <ExternalLink className="size-3" />
+                </a>
+              </>
             )}
-          </div>
+          </p>
           {company._count.trackedBy > 0 && (
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <Users className="size-3" />
               {company._count.trackedBy.toLocaleString()} following on Crush
             </p>

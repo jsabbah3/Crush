@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { JobCard } from "@/components/job-card";
+import { STATUS_CONFIG, type AppStatus } from "@/components/status-picker";
+import { CompanyLogo } from "@/components/company-logo";
+import Link from "next/link";
 
-type Company = { name: string; slug: string };
+type Company = { name: string; slug: string; website?: string | null };
 
 type Match = {
   id: string;
@@ -27,22 +30,36 @@ type Props = {
   matches: Match[];
 };
 
+const PIPELINE_STATUSES: AppStatus[] = ["INTERESTED", "APPLIED", "INTERVIEWING", "OFFER"];
+
 export function MatchesList({ matches }: Props) {
   const [activeCompany, setActiveCompany] = useState<string | null>(null);
+  const [activeStatus, setActiveStatus] = useState<AppStatus | null>(null);
 
-  // Collect unique company names in order of first appearance
-  const companies: string[] = [];
-  const seen = new Set<string>();
+  // Collect unique companies
+  const companies: Company[] = [];
+  const seenSlugs = new Set<string>();
   for (const m of matches) {
-    const name = m.job.company.name;
-    if (!seen.has(name)) { seen.add(name); companies.push(name); }
+    if (!seenSlugs.has(m.job.company.slug)) {
+      seenSlugs.add(m.job.company.slug);
+      companies.push(m.job.company);
+    }
   }
 
-  const filtered = activeCompany
-    ? matches.filter((m) => m.job.company.name === activeCompany)
-    : matches;
+  // Status counts for pipeline strip
+  const statusCounts = matches.reduce<Record<string, number>>((acc, m) => {
+    const s = (m.applicationStatus ?? "INTERESTED") as AppStatus;
+    acc[s] = (acc[s] ?? 0) + 1;
+    return acc;
+  }, {});
 
-  // Group filtered matches by company
+  const filtered = matches.filter((m) => {
+    if (activeCompany && m.job.company.name !== activeCompany) return false;
+    if (activeStatus && (m.applicationStatus ?? "INTERESTED") !== activeStatus) return false;
+    return true;
+  });
+
+  // Group by company
   const byCompany = new Map<string, Match[]>();
   for (const m of filtered) {
     const name = m.job.company.name;
@@ -52,7 +69,34 @@ export function MatchesList({ matches }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Company filter chips */}
+
+      {/* Pipeline status strip */}
+      <div className="grid grid-cols-4 gap-2">
+        {PIPELINE_STATUSES.map((status) => {
+          const cfg = STATUS_CONFIG[status];
+          const count = statusCounts[status] ?? 0;
+          const isActive = activeStatus === status;
+          return (
+            <button
+              key={status}
+              onClick={() => setActiveStatus(isActive ? null : status)}
+              className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                isActive
+                  ? "border-foreground bg-foreground/5"
+                  : "border-border/60 hover:border-border"
+              }`}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+                <span className="text-[11px] font-medium text-muted-foreground">{cfg.label}</span>
+              </div>
+              <p className="text-xl font-bold tracking-tight">{count}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Company filter pills */}
       {companies.length > 1 && (
         <div className="flex flex-wrap gap-2">
           <button
@@ -65,38 +109,61 @@ export function MatchesList({ matches }: Props) {
           >
             All
           </button>
-          {companies.map((name) => (
+          {companies.map((company) => (
             <button
-              key={name}
-              onClick={() => setActiveCompany(activeCompany === name ? null : name)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
-                activeCompany === name
+              key={company.slug}
+              onClick={() => setActiveCompany(activeCompany === company.name ? null : company.name)}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+                activeCompany === company.name
                   ? "bg-foreground text-background border-foreground"
                   : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
               }`}
             >
-              {name}
+              {company.website && (
+                <CompanyLogo name={company.name} website={company.website} size="sm" className="size-4 rounded-sm" />
+              )}
+              {company.name}
             </button>
           ))}
         </div>
       )}
 
       {/* Matches grouped by company */}
-      <div className="space-y-8">
-        {Array.from(byCompany.entries()).map(([companyName, companyMatches]) => (
-          <section key={companyName} className="space-y-2">
-            <h2 className="text-sm font-medium text-muted-foreground">{companyName}</h2>
-            {companyMatches.map((match) => (
-              <JobCard
-                key={match.id}
-                job={match.job}
-                matchId={match.id}
-                applicationStatus={match.applicationStatus as "INTERESTED"}
-              />
-            ))}
-          </section>
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-8 text-center">No matches in this filter.</p>
+      ) : (
+        <div className="space-y-8">
+          {Array.from(byCompany.entries()).map(([companyName, companyMatches]) => {
+            const company = companyMatches[0].job.company;
+            return (
+              <section key={companyName} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {company.website && (
+                    <CompanyLogo name={company.name} website={company.website} size="sm" className="size-5 rounded-md" />
+                  )}
+                  <Link
+                    href={`/companies/${company.slug}`}
+                    className="text-sm font-semibold hover:underline underline-offset-2"
+                  >
+                    {companyName}
+                  </Link>
+                  <span className="text-xs text-muted-foreground">
+                    {companyMatches.length} {companyMatches.length === 1 ? "role" : "roles"}
+                  </span>
+                </div>
+                {companyMatches.map((match) => (
+                  <JobCard
+                    key={match.id}
+                    job={match.job}
+                    matchId={match.id}
+                    applicationStatus={match.applicationStatus ?? "INTERESTED"}
+                  />
+                ))}
+              </section>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

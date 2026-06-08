@@ -74,7 +74,7 @@ export function DashboardNav({
                       </span>
                     )}
                     {active && (
-                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
+                      <span className="absolute bottom-0 left-3 right-3 h-[3px] rounded-full bg-primary" />
                     )}
                   </Link>
                 );

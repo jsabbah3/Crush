@@ -6,6 +6,7 @@ import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { StatusPicker, type AppStatus } from "@/components/status-picker";
 
 type Job = {
   id: string;
@@ -43,7 +44,7 @@ function relativeTime(date: Date): string {
 export function JobCard({
   job,
   matchId,
-  applicationStatus: _applicationStatus,
+  applicationStatus,
   className,
 }: {
   job: Job;
@@ -69,6 +70,8 @@ export function JobCard({
     job.salaryMin && job.salaryMax
       ? `$${(job.salaryMin / 1000).toFixed(0)}k–$${(job.salaryMax / 1000).toFixed(0)}k`
       : null;
+
+  const status = (applicationStatus ?? "INTERESTED") as AppStatus;
 
   return (
     <Card className={cn(
@@ -115,7 +118,14 @@ export function JobCard({
 
       <CardFooter className="text-xs text-muted-foreground flex items-center justify-between pt-0 gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="shrink-0">{JOB_TYPE_LABEL[job.type] ?? job.type}</span>
+          {matchId && (
+            <StatusPicker
+              matchId={matchId}
+              jobId={job.id}
+              initialStatus={status}
+            />
+          )}
+          {!matchId && <span className="shrink-0">{JOB_TYPE_LABEL[job.type] ?? job.type}</span>}
           {salary && (
             <>
               <span className="text-border">·</span>
