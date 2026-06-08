@@ -90,35 +90,38 @@ export function CompanySearch({
       </div>
 
       {open && results.length > 0 && (
-        <div className="absolute top-full mt-1 w-full z-50 rounded-lg border bg-popover shadow-md overflow-hidden">
-          {results.map((company) => {
+        <div className="absolute top-full mt-1.5 w-full z-50 rounded-xl border border-border/60 bg-popover shadow-lg overflow-hidden">
+          {results.map((company, i) => {
             const isTracked = trackedSet.has(company.id);
             return (
               <div
                 key={company.id}
-                className="flex items-center gap-3 px-3 py-2 hover:bg-muted/50 transition-colors"
+                className={[
+                  "flex items-center gap-3.5 px-4 py-3.5 hover:bg-muted/50 transition-colors",
+                  i > 0 ? "border-t border-border/40" : "",
+                ].join(" ")}
               >
-                <CompanyLogo name={company.name} website={company.website} size="sm" className="shrink-0" />
+                <CompanyLogo name={company.name} website={company.website} size="md" className="shrink-0 size-9 rounded-lg" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{company.name}</p>
+                  <p className="text-sm font-semibold truncate">{company.name}</p>
                   {company.industry && (
-                    <p className="text-xs text-muted-foreground truncate">{company.industry}</p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{company.industry}</p>
                   )}
                 </div>
                 <button
                   onClick={() => !isTracked && handleFollow(company)}
                   disabled={isTracked || isPending}
                   className={[
-                    "shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border transition-all",
+                    "shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all",
                     isTracked
                       ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400 cursor-default"
                       : "border-border hover:border-foreground/40 hover:bg-muted cursor-pointer",
                   ].join(" ")}
                 >
                   {isTracked ? (
-                    <><Check className="size-3" /> Following</>
+                    <><Check className="size-3" /> Getting alerts</>
                   ) : (
-                    <><Plus className="size-3" /> Follow</>
+                    <><Plus className="size-3" /> Get alerts</>
                   )}
                 </button>
               </div>
