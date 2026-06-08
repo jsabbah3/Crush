@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { JobCard } from "@/components/job-card";
-import { STATUS_CONFIG, type AppStatus } from "@/components/status-picker";
+import { type AppStatus } from "@/components/status-picker";
 import { CompanyLogo } from "@/components/company-logo";
 import Link from "next/link";
 
@@ -30,12 +30,8 @@ type Props = {
   matches: Match[];
 };
 
-const PIPELINE_STATUSES: AppStatus[] = ["INTERESTED", "APPLIED", "INTERVIEWING", "OFFER"];
-
 export function MatchesList({ matches }: Props) {
   const [activeCompany, setActiveCompany] = useState<string | null>(null);
-  const [activeStatus, setActiveStatus] = useState<AppStatus | null>(null);
-
   // Collect unique companies
   const companies: Company[] = [];
   const seenSlugs = new Set<string>();
@@ -46,18 +42,9 @@ export function MatchesList({ matches }: Props) {
     }
   }
 
-  // Status counts for pipeline strip
-  const statusCounts = matches.reduce<Record<string, number>>((acc, m) => {
-    const s = (m.applicationStatus ?? "INTERESTED") as AppStatus;
-    acc[s] = (acc[s] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  const filtered = matches.filter((m) => {
-    if (activeCompany && m.job.company.name !== activeCompany) return false;
-    if (activeStatus && (m.applicationStatus ?? "INTERESTED") !== activeStatus) return false;
-    return true;
-  });
+  const filtered = activeCompany
+    ? matches.filter((m) => m.job.company.name !== activeCompany ? false : true)
+    : matches;
 
   // Group by company
   const byCompany = new Map<string, Match[]>();
@@ -70,31 +57,6 @@ export function MatchesList({ matches }: Props) {
   return (
     <div className="space-y-6">
 
-      {/* Pipeline status strip */}
-      <div className="grid grid-cols-4 gap-2">
-        {PIPELINE_STATUSES.map((status) => {
-          const cfg = STATUS_CONFIG[status];
-          const count = statusCounts[status] ?? 0;
-          const isActive = activeStatus === status;
-          return (
-            <button
-              key={status}
-              onClick={() => setActiveStatus(isActive ? null : status)}
-              className={`rounded-xl border px-3 py-3 text-left transition-all ${
-                isActive
-                  ? "border-foreground bg-foreground/5"
-                  : "border-border/60 hover:border-border"
-              }`}
-            >
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
-                <span className="text-[11px] font-medium text-muted-foreground">{cfg.label}</span>
-              </div>
-              <p className="text-xl font-bold tracking-tight">{count}</p>
-            </button>
-          );
-        })}
-      </div>
 
       {/* Company filter pills */}
       {companies.length > 1 && (
