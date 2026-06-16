@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { X, Plus, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,38 @@ const SENIORITY = [
   { label: "Senior", kw: "senior" },
   { label: "Staff", kw: "staff" },
   { label: "Lead", kw: "lead" },
+];
+
+// Common role titles for typeahead suggestions
+const ROLE_SUGGESTIONS = [
+  // Engineering
+  "Software Engineer", "Senior Software Engineer", "Staff Software Engineer", "Principal Engineer",
+  "Frontend Engineer", "Backend Engineer", "Full Stack Engineer", "Mobile Engineer",
+  "iOS Engineer", "Android Engineer", "Platform Engineer", "Infrastructure Engineer",
+  "DevOps Engineer", "Site Reliability Engineer", "Security Engineer", "Data Engineer",
+  "Machine Learning Engineer", "AI Engineer", "ML Infrastructure Engineer", "Engineering Manager",
+  "Director of Engineering", "VP of Engineering", "CTO",
+  // Product
+  "Product Manager", "Senior Product Manager", "Group Product Manager", "Principal Product Manager",
+  "Director of Product", "VP of Product", "Chief Product Officer", "Technical Product Manager",
+  "AI Product Manager", "Growth Product Manager",
+  // Design
+  "Product Designer", "Senior Product Designer", "UX Designer", "UI Designer",
+  "Design Lead", "Head of Design", "Brand Designer", "Design Engineer",
+  // Data
+  "Data Scientist", "Senior Data Scientist", "Data Analyst", "Analytics Engineer",
+  "Research Scientist", "Applied Scientist",
+  // GTM / Sales
+  "Account Executive", "Enterprise Account Executive", "Strategic Account Executive",
+  "Sales Development Representative", "Solutions Engineer", "Sales Engineer",
+  "Customer Success Manager", "Head of Sales", "VP of Sales",
+  // Marketing
+  "Product Marketing Manager", "Growth Marketer", "Content Marketer", "Demand Generation Manager",
+  "Head of Marketing", "VP of Marketing", "Brand Marketing Manager",
+  // Ops / Other
+  "Chief of Staff", "Business Operations Manager", "Revenue Operations Manager",
+  "Recruiter", "Technical Recruiter", "Developer Advocate", "Developer Relations",
+  "Technical Writer",
 ];
 
 const GEO_PRESETS = [
@@ -54,6 +86,9 @@ export function TrackedRoles({
   }, []);
 
   const [input, setInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(0);
+  const inputWrapRef = useRef<HTMLDivElement>(null);
   const [seniority, setSeniority] = useState<string[]>(initialSeniority);
   const [remote, setRemote] = useState<"any" | "remote" | "onsite">(
     initialRemoteOnly === true ? "remote" : initialRemoteOnly === false ? "onsite" : "any"
@@ -75,15 +110,38 @@ export function TrackedRoles({
     });
   }
 
-  function handleAdd() {
-    const title = input.trim();
+  // Filter suggestions on what's typed, excluding already-added roles
+  const addedLower = new Set(roles.map((r) => r.title.toLowerCase()));
+  const query = input.trim().toLowerCase();
+  const suggestions = query.length > 0
+    ? ROLE_SUGGESTIONS.filter(
+        (s) => s.toLowerCase().includes(query) && !addedLower.has(s.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (inputWrapRef.current && !inputWrapRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function handleAdd(titleArg?: string) {
+    const title = (titleArg ?? input).trim();
     if (!title || roles.some((r) => r.title.toLowerCase() === title.toLowerCase())) {
       setInput("");
+      setShowSuggestions(false);
       return;
     }
     const optimisticId = `temp-${Date.now()}`;
     setRoles((prev) => [...prev, { id: optimisticId, title }]);
     setInput("");
+    setShowSuggestions(false);
+    setHighlightIdx(0);
     startTransition(async () => {
       await addTrackedRole(title);
     });
@@ -117,23 +175,61 @@ export function TrackedRoles({
       {/* Role titles */}
       <div className="space-y-3">
         <div className="flex gap-2">
-          <Input
-            placeholder="e.g. GTM Engineer, Product Designer…"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === ",") {
-                e.preventDefault();
-                handleAdd();
-              }
-            }}
-            className="h-8 text-sm"
-          />
+          <div ref={inputWrapRef} className="relative flex-1">
+            <Input
+              placeholder="e.g. GTM Engineer, Product Designer…"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setShowSuggestions(true);
+                setHighlightIdx(0);
+              }}
+              onFocus={() => input.trim() && setShowSuggestions(true)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown" && suggestions.length > 0) {
+                  e.preventDefault();
+                  setShowSuggestions(true);
+                  setHighlightIdx((i) => Math.min(i + 1, suggestions.length - 1));
+                } else if (e.key === "ArrowUp" && suggestions.length > 0) {
+                  e.preventDefault();
+                  setHighlightIdx((i) => Math.max(i - 1, 0));
+                } else if (e.key === "Enter" || e.key === ",") {
+                  e.preventDefault();
+                  if (showSuggestions && suggestions[highlightIdx]) {
+                    handleAdd(suggestions[highlightIdx]);
+                  } else {
+                    handleAdd();
+                  }
+                } else if (e.key === "Escape") {
+                  setShowSuggestions(false);
+                }
+              }}
+              className="h-8 text-sm w-full"
+            />
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-lg border border-border/60 bg-popover shadow-lg overflow-hidden">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleAdd(s)}
+                    onMouseEnter={() => setHighlightIdx(i)}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      i === highlightIdx ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={handleAdd}
+            onClick={() => handleAdd()}
             disabled={isPending || !input.trim()}
             className="shrink-0"
           >
