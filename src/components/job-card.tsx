@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { StatusPicker, type AppStatus } from "@/components/status-picker";
+import { CompanyLogo } from "@/components/company-logo";
 
 type Job = {
   id: string;
@@ -19,7 +20,7 @@ type Job = {
   currency: string;
   url: string | null;
   postedAt: Date | null;
-  company: { name: string; slug: string };
+  company: { name: string; slug: string; website?: string | null };
 };
 
 const JOB_TYPE_LABEL: Record<string, string> = {
@@ -79,7 +80,10 @@ export function JobCard({
       className
     )}>
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <Link href={`/companies/${job.company.slug}`} className="shrink-0 mt-0.5">
+            <CompanyLogo name={job.company.name} website={job.company.website ?? null} size="sm" />
+          </Link>
           <div className="min-w-0 flex-1 space-y-0.5">
             <Link
               href={`/companies/${job.company.slug}`}
@@ -92,7 +96,7 @@ export function JobCard({
                 href={job.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-[15px] leading-snug text-foreground hover:text-primary hover:underline underline-offset-2 transition-colors"
+                className="block font-semibold text-[15px] leading-snug text-foreground hover:text-primary hover:underline underline-offset-2 transition-colors"
               >
                 {job.title}
               </a>
