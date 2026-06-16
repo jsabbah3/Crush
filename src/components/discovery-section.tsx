@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
 
 type Job = {
@@ -21,6 +21,20 @@ export function DiscoverySection() {
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("crush:section:also-open");
+    if (saved !== null) setOpen(saved === "true");
+  }, []);
+
+  function toggle() {
+    setOpen((v) => {
+      const next = !v;
+      localStorage.setItem("crush:section:also-open", String(next));
+      return next;
+    });
+  }
 
   const fetch = useCallback(async (p: number) => {
     setLoading(true);
@@ -45,13 +59,16 @@ export function DiscoverySection() {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-heading text-lg font-bold tracking-tight">Also open right now</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Roles matching yours at companies you haven&apos;t followed yet.
-          </p>
-        </div>
-        {pageCount > 1 && (
+        <button onClick={toggle} className="flex items-start gap-2 group text-left" aria-expanded={open}>
+          <ChevronDown className={`size-4 mt-1 text-muted-foreground transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
+          <div>
+            <h2 className="font-heading text-lg font-bold tracking-tight group-hover:text-foreground/80 transition-colors">Also open right now</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Roles matching yours at companies you haven&apos;t followed yet.
+            </p>
+          </div>
+        </button>
+        {open && pageCount > 1 && (
           <div className="flex items-center gap-1">
             <button
               onClick={() => fetch(page - 1)}
@@ -74,7 +91,7 @@ export function DiscoverySection() {
         )}
       </div>
 
-      <div className={`space-y-2 transition-opacity duration-150 ${loading ? "opacity-40" : "opacity-100"}`}>
+      {open && <div className={`space-y-2 transition-opacity duration-150 ${loading ? "opacity-40" : "opacity-100"}`}>
         {jobs.map((job) => (
           <div key={job.id} className="rounded-xl border border-dashed border-border bg-card hover:border-border/80 transition-colors">
             <div className="flex items-start gap-4 p-4">
@@ -110,7 +127,7 @@ export function DiscoverySection() {
             </div>
           </div>
         ))}
-      </div>
+      </div>}
     </section>
   );
 }

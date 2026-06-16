@@ -16,6 +16,7 @@ import { RefreshMatchesButton } from "@/components/refresh-matches-button";
 import { SuggestedRoles } from "@/components/suggested-roles";
 import { ShareWatchlistButton } from "@/components/share-watchlist-button";
 import { DiscoverySection } from "@/components/discovery-section";
+import { CollapsibleSection } from "@/components/collapsible-section";
 
 type UserPrefs = {
   seniority?: string[];
@@ -196,16 +197,18 @@ export default async function DashboardPage() {
 
       {/* Recent matches — shown above watchlist; matches matter most */}
       {recentMatches.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-lg font-bold tracking-tight">Recent matches</h2>
+        <CollapsibleSection
+          title="Recent matches"
+          storageKey="recent-matches"
+          action={
             <div className="flex items-center gap-3">
               <RefreshMatchesButton />
               <Link href="/matches">
                 <Button variant="ghost" size="sm">View all</Button>
               </Link>
             </div>
-          </div>
+          }
+        >
           <div className="space-y-3">
             {recentMatches.map((match) => (
               <JobCard
@@ -216,7 +219,7 @@ export default async function DashboardPage() {
               />
             ))}
           </div>
-        </section>
+        </CollapsibleSection>
       )}
 
       {tracked.length === 0 ? (
@@ -244,16 +247,18 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       ) : (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-lg font-bold tracking-tight">Watchlist</h2>
+        <CollapsibleSection
+          title="Watchlist"
+          storageKey="watchlist"
+          action={
             <Link href="/companies">
               <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
                 <Plus className="size-3.5" />
                 Add company
               </Button>
             </Link>
-          </div>
+          }
+        >
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {tracked.map((tc) => (
               <Link key={tc.id} href={`/companies/${tc.company.slug}`}>
@@ -285,7 +290,7 @@ export default async function DashboardPage() {
               </Link>
             ))}
           </div>
-        </section>
+        </CollapsibleSection>
       )}
 
       {/* Collections discovery */}
