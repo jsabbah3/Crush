@@ -87,9 +87,20 @@ export function JobCard({
             >
               {job.company.name}
             </Link>
-            <p className="font-semibold text-[15px] leading-snug text-foreground">
-              {job.title}
-            </p>
+            {job.url ? (
+              <a
+                href={job.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[15px] leading-snug text-foreground hover:text-primary hover:underline underline-offset-2 transition-colors"
+              >
+                {job.title}
+              </a>
+            ) : (
+              <p className="font-semibold text-[15px] leading-snug text-foreground">
+                {job.title}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2 shrink-0 pt-1">
             <Badge
