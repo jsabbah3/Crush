@@ -74,7 +74,7 @@ export default async function PublicWatchlistPage({ params }: Props) {
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Watchlist</p>
             <h1 className="font-heading text-3xl font-bold tracking-tight">{name}&apos;s companies</h1>
             <p className="text-sm text-muted-foreground">
-              {tracked.length} {tracked.length === 1 ? "company" : "companies"} they&apos;d actually leave for
+              {tracked.length} {tracked.length === 1 ? "company" : "companies"} they actually want to work at
             </p>
           </div>
 
@@ -114,7 +114,7 @@ export default async function PublicWatchlistPage({ params }: Props) {
             <div className="rounded-xl border border-border/60 bg-muted/30 p-6 space-y-3 max-w-md">
               <p className="font-heading font-semibold">Track your own watchlist</p>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Follow the companies you&apos;d actually leave for. Get one alert the moment your exact role opens — no noise, no job boards.
+                Follow the companies you actually want to work at. Get one alert the moment your exact role opens — no noise, no job boards.
               </p>
               <Link
                 href="/"

@@ -19,7 +19,7 @@ const FEATURES = [
   {
     step: "01",
     title: "Build your watchlist",
-    body: "Browse a curated set of VC-backed companies and follow the ones you'd actually leave for. Not a feed of thousands — a focused watchlist you control.",
+    body: "Browse a curated set of VC-backed companies and follow the ones you actually want to work at. Not a feed of thousands — a focused watchlist you control.",
   },
   {
     step: "02",
@@ -120,16 +120,16 @@ export default async function HomePage({
                   The companies
                 </span>
                 <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-muted-foreground/60">
-                  you&apos;d actually
+                  you actually
                 </span>
                 <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-primary italic">
-                  leave for.
+                  want to work at.
                 </span>
               </h1>
             </div>
 
             <p className="text-base text-muted-foreground leading-relaxed max-w-sm">
-              You&apos;re not job hunting. But you have a shortlist. Crush watches those companies every day and sends one alert the moment your exact role opens.
+              You have a shortlist of companies you&apos;d love to work at. Crush watches them every day and sends one alert the moment your exact role opens.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
