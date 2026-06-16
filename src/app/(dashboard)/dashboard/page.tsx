@@ -104,12 +104,6 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {tracked.length > 0 && <ShareWatchlistButton userId={authUser.id} />}
-          <Link href="/companies">
-            <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
-              <Plus className="size-3.5" />
-              Add company
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -251,7 +245,15 @@ export default async function DashboardPage() {
         </Card>
       ) : (
         <section>
-          <h2 className="font-heading text-lg font-bold tracking-tight mb-4">Watchlist</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-lg font-bold tracking-tight">Watchlist</h2>
+            <Link href="/companies">
+              <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
+                <Plus className="size-3.5" />
+                Add company
+              </Button>
+            </Link>
+          </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {tracked.map((tc) => (
               <Link key={tc.id} href={`/companies/${tc.company.slug}`}>
