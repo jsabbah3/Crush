@@ -199,7 +199,7 @@ export default async function CompanyDetailPage({
       {company.insights.length > 0 && (
         <section className="space-y-4">
           {company.insights.map((insight) => (
-            <details key={insight.id} open className="group rounded-xl border bg-card">
+            <details key={insight.id} className="group rounded-xl border bg-card">
               <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 [&::-webkit-details-marker]:hidden">
                 <div className="flex items-center gap-2">
                   <BookOpen className="size-4 shrink-0" />
