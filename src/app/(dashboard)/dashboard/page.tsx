@@ -200,6 +200,31 @@ export default async function DashboardPage() {
         />
       </section>
 
+      {/* Recent matches — shown above watchlist; matches matter most */}
+      {recentMatches.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-lg font-bold tracking-tight">Recent matches</h2>
+            <div className="flex items-center gap-3">
+              <RefreshMatchesButton />
+              <Link href="/matches">
+                <Button variant="ghost" size="sm">View all</Button>
+              </Link>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {recentMatches.map((match) => (
+              <JobCard
+                key={match.id}
+                job={match.job}
+                matchId={match.id}
+                applicationStatus={match.applicationStatus as AppStatus}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {tracked.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
@@ -303,31 +328,6 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Recent matches */}
-      {recentMatches.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-lg font-bold tracking-tight">Recent matches</h2>
-            <div className="flex items-center gap-3">
-              <RefreshMatchesButton />
-              <Link href="/matches">
-                <Button variant="ghost" size="sm">View all</Button>
-              </Link>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {recentMatches.map((match) => (
-              <JobCard
-                key={match.id}
-                job={match.job}
-                matchId={match.id}
-                applicationStatus={match.applicationStatus as AppStatus}
-              />
             ))}
           </div>
         </section>
