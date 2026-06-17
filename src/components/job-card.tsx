@@ -118,12 +118,14 @@ export function JobCard({
               variant="secondary"
               className={cn(
                 "text-[11px] font-medium border",
-                job.remote
+                job.remote && !job.location
                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : job.remote && job.location
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
                   : "bg-muted text-muted-foreground border-border"
               )}
             >
-              {job.remote ? "Remote" : (job.location ?? "On-site")}
+              {job.remote && job.location ? "Hybrid" : job.remote ? "Remote" : "On-site"}
             </Badge>
             {matchId && (
               <button
