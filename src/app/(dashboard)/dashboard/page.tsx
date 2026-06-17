@@ -169,59 +169,36 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* My Roles */}
-      <section className="space-y-3">
-        <div>
-          <h2 className="font-heading text-lg font-bold tracking-tight">My roles</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+      {/* My Roles — collapsed by default once the user has roles set */}
+      <CollapsibleSection
+        title="My roles"
+        storageKey="my-roles"
+        defaultOpen={trackedRoles.length === 0}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
             Role titles matched against every company you track. Generic (&ldquo;engineer&rdquo;) or specific (&ldquo;GTM engineer&rdquo;) — both work.
           </p>
+          <TrackedRoles
+            initialRoles={trackedRoles}
+            trackedCount={tracked.length}
+            initialSeniority={prefs?.seniority ?? []}
+            initialRemoteOnly={prefs?.remoteOnly ?? null}
+            initialLocationFilter={prefs?.locationFilter ?? null}
+            showFilters={false}
+          />
+
+          {trackedRoles.length === 0 && dbUser?.currentTitle && (
+            <SuggestedRoles currentTitle={dbUser.currentTitle} />
+          )}
+
+          <TrendingRoles
+            trackedTitles={trackedRoles.map((r) => r.title)}
+          />
         </div>
-        <TrackedRoles
-          initialRoles={trackedRoles}
-          trackedCount={tracked.length}
-          initialSeniority={prefs?.seniority ?? []}
-          initialRemoteOnly={prefs?.remoteOnly ?? null}
-          initialLocationFilter={prefs?.locationFilter ?? null}
-          showFilters={false}
-        />
+      </CollapsibleSection>
 
-        {trackedRoles.length === 0 && dbUser?.currentTitle && (
-          <SuggestedRoles currentTitle={dbUser.currentTitle} />
-        )}
-
-        <TrendingRoles
-          trackedTitles={trackedRoles.map((r) => r.title)}
-        />
-      </section>
-
-      {/* Recent matches — shown above watchlist; matches matter most */}
-      {recentMatches.length > 0 && (
-        <CollapsibleSection
-          title="Recent matches"
-          storageKey="recent-matches"
-          action={
-            <div className="flex items-center gap-3">
-              <RefreshMatchesButton />
-              <Link href="/matches">
-                <Button variant="ghost" size="sm">View all</Button>
-              </Link>
-            </div>
-          }
-        >
-          <div className="space-y-3">
-            {recentMatches.map((match) => (
-              <JobCard
-                key={match.id}
-                job={match.job}
-                matchId={match.id}
-                applicationStatus={match.applicationStatus as AppStatus}
-              />
-            ))}
-          </div>
-        </CollapsibleSection>
-      )}
-
+      {/* Watchlist — back above recent matches, collapsed by default */}
       {tracked.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 gap-3 text-center">
@@ -250,6 +227,7 @@ export default async function DashboardPage() {
         <CollapsibleSection
           title="Watchlist"
           storageKey="watchlist"
+          defaultOpen={false}
           action={
             <Link href="/companies">
               <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
@@ -288,6 +266,33 @@ export default async function DashboardPage() {
                   </CardContent>
                 </Card>
               </Link>
+            ))}
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Recent matches — open by default; matches matter most */}
+      {recentMatches.length > 0 && (
+        <CollapsibleSection
+          title="Recent matches"
+          storageKey="recent-matches"
+          action={
+            <div className="flex items-center gap-3">
+              <RefreshMatchesButton />
+              <Link href="/matches">
+                <Button variant="ghost" size="sm">View all</Button>
+              </Link>
+            </div>
+          }
+        >
+          <div className="space-y-3">
+            {recentMatches.map((match) => (
+              <JobCard
+                key={match.id}
+                job={match.job}
+                matchId={match.id}
+                applicationStatus={match.applicationStatus as AppStatus}
+              />
             ))}
           </div>
         </CollapsibleSection>
