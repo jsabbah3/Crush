@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Users, Clock } from "lucide-react";
+import { Search, Users, Briefcase, ChevronDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
@@ -21,15 +20,18 @@ type Company = {
   size: string | null;
   fundingStage: string | null;
   recentlyFundedAt: Date | null;
+  activeJobs: number;
   _count: { trackedBy: number };
   jobs: { postedAt: Date | null }[];
 };
 
 const SORT_OPTIONS: { value: Sort; label: string }[] = [
   { value: "active", label: "Most active" },
-  { value: "az",     label: "A–Z" },
+  { value: "az", label: "A–Z" },
   { value: "followed", label: "Most followed" },
 ];
+
+const VISIBLE_INDUSTRIES = 12;
 
 function formatLastActive(date: Date | null | undefined): string | null {
   if (!date) return null;
@@ -56,6 +58,31 @@ function formatFundingStage(stage: string | null): string | null {
     public: "Public",
   };
   return map[stage] ?? stage;
+}
+
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "cursor-pointer rounded-full px-3 py-1 text-xs font-medium border transition-colors duration-150",
+        active
+          ? "border-foreground bg-foreground text-background"
+          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground hover:bg-accent",
+      )}
+    >
+      {children}
+    </button>
+  );
 }
 
 export function CompanyBrowser({
@@ -86,9 +113,14 @@ export function CompanyBrowser({
   const [industry, setIndustry] = useState(initialIndustry);
   const [vc, setVc] = useState(initialVc);
   const [sort, setSort] = useState<Sort>(initialSort);
-  const [, startTransition] = useTransition();
+  const [showAllIndustries, setShowAllIndustries] = useState(
+    Boolean(initialIndustry && industries.indexOf(initialIndustry) >= VISIBLE_INDUSTRIES),
+  );
+  const [isPending, startTransition] = useTransition();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didMount = useRef(false);
 
-  function applyFilters(newQ: string, newIndustry: string, newVc: string, newSort: Sort) {
+  function navigate(newQ: string, newIndustry: string, newVc: string, newSort: Sort) {
     const params = new URLSearchParams();
     params.set("view", "browse"); // always preserve browse mode
     if (newQ) params.set("q", newQ);
@@ -96,104 +128,161 @@ export function CompanyBrowser({
     if (newVc) params.set("vc", newVc);
     if (newSort !== "active") params.set("sort", newSort);
     startTransition(() => {
-      router.push(`/companies?${params.toString()}`);
+      router.replace(`/companies?${params.toString()}`, { scroll: false });
     });
   }
 
+  // Instant search: debounce keystrokes instead of requiring a Search button
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => navigate(q, industry, vc, sort), 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+
+  const visibleIndustries = showAllIndustries
+    ? industries
+    : industries.slice(0, VISIBLE_INDUSTRIES);
+  const hiddenCount = industries.length - VISIBLE_INDUSTRIES;
+
   return (
     <div className="space-y-5">
-      <div className="space-y-3">
+      <div className="space-y-4">
         {/* Search + sort row */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
           <div className="relative flex-1 min-w-48 max-w-sm">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search companies…"
-              className="pl-8"
+              className="pl-8 pr-8"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyFilters(q, industry, vc, sort)}
+              aria-label="Search companies"
             />
+            {isPending && (
+              <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground animate-spin" />
+            )}
           </div>
-          <Button variant="outline" size="sm" onClick={() => applyFilters(q, industry, vc, sort)}>
-            Search
-          </Button>
-          <select
-            value={sort}
-            onChange={(e) => {
-              const next = e.target.value as Sort;
-              setSort(next);
-              applyFilters(q, industry, vc, next);
-            }}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <div
+            role="radiogroup"
+            aria-label="Sort companies"
+            className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5"
           >
             {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <button
+                key={opt.value}
+                role="radio"
+                aria-checked={sort === opt.value}
+                onClick={() => {
+                  setSort(opt.value);
+                  navigate(q, industry, vc, opt.value);
+                }}
+                className={cn(
+                  "cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150",
+                  sort === opt.value
+                    ? "bg-background text-foreground shadow-sm border border-border/60"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
                 {opt.label}
-              </option>
+              </button>
             ))}
-          </select>
+          </div>
         </div>
 
         {/* VC filter pills */}
         {vcs.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Backed by</p>
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:gap-3">
+            <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider sm:w-16 shrink-0 sm:pt-1.5">
+              Backed by
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {["", ...vcs].map((v) => (
-                <button
+                <FilterPill
                   key={v || "__all__"}
+                  active={vc === v}
                   onClick={() => {
                     setVc(v);
-                    applyFilters(q, industry, v, sort);
+                    navigate(q, industry, v, sort);
                   }}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
-                    vc === v
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                  )}
                 >
                   {v || "All"}
-                </button>
+                </FilterPill>
               ))}
             </div>
           </div>
         )}
 
-        {/* Industry pills */}
+        {/* Industry pills — top 12 by company count, rest behind "More" */}
         {industries.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Industry</p>
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:gap-3">
+            <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider sm:w-16 shrink-0 sm:pt-1.5">
+              Industry
+            </p>
             <div className="flex flex-wrap gap-1.5">
-              {["", ...industries].map((ind) => (
-                <button
+              {["", ...visibleIndustries].map((ind) => (
+                <FilterPill
                   key={ind || "__all__"}
+                  active={industry === ind}
                   onClick={() => {
                     setIndustry(ind);
-                    applyFilters(q, ind, vc, sort);
+                    navigate(q, ind, vc, sort);
                   }}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
-                    industry === ind
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                  )}
                 >
                   {ind || "All"}
-                </button>
+                </FilterPill>
               ))}
+              {hiddenCount > 0 && (
+                <button
+                  onClick={() => setShowAllIndustries((s) => !s)}
+                  className="cursor-pointer inline-flex items-center gap-0.5 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-150"
+                  aria-expanded={showAllIndustries}
+                >
+                  {showAllIndustries ? "Less" : `+${hiddenCount} more`}
+                  <ChevronDown
+                    className={cn("size-3 transition-transform duration-150", showAllIndustries && "rotate-180")}
+                  />
+                </button>
+              )}
             </div>
           </div>
         )}
       </div>
 
       {companies.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-2 text-center">
-          <p className="text-sm text-muted-foreground">No companies found</p>
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center rounded-xl border border-dashed border-border">
+          <Search className="size-5 text-muted-foreground/50" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">No companies match</p>
+            <p className="text-xs text-muted-foreground">Try a different search or clear a filter.</p>
+          </div>
+          {(q || industry || vc) && (
+            <button
+              onClick={() => {
+                setQ("");
+                setIndustry("");
+                setVc("");
+                navigate("", "", "", sort);
+              }}
+              className="cursor-pointer text-xs font-medium text-primary hover:underline underline-offset-2"
+            >
+              Clear all filters
+            </button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 transition-opacity duration-150",
+            isPending && "opacity-60",
+          )}
+        >
           {companies.map((company) => {
             const tracked = trackedMap.get(company.id) ?? null;
             const connections = connectionCounts[company.id] ?? 0;
@@ -236,19 +325,19 @@ function CompanyCard({
   const recentlyFunded = isRecentlyFunded(company.recentlyFundedAt);
 
   return (
-    <div className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm">
-      <div className="flex items-start gap-4">
+    <div className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-4 transition-all duration-150 hover:border-border hover:shadow-sm">
+      <div className="flex items-start gap-3">
         <CompanyLogo
           name={company.name}
           website={company.website}
-          size="lg"
+          size="md"
           className="shrink-0"
         />
-        <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex-1 min-w-0 space-y-0.5">
           <div className="flex items-start gap-2 flex-wrap">
             <a
               href={`/companies/${company.slug}`}
-              className="font-semibold text-base leading-snug hover:underline underline-offset-2"
+              className="font-semibold text-[15px] leading-snug hover:underline underline-offset-2"
             >
               {company.name}
             </a>
@@ -259,13 +348,10 @@ function CompanyCard({
               </span>
             )}
           </div>
-          <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-            {company.industry && (
-              <p className="text-xs text-muted-foreground">{company.industry}</p>
-            )}
-            {fundingLabel && !recentlyFunded && (
-              <p className="text-xs text-muted-foreground">{fundingLabel}</p>
-            )}
+          <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+            {company.industry && <span>{company.industry}</span>}
+            {company.industry && fundingLabel && !recentlyFunded && <span aria-hidden>·</span>}
+            {fundingLabel && !recentlyFunded && <span>{fundingLabel}</span>}
           </div>
         </div>
       </div>
@@ -277,27 +363,23 @@ function CompanyCard({
       )}
 
       <div className="flex items-center justify-between mt-auto pt-1">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {company.activeJobs > 0 && (
+            <span className="flex items-center gap-1 font-medium text-foreground/80">
+              <Briefcase className="size-3" />
+              {company.activeJobs} open {company.activeJobs === 1 ? "role" : "roles"}
+              {lastActive && <span className="font-normal text-muted-foreground">· {lastActive}</span>}
+            </span>
+          )}
           {company._count.trackedBy > 0 && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
               <Users className="size-3" />
               {company._count.trackedBy.toLocaleString()}
             </span>
           )}
-          {lastActive && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="size-3" />
-              {lastActive}
-            </span>
-          )}
           {connectionCount > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
-              <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
+            <span className="flex items-center gap-1 font-medium text-blue-600 dark:text-blue-400">
+              <Users className="size-3" />
               {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
             </span>
           )}

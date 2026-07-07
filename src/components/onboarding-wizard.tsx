@@ -31,6 +31,40 @@ type Props = {
   collections: Collection[];
 };
 
+const TOTAL_STEPS = 5;
+
+function StepHeader({
+  step,
+  title,
+  subtitle,
+}: {
+  step: number;
+  title: React.ReactNode;
+  subtitle: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2" role="progressbar" aria-valuemin={1} aria-valuemax={TOTAL_STEPS} aria-valuenow={step} aria-label={`Step ${step} of ${TOTAL_STEPS}`}>
+        {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+          <span
+            key={i}
+            className={`h-1 flex-1 max-w-10 rounded-full transition-colors duration-300 ${
+              i < step ? "bg-primary" : "bg-border"
+            }`}
+          />
+        ))}
+        <span className="text-[11px] font-medium text-muted-foreground ml-1 tabular-nums">
+          {step}/{TOTAL_STEPS}
+        </span>
+      </div>
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
 export function OnboardingWizard({ collections }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [isPending, startTransition] = useTransition();
@@ -103,15 +137,11 @@ export function OnboardingWizard({ collections }: Props) {
   if (step === 1) {
     return (
       <div className="space-y-8">
-        <div className="space-y-1.5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 1 of 5
-          </p>
-          <h1 className="text-2xl font-bold">Let&apos;s personalize your experience</h1>
-          <p className="text-sm text-muted-foreground">
-            We&apos;ll use this to suggest relevant roles for you to track. Both fields are optional.
-          </p>
-        </div>
+        <StepHeader
+          step={1}
+          title={<>Let&apos;s personalize your experience</>}
+          subtitle={<>We&apos;ll use this to suggest relevant roles for you to track. Both fields are optional.</>}
+        />
 
         <div className="space-y-5">
           {/* LinkedIn URL */}
@@ -183,15 +213,11 @@ export function OnboardingWizard({ collections }: Props) {
 
     return (
       <div className="space-y-8">
-        <div className="space-y-1.5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 2 of 5
-          </p>
-          <h1 className="text-2xl font-bold">What roles are you looking for?</h1>
-          <p className="text-sm text-muted-foreground">
-            These apply across every company you track — no need to set criteria per company.
-          </p>
-        </div>
+        <StepHeader
+          step={2}
+          title="What roles are you looking for?"
+          subtitle="These apply across every company you track — no need to set criteria per company."
+        />
 
         <div className="space-y-6">
           {/* Suggested roles — only shown if they gave a current title */}
@@ -354,15 +380,11 @@ export function OnboardingWizard({ collections }: Props) {
   if (step === 3) {
     return (
       <div className="space-y-8">
-        <div className="space-y-1.5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 3 of 5
-          </p>
-          <h1 className="text-2xl font-bold">Pick a collection to start tracking</h1>
-          <p className="text-sm text-muted-foreground">
-            We&apos;ll start watching all companies in your chosen collection. You can always add more later.
-          </p>
-        </div>
+        <StepHeader
+          step={3}
+          title="Pick a collection to start tracking"
+          subtitle={<>We&apos;ll start watching all companies in your chosen collection. You can always add more later.</>}
+        />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {collections.map((col) => {
@@ -458,15 +480,11 @@ export function OnboardingWizard({ collections }: Props) {
 
     return (
       <div className="space-y-8">
-        <div className="space-y-1.5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Step 4 of 5
-          </p>
-          <h1 className="text-2xl font-bold">See who you know</h1>
-          <p className="text-sm text-muted-foreground">
-            Import your LinkedIn connections to see which companies you already have a foot in the door at.
-          </p>
-        </div>
+        <StepHeader
+          step={4}
+          title="See who you know"
+          subtitle="Import your LinkedIn connections to see which companies you already have a foot in the door at."
+        />
 
         <div className="space-y-5">
           {/* Export instructions */}
@@ -557,15 +575,11 @@ export function OnboardingWizard({ collections }: Props) {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1.5">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Step 5 of 5
-        </p>
-        <h1 className="text-2xl font-bold">You&apos;re all set.</h1>
-        <p className="text-sm text-muted-foreground">
-          Here&apos;s what we&apos;re setting up for you.
-        </p>
-      </div>
+      <StepHeader
+        step={5}
+        title={<>You&apos;re all set.</>}
+        subtitle={<>Here&apos;s what we&apos;re setting up for you.</>}
+      />
 
       <div className="rounded-xl border bg-card p-5 space-y-4">
         {currentTitleInput.trim() && (

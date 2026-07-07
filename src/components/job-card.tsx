@@ -47,11 +47,14 @@ export function JobCard({
   matchId,
   applicationStatus,
   className,
+  hideCompany = false,
 }: {
   job: Job;
   matchId?: string;
   applicationStatus?: string;
   className?: string;
+  /** Skip the logo + company eyebrow — for lists already scoped to one company */
+  hideCompany?: boolean;
 }) {
   const [dismissed, setDismissed] = useState(false);
 
@@ -76,21 +79,25 @@ export function JobCard({
 
   return (
     <Card className={cn(
-      "relative group border-border/60 hover:border-border hover:shadow-sm transition-all duration-150",
+      "relative group gap-2 py-4 border-border/60 hover:border-border hover:shadow-sm transition-all duration-150",
       className
     )}>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-0">
         <div className="flex items-start gap-3">
-          <Link href={`/companies/${job.company.slug}`} className="shrink-0 mt-0.5">
-            <CompanyLogo name={job.company.name} website={job.company.website ?? null} size="sm" />
-          </Link>
-          <div className="min-w-0 flex-1 space-y-0.5">
-            <Link
-              href={`/companies/${job.company.slug}`}
-              className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground transition-colors"
-            >
-              {job.company.name}
+          {!hideCompany && (
+            <Link href={`/companies/${job.company.slug}`} className="shrink-0 mt-0.5">
+              <CompanyLogo name={job.company.name} website={job.company.website ?? null} size="sm" />
             </Link>
+          )}
+          <div className="min-w-0 flex-1 space-y-0.5">
+            {!hideCompany && (
+              <Link
+                href={`/companies/${job.company.slug}`}
+                className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground transition-colors"
+              >
+                {job.company.name}
+              </Link>
+            )}
             {job.url ? (
               <a
                 href={job.url}

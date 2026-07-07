@@ -269,7 +269,7 @@ export default async function CompanyDetailPage({
         ) : (
           <div className="space-y-2">
             {company.jobs.map((job) => (
-              <JobCard key={job.id} job={{ ...job, company }} />
+              <JobCard key={job.id} job={{ ...job, company }} hideCompany />
             ))}
           </div>
         )}

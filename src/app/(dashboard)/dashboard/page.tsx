@@ -70,6 +70,10 @@ export default async function DashboardPage() {
     prisma.match.count({ where: { trackedCompany: { userId: authUser.id } } }),
   ]);
 
+  const unseenMatches = await prisma.match.count({
+    where: { trackedCompany: { userId: authUser.id }, dismissed: false, seenAt: null },
+  });
+
   const prefs = dbUser?.defaultCriteria as UserPrefs | null;
   const showCollections = tracked.length < 5;
   const openRolesCount = tracked.reduce((sum, tc) => sum + (tc.company._count?.jobs ?? 0), 0);
@@ -100,8 +104,20 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
       <div className="flex items-center justify-between">
-        <div>
+        <div className="space-y-1">
           <h1 className="font-heading text-3xl font-bold tracking-tight">Dashboard</h1>
+          {tracked.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {unseenMatches > 0 ? (
+                <>
+                  <span className="font-medium text-foreground">{unseenMatches} new {unseenMatches === 1 ? "match" : "matches"}</span>
+                  {" "}since your last visit
+                </>
+              ) : (
+                <>Watching {tracked.length} {tracked.length === 1 ? "company" : "companies"} — nothing new yet. We&apos;ll email you the moment your role opens.</>
+              )}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {tracked.length > 0 && <ShareWatchlistButton userId={authUser.id} />}

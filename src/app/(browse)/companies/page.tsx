@@ -34,6 +34,7 @@ type BrowseCompany = {
   size: string | null;
   fundingStage: string | null;
   recentlyFundedAt: Date | null;
+  activeJobs: number;
   _count: { trackedBy: number };
   jobs: { postedAt: Date | null }[];
 };
@@ -50,6 +51,7 @@ type ActiveRow = {
   funding_stage: string | null;
   recently_funded_at: Date | null;
   tracked_by_count: bigint | number;
+  active_jobs: bigint | number;
   last_posted_at: Date | null;
 };
 
@@ -72,6 +74,7 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
       c.funding_stage::text AS funding_stage,
       c.recently_funded_at,
       COUNT(DISTINCT tc.id)::int AS tracked_by_count,
+      COUNT(DISTINCT CASE WHEN j.status = 'ACTIVE'::job_status THEN j.id END)::int AS active_jobs,
       MAX(CASE WHEN j.status = 'ACTIVE'::job_status THEN j.posted_at END) AS last_posted_at
     FROM companies c
     LEFT JOIN jobs j ON j.company_id = c.id
@@ -90,6 +93,7 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
     website: r.website, industry: r.industry, headquarters: r.headquarters,
     size: r.size, fundingStage: r.funding_stage,
     recentlyFundedAt: r.recently_funded_at ? new Date(r.recently_funded_at) : null,
+    activeJobs: Number(r.active_jobs),
     _count: { trackedBy: Number(r.tracked_by_count) },
     jobs: r.last_posted_at ? [{ postedAt: new Date(r.last_posted_at) }] : [],
   }));
@@ -105,7 +109,7 @@ async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | 
       ...((vc || industry) && { jobs: { some: { status: "ACTIVE" } } }),
     },
     include: {
-      _count: { select: { trackedBy: true } },
+      _count: { select: { trackedBy: true, jobs: { where: { status: "ACTIVE" } } } },
       jobs: { where: { status: "ACTIVE" }, orderBy: { postedAt: "desc" }, take: 1, select: { postedAt: true } },
     },
     orderBy: sort === "followed" ? { trackedBy: { _count: "desc" } } : { name: "asc" },
@@ -117,6 +121,7 @@ async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | 
     website: r.website, industry: r.industry, headquarters: r.headquarters,
     size: r.size, fundingStage: r.fundingStage,
     recentlyFundedAt: r.recentlyFundedAt,
+    activeJobs: r._count.jobs,
     _count: { trackedBy: r._count.trackedBy },
     jobs: r.jobs,
   }));
@@ -205,11 +210,11 @@ export default async function CompaniesPage({
     authUser
       ? prisma.trackedCompany.findMany({ where: { userId: authUser.id }, select: { id: true, companyId: true } })
       : Promise.resolve([] as { id: string; companyId: string }[]),
-    prisma.company.findMany({
+    prisma.company.groupBy({
+      by: ["industry"],
       where: { industry: { not: null } },
-      select: { industry: true },
-      distinct: ["industry"],
-      orderBy: { industry: "asc" },
+      _count: true,
+      orderBy: { _count: { industry: "desc" } },
     }),
     authUser
       ? prisma.linkedInConnection.groupBy({
@@ -228,35 +233,39 @@ export default async function CompaniesPage({
 
   return (
     <div className="space-y-6">
-      {/* Tab bar */}
-      <div className="flex items-end border-b pb-0">
-        <div className="flex gap-0">
-          {authUser ? (
+      {authUser ? (
+        /* Tab bar — only when the user actually has two views */
+        <div className="flex items-end border-b pb-0">
+          <div className="flex gap-0">
             <Link href="/companies" className={cn(
               "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
               "border-transparent text-muted-foreground hover:text-foreground"
             )}>
               My Companies
             </Link>
-          ) : null}
-          <Link href="/companies?view=browse" className={cn(
-            "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
-            "border-foreground text-foreground"
-          )}>
-            Discover
-          </Link>
+            <Link href="/companies?view=browse" className={cn(
+              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              "border-foreground text-foreground"
+            )}>
+              Discover
+            </Link>
+          </div>
         </div>
-      </div>
-
-      <div className="flex items-center justify-between -mt-2">
-        <p className="text-sm text-muted-foreground">
-          Find companies to follow. We&apos;ll alert you when a matching role opens.
-        </p>
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Updated weekly with newly funded companies
+      ) : (
+        /* Logged out — proper page header instead of an orphaned tab */
+        <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
+          <div className="space-y-1">
+            <h1 className="font-heading text-2xl font-bold tracking-tight">Companies</h1>
+            <p className="text-sm text-muted-foreground">
+              Follow the ones you&apos;d actually leave for. One alert when your exact role opens.
+            </p>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground shrink-0 pb-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Updated weekly with newly funded companies
+          </div>
         </div>
-      </div>
+      )}
 
       <CompanyBrowser
         companies={companies}

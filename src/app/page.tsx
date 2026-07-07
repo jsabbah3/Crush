@@ -58,12 +58,18 @@ export default async function HomePage({
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (authUser) redirect("/dashboard");
 
-  const recentlyFunded = await prisma.company.findMany({
-    where: { recentlyFundedAt: { not: null } },
-    orderBy: { recentlyFundedAt: "desc" },
-    take: 6,
-    select: { name: true, website: true, slug: true, fundingStage: true, recentlyFundedAt: true },
-  }).catch(() => []);
+  const [recentlyFunded, companyCount] = await Promise.all([
+    prisma.company.findMany({
+      where: { recentlyFundedAt: { not: null } },
+      orderBy: { recentlyFundedAt: "desc" },
+      take: 6,
+      select: { name: true, website: true, slug: true, fundingStage: true, recentlyFundedAt: true },
+    }).catch(() => []),
+    prisma.company.count().catch(() => 0),
+  ]);
+  const roundedCount = companyCount >= 100
+    ? `${(Math.floor(companyCount / 100) * 100).toLocaleString("en-US")}+`
+    : null;
 
   function fundingLabel(stage: string | null): string {
     const map: Record<string, string> = {
@@ -111,25 +117,18 @@ export default async function HomePage({
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Updated weekly with newly funded companies
+              {roundedCount ? `${roundedCount} companies on Crush · updated weekly` : "Updated weekly with newly funded companies"}
             </div>
 
             <div>
-              <h1 className="font-heading font-bold tracking-tight leading-[1.06]">
-                <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-foreground">
-                  The companies
-                </span>
-                <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-muted-foreground/60">
-                  you actually
-                </span>
-                <span className="block text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] text-primary italic">
-                  want to work at.
-                </span>
+              <h1 className="font-heading font-bold tracking-tight leading-[1.08] text-[2.75rem] sm:text-[3.5rem] lg:text-[3.9rem] text-balance">
+                <span className="text-foreground">The companies you&apos;d </span>
+                <span className="text-primary italic">actually leave for.</span>
               </h1>
             </div>
 
-            <p className="text-base text-muted-foreground leading-relaxed max-w-sm">
-              You have a shortlist of companies you&apos;d love to work at. Crush watches them every day and sends one alert the moment your exact role opens.
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
+              Not a job board. A watchlist. Crush monitors your shortlist every day and sends one alert the moment your exact role opens — straight from each company&apos;s ATS.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -252,15 +251,15 @@ export default async function HomePage({
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="space-y-5">
-                <p className="text-lg leading-relaxed text-foreground font-heading">
+              <figure key={t.name} className="space-y-5 border-l-2 border-primary/30 pl-6">
+                <blockquote className="text-lg leading-relaxed text-foreground font-heading">
                   &ldquo;{t.quote}&rdquo;
-                </p>
-                <div>
+                </blockquote>
+                <figcaption>
                   <p className="text-sm font-semibold">{t.name}</p>
                   <p className="text-sm text-muted-foreground">{t.context}</p>
-                </div>
-              </div>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
