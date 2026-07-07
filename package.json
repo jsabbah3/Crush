@@ -12,7 +12,8 @@
     "scrape-vc": "tsx scripts/scrape-vc-portfolios.ts",
     "fetch-logos": "tsx scripts/fetch-logos.ts",
     "populate-metadata": "tsx scripts/populate-company-metadata.ts",
-    "detect-ats": "tsx scripts/detect-ats.ts"
+    "detect-ats": "tsx scripts/detect-ats.ts",
+    "generate-insight": "tsx scripts/generate-insight.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
