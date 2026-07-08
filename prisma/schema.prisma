@@ -58,6 +58,10 @@ model Company {
   tags         String[]      @default([])
   blogRssUrl       String?       @map("blog_rss_url")
   recentlyFundedAt DateTime?     @map("recently_funded_at")
+  // Earliest date this company's job data is reliable (first ingestion).
+  // Trend windows must never reach before this date (+ a read-side buffer
+  // to skip the initial bulk-import spike).
+  trackingStartedAt DateTime?    @map("tracking_started_at")
   createdAt        DateTime      @default(now()) @map("created_at")
   updatedAt        DateTime      @updatedAt @map("updated_at")
 
@@ -67,8 +71,25 @@ model Company {
   signals             CompanySignal[]
   insights            CompanyInsight[]
   linkedInConnections LinkedInConnection[]
+  roleSnapshots       CompanyRoleSnapshot[]
 
   @@map("companies")
+}
+
+// One row per company per day: how many roles were open when the daily
+// snapshot cron ran. This is the time-series behind hiring-momentum
+// (consumer) and trend analytics (B2B). Append-only via idempotent upsert.
+model CompanyRoleSnapshot {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  capturedOn     DateTime @map("captured_on") @db.Date
+  openRolesTotal Int      @map("open_roles_total")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, capturedOn])
+  @@map("company_role_snapshots")
 }
 
 model Job {
