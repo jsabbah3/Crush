@@ -128,7 +128,7 @@ export default async function HomePage({
             </div>
 
             <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
-              Not a job board. A watchlist. Crush monitors your shortlist every day and sends one alert the moment your exact role opens — straight from each company&apos;s ATS.
+              Follow your company crushes. We&apos;ll tell you when they&apos;re ready for you.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">

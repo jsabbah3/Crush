@@ -16,9 +16,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Crush — Track the companies you actually want to work at",
+  title: "Crush — Your company crushes, now hiring",
   description:
-    "You have a shortlist of companies you'd love to work at. Crush watches them every day and sends one alert the moment your exact role opens — no noise, no job board.",
+    "Crush is your built-in VC best friend — a curated watchlist of dream companies that alerts you the moment your exact role opens. No job boards, no noise. Just the companies you'd actually leave for.",
+  keywords: ["startup jobs", "tech job alerts", "dream company hiring", "job tracker", "startup hiring", "tech jobs", "job alerts"],
+  openGraph: {
+    title: "Crush — Your company crushes, now hiring",
+    description: "A curated watchlist of dream companies. Get alerted the moment your exact role opens — before it hits LinkedIn.",
+    url: "https://crushco.app",
+    siteName: "Crush",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Crush — Your company crushes, now hiring",
+    description: "A curated watchlist of dream companies. Get alerted the moment your exact role opens — before it hits LinkedIn.",
+  },
 };
 
 export default function RootLayout({
