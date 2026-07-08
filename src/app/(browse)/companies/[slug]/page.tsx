@@ -75,6 +75,13 @@ export default async function CompanyDetailPage({
 
   if (!company) notFound();
 
+  const relatedCompanies = await prisma.company.findMany({
+    where: { industry: company.industry ?? undefined, slug: { not: slug } },
+    select: { name: true, slug: true, fundingStage: true },
+    orderBy: { updatedAt: "desc" },
+    take: 6,
+  });
+
   // Fetch LinkedIn connections at this company
   const networkConnections = authUser
     ? await prisma.linkedInConnection.findMany({
@@ -260,10 +267,10 @@ export default async function CompanyDetailPage({
         {company.jobs.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              No open roles right now.{" "}
+              No open roles right now. Crush monitors {company.name}&apos;s careers page daily.{" "}
               {tracked
-                ? "We'll email you when something matches."
-                : "Follow this company to get alerted when they hire."}
+                ? "We'll email you the moment something matching your criteria is posted."
+                : "Follow this company to get alerted the moment they post a role."}
             </CardContent>
           </Card>
         ) : (
@@ -274,6 +281,32 @@ export default async function CompanyDetailPage({
           </div>
         )}
       </section>
+
+      {/* Related companies */}
+      {relatedCompanies.length > 0 && (
+        <>
+          <Separator />
+          <section className="space-y-3">
+            <h2 className="font-medium text-sm text-muted-foreground">
+              More {company.industry} companies on Crush
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {relatedCompanies.map((c) => (
+                <a
+                  key={c.slug}
+                  href={`/companies/${c.slug}`}
+                  className="flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs hover:border-border hover:shadow-sm transition-all"
+                >
+                  <span className="font-medium">{c.name}</span>
+                  {c.fundingStage && (
+                    <span className="text-muted-foreground capitalize">{c.fundingStage.replace(/_/g, " ")}</span>
+                  )}
+                </a>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
 
       {/* Engineering blog signals */}
       {company.signals.length > 0 && (
