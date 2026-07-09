@@ -109,7 +109,7 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
 
 export async function followCompany(
   companyId: string,
-  source: "browse" | "collection" | "company_page" = "browse",
+  source: "browse" | "collection" | "company_page" | "anon_replay" = "browse",
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

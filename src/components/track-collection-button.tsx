@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Check, BookmarkPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackCollection } from "@/app/actions/tracking";
+import { addAnonTracked } from "@/lib/anon-tracking";
+import { analytics } from "@/lib/analytics";
 
 type Props = {
   companies: { id: string; name: string }[];
@@ -20,7 +22,17 @@ export function TrackCollectionButton({ companies, trackedIds, userId }: Props) 
   const allTracked = untracked.length === 0;
 
   function handleClick() {
-    if (!userId) { router.push("/login"); return; }
+    if (!userId) {
+      // Preserve intent through the login wall (replayed post-auth) and
+      // record the gated click so the funnel drop is measurable.
+      for (const c of untracked) addAnonTracked(c.id);
+      analytics.track("follow_intent_gated", {
+        collection_size: untracked.length,
+        source: "collection",
+      });
+      router.push("/login");
+      return;
+    }
     if (allTracked) return;
     startTransition(async () => {
       await trackCollection(untracked.map((c) => c.id));

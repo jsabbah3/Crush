@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { DashboardNav } from "@/components/nav";
 import { UserIdentifier } from "@/components/user-identifier";
+import { AnonTrackingReplay } from "@/components/anon-tracking-replay";
 
 export default async function DashboardLayout({
   children,
@@ -49,6 +50,7 @@ export default async function DashboardLayout({
         name={user.name}
         createdAt={user.createdAt}
       />
+      <AnonTrackingReplay />
       <DashboardNav user={user} unreadMatches={unreadMatches} />
       <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10">{children}</main>
     </div>
