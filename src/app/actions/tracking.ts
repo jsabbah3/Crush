@@ -22,6 +22,11 @@ type UserPrefs = {
  *                    if null, check all tracked companies (add-role flow)
  */
 export async function backfillMatchesForUser(userId: string) {
+  // Exported from a "use server" module, so this is a callable endpoint:
+  // verify the caller is acting on their own account.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.id !== userId) return 0;
   return backfillMatches(userId, null);
 }
 
