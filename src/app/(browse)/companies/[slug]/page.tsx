@@ -9,6 +9,7 @@ import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
 import { JobCard } from "@/components/job-card";
 import { MarkdownBody } from "@/components/markdown-body";
+import { JobPostingJsonLd } from "@/components/job-posting-jsonld";
 
 export async function generateMetadata({
   params,
@@ -18,20 +19,35 @@ export async function generateMetadata({
   const { slug } = await params;
   const company = await prisma.company.findUnique({
     where: { slug },
-    select: { name: true, description: true, industry: true, insights: { select: { id: true }, take: 1 } },
+    select: {
+      name: true,
+      description: true,
+      industry: true,
+      insights: { select: { id: true }, take: 1 },
+      jobs: { where: { status: "ACTIVE" }, select: { id: true }, take: 1 },
+    },
   });
   if (!company) return {};
 
   const hasGuide = company.insights.length > 0;
+  const hasJobs = company.jobs.length > 0;
+  // Thin pages (no jobs, no guide, no description) stay reachable but are
+  // kept out of the index until they have something unique to rank on.
+  const isThin = !hasGuide && !hasJobs && !company.description;
+
+  const title = hasGuide
+    ? `Getting hired at ${company.name} — Process, culture, and what they look for | Crush`
+    : `${company.name} — Jobs & Hiring | Crush`;
+  const description = company.description
+    ? `${company.description.slice(0, 140)} — Track ${company.name} on Crush to get alerted when they hire.`
+    : `Track ${company.name} on Crush. Get one alert the moment a role opens that matches your criteria.`;
 
   return {
-    title: hasGuide
-      ? `Getting hired at ${company.name} — Process, culture, and what they look for | Crush`
-      : `${company.name} — Jobs & Hiring | Crush`,
-    description:
-      company.description
-        ? `${company.description.slice(0, 140)} — Track ${company.name} on Crush to get alerted when they hire.`
-        : `Track ${company.name} on Crush. Get one alert the moment a role opens that matches your criteria.`,
+    title,
+    description,
+    alternates: { canonical: `/companies/${slug}` },
+    openGraph: { title, description, url: `/companies/${slug}`, type: "website" },
+    ...(isThin ? { robots: { index: false } } : {}),
   };
 }
 
@@ -103,6 +119,11 @@ export default async function CompanyDetailPage({
 
   return (
     <div className="space-y-8 max-w-2xl">
+      <JobPostingJsonLd
+        jobs={company.jobs}
+        companyName={company.name}
+        companyWebsite={company.website}
+      />
       {/* Company header */}
       <div className="flex items-start gap-4">
         <CompanyLogo name={company.name} website={company.website} size="lg" className="shrink-0" />
