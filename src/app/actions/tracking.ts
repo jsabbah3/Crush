@@ -94,7 +94,10 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
     const existing = await prisma.match.findFirst({ where: { trackedCompanyId, jobId: job.id } });
     if (!existing) {
       try {
-        await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
+        // notified: true — backfilled matches are for roles that were already
+        // open when the user followed; they belong on the dashboard but must
+        // not trigger a "just opened" alert email.
+        await prisma.match.create({ data: { trackedCompanyId, jobId: job.id, notified: true } });
         created++;
       } catch {
         // Race condition — fine
