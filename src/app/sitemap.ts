@@ -9,7 +9,17 @@ const BASE = "https://crushco.app";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [companies, collections] = await Promise.all([
+    // Only companies with something to rank on (active roles, a hiring
+    // guide, or a real description). Thin pages are noindexed and left
+    // out so crawl budget concentrates on pages with actual content.
     prisma.company.findMany({
+      where: {
+        OR: [
+          { jobs: { some: { status: "ACTIVE" } } },
+          { insights: { some: {} } },
+          { AND: [{ description: { not: null } }, { description: { not: "" } }] },
+        ],
+      },
       select: { slug: true, updatedAt: true },
       orderBy: { name: "asc" },
     }),
