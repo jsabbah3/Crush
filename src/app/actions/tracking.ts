@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { trackServerEvent } from "@/lib/analytics-node";
 import { doesJobMatch } from "@/lib/matching";
-import type { JobType } from "@/generated/prisma/enums";
 
 type UserPrefs = {
   seniority?: string[];
@@ -176,32 +175,6 @@ export async function trackCollection(companyIds: string[]) {
   revalidatePath("/dashboard");
   revalidatePath("/collections");
   revalidatePath("/companies");
-  return { success: true };
-}
-
-// Kept for API route backward compat (/api/tracked/[id] PATCH)
-export async function updateCriteria(
-  trackedId: string,
-  criteria: {
-    keywords: string[];
-    jobTypes: JobType[];
-    remoteOnly: boolean | null;
-    locationFilter: string | null;
-    emailAlerts: boolean;
-  }
-) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" };
-
-  const existing = await prisma.trackedCompany.findFirst({
-    where: { id: trackedId, userId: user.id },
-  });
-  if (!existing) return { error: "Not found" };
-
-  await prisma.trackedCompany.update({ where: { id: trackedId }, data: criteria });
-
-  revalidatePath("/dashboard");
   return { success: true };
 }
 

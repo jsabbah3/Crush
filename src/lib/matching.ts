@@ -162,8 +162,11 @@ export function doesJobMatch(
     if (loc && !loc.includes(filter)) return false;
   }
 
-  // No role titles → any role passes (filtered only by remote/location above)
-  if (roleTitles.length === 0) return true;
+  // No role titles → no matches. A watchlist with no target role would
+  // otherwise alert on every job at every tracked company — the exact
+  // noise the product exists to eliminate. Users are prompted to add a
+  // role (dashboard + matches page) before anything matches.
+  if (roleTitles.length === 0) return false;
 
   const titleLower = job.title.toLowerCase();
   const expanded = expandRoleTitles(roleTitles);
