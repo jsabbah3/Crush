@@ -74,6 +74,20 @@ export default async function DashboardPage() {
     where: { trackedCompany: { userId: authUser.id }, dismissed: false, seenAt: null },
   });
 
+  // First-degree LinkedIn connections at the recent-match companies,
+  // so each match card can show "who you know here".
+  const recentMatchCompanyIds = [...new Set(recentMatches.map((m) => m.job.companyId))];
+  const connectionGroups = recentMatchCompanyIds.length > 0
+    ? await prisma.linkedInConnection.groupBy({
+        by: ["companyId"],
+        where: { userId: authUser.id, companyId: { in: recentMatchCompanyIds } },
+        _count: { _all: true },
+      })
+    : [];
+  const networkByCompanyId = new Map(
+    connectionGroups.map((g) => [g.companyId, g._count._all]),
+  );
+
   const prefs = dbUser?.defaultCriteria as UserPrefs | null;
   const showCollections = tracked.length < 5;
   const openRolesCount = tracked.reduce((sum, tc) => sum + (tc.company._count?.jobs ?? 0), 0);
@@ -308,6 +322,7 @@ export default async function DashboardPage() {
                 job={match.job}
                 matchId={match.id}
                 applicationStatus={match.applicationStatus as AppStatus}
+                networkCount={networkByCompanyId.get(match.job.companyId)}
               />
             ))}
           </div>

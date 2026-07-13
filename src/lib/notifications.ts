@@ -17,7 +17,7 @@ type MatchRow = {
     type: string;
   };
   trackedCompany: {
-    company: { name: string; slug: string };
+    company: { id: string; name: string; slug: string };
     user: {
       id: string;
       email: string;
@@ -156,7 +156,7 @@ async function fetchPending({
       },
       trackedCompany: {
         select: {
-          company: { select: { name: true, slug: true } },
+          company: { select: { id: true, name: true, slug: true } },
           user: {
             select: { id: true, email: true, name: true, unsubscribeToken: true },
           },
@@ -201,11 +201,25 @@ async function sendEmail({
   unsubscribeToken: string;
   emailType: string;
 }): Promise<boolean> {
+  // "Who you know here" — first-degree LinkedIn connections per company.
+  // The warm path matters more than the apply button.
+  const companyIds = [...new Set(matches.map((m) => m.trackedCompany.company.id))];
+  const connectionGroups = companyIds.length > 0
+    ? await prisma.linkedInConnection.groupBy({
+        by: ["companyId"],
+        where: { userId, companyId: { in: companyIds } },
+        _count: { _all: true },
+      })
+    : [];
+  const networkByCompanyId = new Map(
+    connectionGroups.map((g) => [g.companyId as string, g._count._all]),
+  );
+
   const { error } = await resend.emails.send({
     from: "Crush <alerts@crushco.app>",
     to,
     subject,
-    html: buildHtml(name ?? "there", matches, unsubscribeToken, userId, emailType),
+    html: buildHtml(name ?? "there", matches, unsubscribeToken, userId, emailType, networkByCompanyId),
     headers: {
       "List-Unsubscribe": `<${APP_URL}/api/unsubscribe?token=${unsubscribeToken}>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -227,6 +241,7 @@ function buildHtml(
   token: string,
   userId: string,
   emailType: string,
+  networkByCompanyId: Map<string, number> = new Map(),
 ): string {
   const pauseUrl = `${APP_URL}/api/unsubscribe?token=${token}`;
   const settingsUrl = emailLink(`${APP_URL}/settings`, userId, emailType, "settings");
@@ -237,7 +252,11 @@ function buildHtml(
     const loc = m.job.remote ? "Remote" : (m.job.location ?? "On-site");
     const rawUrl = m.job.url ?? `${APP_URL}/matches`;
     const applyUrl = emailLink(rawUrl, userId, emailType, "apply");
-    const companyUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}`, userId, emailType, "company");
+    const networkCount = networkByCompanyId.get(m.trackedCompany.company.id) ?? 0;
+    const networkUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}#network`, userId, emailType, "network");
+    const networkLine = networkCount > 0
+      ? `<p style="margin:0 0 10px;font-size:13px;color:#374151;">You know <strong>${networkCount} ${networkCount === 1 ? "person" : "people"}</strong> here — <a href="${networkUrl}" style="color:#111111;font-weight:600;">see who →</a></p>`
+      : "";
 
     return `
     <tr>
@@ -249,6 +268,7 @@ function buildHtml(
               <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9ca3af;">${m.trackedCompany.company.name}</p>
               <!-- Job title -->
               <p style="margin:0 0 10px;font-size:17px;font-weight:600;color:#111111;line-height:1.3;">${m.job.title}</p>
+              ${networkLine}
               <!-- Meta row -->
               <table cellpadding="0" cellspacing="0">
                 <tr>

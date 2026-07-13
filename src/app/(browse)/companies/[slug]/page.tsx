@@ -190,7 +190,7 @@ export default async function CompanyDetailPage({
 
       {/* People you know */}
       {networkConnections.length > 0 && (
-        <section className="space-y-3">
+        <section id="network" className="space-y-3 scroll-mt-20">
           <div className="flex items-center gap-2">
             <Users className="size-4 text-muted-foreground" />
             <h2 className="font-medium text-sm">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, Users, X } from "lucide-react";
 import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -48,6 +48,7 @@ export function JobCard({
   applicationStatus,
   className,
   hideCompany = false,
+  networkCount,
 }: {
   job: Job;
   matchId?: string;
@@ -55,6 +56,8 @@ export function JobCard({
   className?: string;
   /** Skip the logo + company eyebrow — for lists already scoped to one company */
   hideCompany?: boolean;
+  /** First-degree LinkedIn connections at this company — "who you know here" */
+  networkCount?: number;
 }) {
   const [dismissed, setDismissed] = useState(false);
 
@@ -160,6 +163,18 @@ export function JobCard({
             <>
               <span className="text-border">·</span>
               <span className="shrink-0">{relativeTime(job.postedAt)}</span>
+            </>
+          )}
+          {(networkCount ?? 0) > 0 && (
+            <>
+              <span className="text-border">·</span>
+              <Link
+                href={`/companies/${job.company.slug}#network`}
+                className="flex items-center gap-1 shrink-0 font-medium text-primary hover:underline underline-offset-2"
+              >
+                <Users className="size-3" />
+                {networkCount} in your network
+              </Link>
             </>
           )}
         </div>
