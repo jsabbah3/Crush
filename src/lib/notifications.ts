@@ -3,7 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { AlertMode } from "@/generated/prisma/enums";
 import { trackServerEvent } from "@/lib/analytics-node";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazily constructed: the Resend constructor throws on a missing key, so a
+// module-level `new Resend()` made `next build` require RESEND_API_KEY at
+// build time (it collects page data for /api/cron/* which import this file).
+// Runtime is the only place the key is actually needed.
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 const APP_URL = process.env.APP_URL ?? "https://crushco.app";
 
 type MatchRow = {
@@ -215,7 +223,7 @@ async function sendEmail({
     connectionGroups.map((g) => [g.companyId as string, g._count._all]),
   );
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: "Crush <alerts@crushco.app>",
     to,
     subject,
