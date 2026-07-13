@@ -42,6 +42,14 @@ async function persistJobs(
   const incoming = fetched.filter((j) => !existingSet.has(j.externalJobId));
   if (incoming.length === 0) return { newJobs: 0, newMatches: 0 };
 
+  // First-ever ingest of this company (it had no jobs at all before now):
+  // its current roles are backfill, not "just opened". Without this, sourcing
+  // a company that was previously unsourced (e.g. via scripts/detect-and-source
+  // or ingest-on-follow) would blast every tracker a "just opened" alert for
+  // long-standing roles. Established companies keep alerting on genuinely new
+  // postings.
+  const companyHadJobs = (await prisma.job.count({ where: { companyId } })) > 0;
+
   const created = await prisma.job.createManyAndReturn({
     data: incoming.map((job) => ({
       title: job.title.trim(),
@@ -92,7 +100,9 @@ async function persistJobs(
         )
       ) {
         try {
-          await prisma.match.create({ data: { trackedCompanyId: tc.id, jobId: job.id } });
+          await prisma.match.create({
+            data: { trackedCompanyId: tc.id, jobId: job.id, notified: !companyHadJobs },
+          });
           newMatches++;
         } catch {
           // Unique constraint — match already exists
