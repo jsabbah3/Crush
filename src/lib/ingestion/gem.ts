@@ -26,8 +26,11 @@ export async function fetchGemJobs(slug: string): Promise<IngestedJob[]> {
   if (res.status === 404) return [];
   if (!res.ok) throw new Error(`Gem ${slug}: HTTP ${res.status}`);
 
-  const data = await res.json() as GemResponse;
-  const jobs = data.job_posts ?? [];
+  // Gem's job board API returns a top-level array of job posts. (It was
+  // being read as { job_posts: [...] }, so every gem company silently
+  // ingested 0 jobs.) Handle both shapes defensively.
+  const data = await res.json() as GemJob[] | GemResponse;
+  const jobs = Array.isArray(data) ? data : (data.job_posts ?? []);
 
   return jobs
     .filter((p) => {
