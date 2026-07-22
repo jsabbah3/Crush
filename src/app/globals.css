@@ -12,6 +12,13 @@
   --font-heading: var(--font-dm-sans);
   --color-amber: var(--amber);
   --color-amber-foreground: var(--amber-foreground);
+  --color-moss: var(--moss);
+  --color-moss-soft: var(--moss-soft);
+  --color-clay: var(--clay);
+  --color-clay-soft: var(--clay-soft);
+  --color-slate-warm: var(--slate-warm);
+  --color-ink-band: var(--ink-band);
+  --color-ink-band-foreground: var(--ink-band-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,9 +55,14 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --ease-settle: cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-rise: rise var(--dur-med) var(--ease-settle) both;
+  --animate-shimmer: shimmer 1.3s linear infinite;
 }
 
-/* ── Crush: warm canvas, dark ink, amber signal ─────────────────────────── */
+/* ── Crush "Warm Signal": warm paper, warm ink, amber reserved for signal ──
+   Amber appears only when something matters: a match, a new alert, the one
+   primary action per screen. Everything else is ink, hairlines, and calm.  */
 :root {
   /* Canvas */
   --background: oklch(1 0 0);
@@ -64,8 +76,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.235 0.012 73);
 
-  /* Primary = burnished amber (all CTAs, buttons) */
-  --primary: oklch(0.58 0.155 54);         /* rich warm gold — white text on top */
+  /* Primary = burnished amber. Signal only: follow/alerts CTAs, match moments. */
+  --primary: oklch(0.58 0.155 54);
   --primary-foreground: oklch(1 0 0);
 
   /* Secondary surface */
@@ -97,12 +109,27 @@
   --chart-4: oklch(0.75 0.004 73);
   --chart-5: oklch(0.90 0.003 73);
 
-  /* Amber surface — warm gold for match badges, notification pills */
-  --amber: oklch(0.88 0.10 70);            /* lighter, warmer for badge backgrounds */
+  /* Amber surface — match badges, notification pills */
+  --amber: oklch(0.88 0.10 70);
   --amber-foreground: oklch(0.40 0.10 55);
+
+  /* Warm-calibrated status hues (replace raw emerald/blue/green/red) */
+  --moss: oklch(0.54 0.09 140);             /* success / hiring-active */
+  --moss-soft: oklch(0.95 0.025 140);
+  --clay: oklch(0.55 0.13 35);              /* rejected / danger-soft */
+  --clay-soft: oklch(0.95 0.02 35);
+  --slate-warm: oklch(0.55 0.045 250);      /* "applied" — the one cool tone */
+
+  /* Contrast band (landing positioning section) — dramatic dark ink */
+  --ink-band: oklch(0.235 0.012 73);
+  --ink-band-foreground: oklch(0.96 0.005 80);
 
   /* Radius */
   --radius: 0.4rem;
+
+  /* Motion */
+  --dur-fast: 140ms;
+  --dur-med: 240ms;
 
   /* Sidebar */
   --sidebar: oklch(0.972 0.004 73);
@@ -115,40 +142,63 @@
   --sidebar-ring: oklch(0.58 0.155 54);
 }
 
+/* Warm near-black — never neutral gray. Amber brightens and flips to dark text. */
 .dark {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.012 73);
-  --card: oklch(0.972 0.004 73);
-  --card-foreground: oklch(0.235 0.012 73);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.012 73);
-  --primary: oklch(0.58 0.155 54);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.972 0.004 73);
-  --secondary-foreground: oklch(0.235 0.012 73);
-  --muted: oklch(0.972 0.004 73);
-  --muted-foreground: oklch(0.52 0.007 73);
-  --accent: oklch(0.945 0.003 73);
-  --accent-foreground: oklch(0.235 0.012 73);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.915 0.004 73);
-  --input: oklch(0.915 0.004 73);
-  --ring: oklch(0.58 0.155 54);
-  --chart-1: oklch(0.235 0.012 73);
-  --chart-2: oklch(0.45 0.008 73);
-  --chart-3: oklch(0.60 0.006 73);
-  --chart-4: oklch(0.75 0.004 73);
-  --chart-5: oklch(0.90 0.003 73);
-  --amber: oklch(0.88 0.10 70);
-  --amber-foreground: oklch(0.40 0.10 55);
-  --sidebar: oklch(0.972 0.004 73);
-  --sidebar-foreground: oklch(0.235 0.012 73);
-  --sidebar-primary: oklch(0.58 0.155 54);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.945 0.003 73);
-  --sidebar-accent-foreground: oklch(0.235 0.012 73);
-  --sidebar-border: oklch(0.915 0.004 73);
-  --sidebar-ring: oklch(0.58 0.155 54);
+  --background: oklch(0.205 0.008 73);      /* ~#191715 */
+  --foreground: oklch(0.93 0.006 80);       /* ~#edeae4 */
+
+  --card: oklch(0.235 0.008 73);            /* ~#211e1b */
+  --card-foreground: oklch(0.93 0.006 80);
+
+  --popover: oklch(0.25 0.008 73);
+  --popover-foreground: oklch(0.93 0.006 80);
+
+  --primary: oklch(0.75 0.135 65);          /* ~#e8a33d — dark text on top */
+  --primary-foreground: oklch(0.205 0.008 73);
+
+  --secondary: oklch(0.27 0.008 73);
+  --secondary-foreground: oklch(0.93 0.006 80);
+
+  --muted: oklch(0.26 0.008 73);
+  --muted-foreground: oklch(0.68 0.01 75);
+
+  --accent: oklch(0.28 0.008 73);
+  --accent-foreground: oklch(0.93 0.006 80);
+
+  --destructive: oklch(0.66 0.19 29);
+
+  --border: oklch(0.30 0.008 73);
+  --input: oklch(0.30 0.008 73);
+
+  --ring: oklch(0.75 0.135 65);
+
+  --chart-1: oklch(0.93 0.006 80);
+  --chart-2: oklch(0.75 0.008 76);
+  --chart-3: oklch(0.60 0.008 74);
+  --chart-4: oklch(0.45 0.008 73);
+  --chart-5: oklch(0.32 0.008 73);
+
+  --amber: oklch(0.32 0.055 60);
+  --amber-foreground: oklch(0.80 0.12 70);
+
+  --moss: oklch(0.68 0.09 140);
+  --moss-soft: oklch(0.28 0.03 140);
+  --clay: oklch(0.68 0.11 35);
+  --clay-soft: oklch(0.28 0.025 35);
+  --slate-warm: oklch(0.70 0.05 250);
+
+  /* Dark theme: elevated warm panel, not a jarring light block */
+  --ink-band: oklch(0.27 0.01 73);
+  --ink-band-foreground: oklch(0.93 0.006 80);
+
+  --sidebar: oklch(0.235 0.008 73);
+  --sidebar-foreground: oklch(0.93 0.006 80);
+  --sidebar-primary: oklch(0.75 0.135 65);
+  --sidebar-primary-foreground: oklch(0.205 0.008 73);
+  --sidebar-accent: oklch(0.28 0.008 73);
+  --sidebar-accent-foreground: oklch(0.93 0.006 80);
+  --sidebar-border: oklch(0.30 0.008 73);
+  --sidebar-ring: oklch(0.75 0.135 65);
 }
 
 @layer base {
@@ -160,10 +210,63 @@
   }
   html {
     @apply font-sans;
-    scroll-behavior: smooth;
   }
   /* Smooth color transitions on interactive elements */
   a, button {
     @apply transition-colors duration-150;
+  }
+}
+
+@layer utilities {
+  /* Entrance: fade + 4px rise. Pair with .stagger-children on the parent. */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+  .animate-rise {
+    animation: rise var(--dur-med) var(--ease-settle) both;
+  }
+  .stagger-children > :nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > :nth-child(2) { animation-delay: 25ms; }
+  .stagger-children > :nth-child(3) { animation-delay: 50ms; }
+  .stagger-children > :nth-child(4) { animation-delay: 75ms; }
+  .stagger-children > :nth-child(5) { animation-delay: 100ms; }
+  .stagger-children > :nth-child(6) { animation-delay: 125ms; }
+  .stagger-children > :nth-child(7) { animation-delay: 150ms; }
+  .stagger-children > :nth-child(8) { animation-delay: 175ms; }
+
+  /* Skeleton shimmer — always mirror the final layout so nothing shifts. */
+  @keyframes shimmer {
+    to { background-position: -200% 0; }
+  }
+  .skeleton {
+    border-radius: var(--radius-md);
+    background: linear-gradient(
+      90deg,
+      var(--accent) 25%,
+      var(--border) 45%,
+      var(--accent) 65%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.3s linear infinite;
+  }
+
+  /* Collapse/expand via grid rows — animatable height:auto. */
+  .collapse-grid {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows var(--dur-med) var(--ease-settle);
+  }
+  .collapse-grid[data-collapsed="true"] { grid-template-rows: 0fr; }
+  .collapse-grid > * { overflow: hidden; min-width: 0; }
+}
+
+/* Hard rule: motion is a courtesy, not a requirement. */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

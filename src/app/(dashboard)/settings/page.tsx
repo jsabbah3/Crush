@@ -7,6 +7,7 @@ import { AlertSettingsForm } from "@/components/alert-settings-form";
 import { TrackedRoles } from "@/components/tracked-roles";
 import { ResumeUpload } from "@/components/resume-upload";
 import { NetworkImport } from "@/components/network-import";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/app/actions/auth";
 
 type UserPrefs = {
@@ -56,9 +57,19 @@ export default async function SettingsPage() {
           )}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Companies tracked</span>
-            <span>{trackedCount}</span>
+            <span className="font-mono tabular-nums">{trackedCount}</span>
           </div>
         </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
+          <div className="space-y-1">
+            <CardTitle>Appearance</CardTitle>
+            <p className="text-sm text-muted-foreground">Light, dark, or match your system.</p>
+          </div>
+          <ThemeToggle />
+        </CardHeader>
       </Card>
 
       <Card>

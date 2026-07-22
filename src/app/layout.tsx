@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "@/components/posthog-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -63,15 +65,19 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${dmSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSON_LD) }}
         />
-        <PostHogProvider>
-          {children}
-        </PostHogProvider>
+        <ThemeProvider>
+          <PostHogProvider>
+            {children}
+          </PostHogProvider>
+          <Toaster position="bottom-center" />
+        </ThemeProvider>
       </body>
     </html>
   );

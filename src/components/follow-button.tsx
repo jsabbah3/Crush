@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { followCompany, untrackCompany } from "@/app/actions/tracking";
 import { addAnonTracked } from "@/lib/anon-tracking";
@@ -13,15 +14,23 @@ export function FollowButton({
   tracked,
   userId,
   size = "sm",
+  tone = "solid",
 }: {
   company: { id: string; name: string };
   tracked: { id: string } | null;
   userId: string | null;
   size?: "sm" | "default";
+  /**
+   * "solid": amber-filled — for the one focused follow action on a page
+   *   (company hero, collection). "quiet": outline until followed — for dense
+   *   lists (browse grid) so amber stays a signal, not wallpaper.
+   */
+  tone?: "solid" | "quiet";
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const isFollowing = !!tracked;
+  // Optimistic local state: flips instantly, reverts on failure.
+  const [following, setFollowing] = useState(!!tracked);
 
   function handleClick() {
     if (!userId) {
@@ -36,25 +45,56 @@ export function FollowButton({
       router.push("/login");
       return;
     }
+
+    const next = !following;
+    setFollowing(next); // optimistic
+
     startTransition(async () => {
-      if (isFollowing) {
-        await untrackCompany(tracked!.id);
-      } else {
-        await followCompany(company.id);
+      const result = next
+        ? await followCompany(company.id)
+        : tracked
+          ? await untrackCompany(tracked.id)
+          : { error: "Not tracked" };
+
+      if (result && "error" in result) {
+        setFollowing(!next); // revert
+        toast.error(
+          next ? "Couldn't follow — try again." : "Couldn't unfollow — try again.",
+        );
+        return;
+      }
+
+      if (next) {
+        toast.success(`Watching ${company.name}`, {
+          description: "We'll email you the moment a matching role opens.",
+        });
       }
       router.refresh();
     });
   }
 
+  const variant = following
+    ? "secondary"
+    : tone === "quiet"
+      ? "outline"
+      : "default";
+
   return (
     <Button
-      variant={isFollowing ? "secondary" : "default"}
+      variant={variant}
       size={size}
       onClick={handleClick}
       disabled={isPending}
-      className="shrink-0"
+      aria-pressed={following}
+      className={
+        // Quiet follow buttons pick up amber intent on hover so the action is
+        // still discoverable without a wall of filled amber across the grid.
+        tone === "quiet" && !following
+          ? "shrink-0 hover:border-primary/40 hover:text-primary"
+          : "shrink-0"
+      }
     >
-      {isFollowing ? (
+      {following ? (
         <>
           <Check className="size-3.5" />
           Getting alerts

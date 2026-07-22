@@ -32,6 +32,8 @@ const SORT_OPTIONS: { value: Sort; label: string }[] = [
 ];
 
 const VISIBLE_INDUSTRIES = 12;
+const INITIAL_VISIBLE = 24;
+const REVEAL_STEP = 24;
 
 function formatLastActive(date: Date | null | undefined): string | null {
   if (!date) return null;
@@ -75,6 +77,7 @@ function FilterPill({
       aria-pressed={active}
       className={cn(
         "cursor-pointer rounded-full px-3 py-1 text-xs font-medium border transition-colors duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
         active
           ? "border-foreground bg-foreground text-background"
           : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground hover:bg-accent",
@@ -116,6 +119,8 @@ export function CompanyBrowser({
   const [showAllIndustries, setShowAllIndustries] = useState(
     Boolean(initialIndustry && industries.indexOf(initialIndustry) >= VISIBLE_INDUSTRIES),
   );
+  // Progressive reveal so a 100-card result isn't a 25,000px mobile scroll.
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [isPending, startTransition] = useTransition();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didMount = useRef(false);
@@ -146,10 +151,18 @@ export function CompanyBrowser({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
+  // A fresh result set (new search/filter) collapses back to the first page.
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE);
+  }, [companies]);
+
   const visibleIndustries = showAllIndustries
     ? industries
     : industries.slice(0, VISIBLE_INDUSTRIES);
   const hiddenCount = industries.length - VISIBLE_INDUSTRIES;
+
+  const visibleCompanies = companies.slice(0, visibleCount);
+  const hasMore = companies.length > visibleCount;
 
   return (
     <div className="space-y-5">
@@ -185,6 +198,7 @@ export function CompanyBrowser({
                 }}
                 className={cn(
                   "cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   sort === opt.value
                     ? "bg-background text-foreground shadow-sm border border-border/60"
                     : "text-muted-foreground hover:text-foreground",
@@ -277,26 +291,41 @@ export function CompanyBrowser({
           )}
         </div>
       ) : (
-        <div
-          className={cn(
-            "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 transition-opacity duration-150",
-            isPending && "opacity-60",
+        <>
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 transition-opacity duration-150",
+              isPending && "opacity-60",
+            )}
+          >
+            {visibleCompanies.map((company) => {
+              const tracked = trackedMap.get(company.id) ?? null;
+              const connections = connectionCounts[company.id] ?? 0;
+              return (
+                <CompanyCard
+                  key={company.id}
+                  company={company}
+                  tracked={tracked}
+                  userId={userId}
+                  connectionCount={connections}
+                />
+              );
+            })}
+          </div>
+          {hasMore && (
+            <div className="flex flex-col items-center gap-2 pt-4">
+              <button
+                onClick={() => setVisibleCount((c) => c + REVEAL_STEP)}
+                className="cursor-pointer rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              >
+                Show more companies
+              </button>
+              <p className="font-mono text-[11px] text-muted-foreground tabular-nums">
+                {visibleCompanies.length} of {companies.length}
+              </p>
+            </div>
           )}
-        >
-          {companies.map((company) => {
-            const tracked = trackedMap.get(company.id) ?? null;
-            const connections = connectionCounts[company.id] ?? 0;
-            return (
-              <CompanyCard
-                key={company.id}
-                company={company}
-                tracked={tracked}
-                userId={userId}
-                connectionCount={connections}
-              />
-            );
-          })}
-        </div>
+        </>
       )}
     </div>
   );
@@ -342,8 +371,8 @@ function CompanyCard({
               {company.name}
             </a>
             {recentlyFunded && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 leading-none shrink-0 mt-0.5">
-                <span className="h-1 w-1 rounded-full bg-emerald-500" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-moss-soft border border-moss/25 px-1.5 py-0.5 text-[10px] font-medium text-moss leading-none shrink-0 mt-0.5">
+                <span className="h-1 w-1 rounded-full bg-moss" />
                 {fundingLabel ?? "Recently funded"}
               </span>
             )}
@@ -367,18 +396,18 @@ function CompanyCard({
           {company.activeJobs > 0 && (
             <span className="flex items-center gap-1 font-medium text-foreground/80">
               <Briefcase className="size-3" />
-              {company.activeJobs} open {company.activeJobs === 1 ? "role" : "roles"}
+              <span className="font-mono tabular-nums">{company.activeJobs}</span> open {company.activeJobs === 1 ? "role" : "roles"}
               {lastActive && <span className="font-normal text-muted-foreground">· {lastActive}</span>}
             </span>
           )}
           {company._count.trackedBy > 0 && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 font-mono tabular-nums">
               <Users className="size-3" />
               {company._count.trackedBy.toLocaleString()}
             </span>
           )}
           {connectionCount > 0 && (
-            <span className="flex items-center gap-1 font-medium text-blue-600 dark:text-blue-400">
+            <span className="flex items-center gap-1 font-medium text-slate-warm">
               <Users className="size-3" />
               {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
             </span>
@@ -389,6 +418,7 @@ function CompanyCard({
           tracked={tracked}
           userId={userId}
           size="sm"
+          tone="quiet"
         />
       </div>
     </div>

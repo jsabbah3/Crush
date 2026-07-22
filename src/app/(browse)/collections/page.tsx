@@ -32,14 +32,18 @@ export default async function CollectionsPage() {
         {collections.map((col) => {
           const preview = col.companies.slice(0, 5);
           return (
-            <Link key={col.id} href={`/collections/${col.slug}`} className="group">
-              <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm h-full">
+            <Link
+              key={col.id}
+              href={`/collections/${col.slug}`}
+              className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            >
+              <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 h-full transition-[border-color,box-shadow,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:border-border hover:shadow-sm hover:-translate-y-0.5">
                 {/* Logo stack */}
                 <div className="flex -space-x-2">
                   {preview.map(({ company }, i) => (
                     <div
                       key={i}
-                      className="ring-2 ring-background rounded-xl"
+                      className="ring-2 ring-card rounded-xl transition-transform duration-[var(--dur-fast)] group-hover:ring-background"
                       style={{ zIndex: preview.length - i }}
                     >
                       <CompanyLogo name={company.name} website={company.website} size="sm" />
@@ -47,7 +51,7 @@ export default async function CollectionsPage() {
                   ))}
                   {col.companies.length > 5 && (
                     <div
-                      className="ring-2 ring-background size-8 rounded-xl bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium"
+                      className="ring-2 ring-card size-8 rounded-xl bg-muted flex items-center justify-center font-mono text-xs text-muted-foreground font-medium tabular-nums"
                       style={{ zIndex: 0 }}
                     >
                       +{col.companies.length - 5}
@@ -57,7 +61,7 @@ export default async function CollectionsPage() {
 
                 {/* Text */}
                 <div className="flex-1 space-y-1">
-                  <p className="font-semibold text-sm leading-snug group-hover:text-foreground transition-colors">
+                  <p className="font-semibold text-[15px] leading-snug group-hover:text-primary transition-colors">
                     {col.name}
                   </p>
                   {col.description && (
@@ -69,8 +73,8 @@ export default async function CollectionsPage() {
 
                 {/* Footer */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{col.companies.length} companies</span>
-                  <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <span className="font-mono tabular-nums">{col.companies.length} companies</span>
+                  <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform duration-[var(--dur-fast)]" />
                 </div>
               </div>
             </Link>
