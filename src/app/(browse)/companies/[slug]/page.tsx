@@ -328,7 +328,7 @@ export default async function CompanyDetailPage({
 
           {/* People you know */}
           {networkConnections.length > 0 && (
-            <div className="space-y-2.5">
+            <div id="network" className="space-y-2.5 scroll-mt-20">
               <h2 className="flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 <Users className="size-3.5" />
                 {networkConnections.length === 1 ? "1 connection here" : `${networkConnections.length} connections here`}

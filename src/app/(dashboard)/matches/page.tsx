@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Inbox, Target } from "lucide-react";
+import { Inbox, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -43,6 +43,29 @@ export default async function MatchesPage() {
   const hasCompanies = idList.length > 0;
   const hasRoles = roleCount > 0;
 
+  // Who does the user already know at these companies? First-degree
+  // LinkedIn connections (imported CSV), grouped per company.
+  const matchCompanyIds = [...new Set(matches.map((m) => m.job.companyId))];
+  const [connectionGroups, totalConnections] = await Promise.all([
+    matchCompanyIds.length > 0
+      ? prisma.linkedInConnection.groupBy({
+          by: ["companyId"],
+          where: { userId: user.id, companyId: { in: matchCompanyIds } },
+          _count: { _all: true },
+        })
+      : Promise.resolve([]),
+    prisma.linkedInConnection.count({ where: { userId: user.id } }),
+  ]);
+  const countByCompanyId = new Map(
+    connectionGroups.map((g) => [g.companyId, g._count._all]),
+  );
+  // MatchesList groups by company slug — key the counts the same way.
+  const networkBySlug: Record<string, number> = {};
+  for (const m of matches) {
+    const count = countByCompanyId.get(m.job.companyId);
+    if (count) networkBySlug[m.job.company.slug] = count;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -54,6 +77,20 @@ export default async function MatchesPage() {
         </div>
         <RefreshMatchesButton className="pt-1" />
       </div>
+
+      {matches.length > 0 && totalConnections === 0 && (
+        <div className="flex items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
+          <Users className="size-4 text-muted-foreground shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            You might already know someone at these companies. Import your LinkedIn
+            connections and we&apos;ll show who can refer you — most roles are landed
+            through people, not applications.{" "}
+            <Link href="/settings" className="text-primary underline underline-offset-2 font-medium">
+              Import connections
+            </Link>
+          </p>
+        </div>
+      )}
 
       {matches.length === 0 ? (
         hasCompanies && !hasRoles ? (
@@ -113,7 +150,7 @@ export default async function MatchesPage() {
           </div>
         )
       ) : (
-        <MatchesList matches={matches} />
+        <MatchesList matches={matches} networkBySlug={networkBySlug} />
       )}
     </div>
   );

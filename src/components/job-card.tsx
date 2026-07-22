@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -55,6 +55,7 @@ export function JobCard({
   applicationStatus,
   className,
   hideCompany = false,
+  networkCount,
 }: {
   job: Job;
   matchId?: string;
@@ -62,6 +63,8 @@ export function JobCard({
   className?: string;
   /** Skip the logo + company eyebrow — for lists already scoped to one company */
   hideCompany?: boolean;
+  /** First-degree LinkedIn connections at this company — "who you know here" */
+  networkCount?: number;
 }) {
   // "leaving" drives the exit animation; "gone" removes from layout after it.
   const [leaving, setLeaving] = useState(false);
@@ -150,6 +153,15 @@ export function JobCard({
                 {workMode && <> · {workMode}</>}
                 {job.postedAt && <> · {relativeTime(job.postedAt)}</>}
               </p>
+              {(networkCount ?? 0) > 0 && (
+                <Link
+                  href={`/companies/${job.company.slug}#network`}
+                  className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline underline-offset-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                >
+                  <Users className="size-3" />
+                  {networkCount} in your network
+                </Link>
+              )}
             </div>
             {matchId && (
               <button

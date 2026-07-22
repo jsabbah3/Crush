@@ -28,9 +28,11 @@ type Match = {
 
 type Props = {
   matches: Match[];
+  /** First-degree LinkedIn connections per company slug — "who you know here" */
+  networkBySlug?: Record<string, number>;
 };
 
-export function MatchesList({ matches }: Props) {
+export function MatchesList({ matches, networkBySlug = {} }: Props) {
   const [activeCompany, setActiveCompany] = useState<string | null>(null);
   // Collect unique companies
   const companies: Company[] = [];
@@ -114,6 +116,14 @@ export function MatchesList({ matches }: Props) {
                   <span className="font-mono text-xs text-muted-foreground tabular-nums">
                     {companyMatches.length} {companyMatches.length === 1 ? "role" : "roles"}
                   </span>
+                  {(networkBySlug[company.slug] ?? 0) > 0 && (
+                    <Link
+                      href={`/companies/${company.slug}#network`}
+                      className="text-xs font-medium text-primary hover:underline underline-offset-2"
+                    >
+                      · {networkBySlug[company.slug]} in your network
+                    </Link>
+                  )}
                 </div>
                 {companyMatches.map((match) => (
                   <JobCard
