@@ -2,7 +2,13 @@ import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { trackServerEvent } from "@/lib/analytics-node";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazily constructed — see notifications.ts: a module-level Resend client
+// makes the build require RESEND_API_KEY, which it shouldn't.
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 const APP_URL = process.env.APP_URL ?? "https://crushco.app";
 const BATCH_SIZE = 100; // Resend batch limit
 
@@ -170,7 +176,7 @@ export async function sendWeeklySummary(): Promise<{
     const chunk = payloads.slice(i, i + BATCH_SIZE);
     const emails = chunk.map((p) => buildEmailPayload(p));
 
-    const { error } = await resend.batch.send(emails);
+    const { error } = await getResend().batch.send(emails);
     if (error) {
       errors += chunk.length;
     } else {
