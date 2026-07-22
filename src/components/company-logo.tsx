@@ -3,16 +3,17 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-// Deterministic color from company name initial
+// Deterministic warm-toned fallback color from the company name initial.
+// Kept within the Crush palette's temperature — no cool blues/violets/cyans.
 const PALETTE = [
-  "bg-violet-100 text-violet-700",
-  "bg-blue-100   text-blue-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-orange-100 text-orange-700",
-  "bg-rose-100   text-rose-700",
-  "bg-cyan-100   text-cyan-700",
-  "bg-amber-100  text-amber-700",
-  "bg-indigo-100 text-indigo-700",
+  "bg-amber-100  text-amber-800  dark:bg-amber-950/50  dark:text-amber-300",
+  "bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300",
+  "bg-stone-200  text-stone-700  dark:bg-stone-800/60  dark:text-stone-300",
+  "bg-red-100    text-red-800    dark:bg-red-950/50    dark:text-red-300",
+  "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-300",
+  "bg-lime-100   text-lime-800   dark:bg-lime-950/50   dark:text-lime-300",
+  "bg-rose-100   text-rose-800   dark:bg-rose-950/50   dark:text-rose-300",
+  "bg-amber-200  text-amber-900  dark:bg-amber-900/50  dark:text-amber-200",
 ];
 
 function colorFor(name: string) {

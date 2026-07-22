@@ -72,7 +72,7 @@ export default async function ApplicationsPage() {
                 className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
               >
                 <span className={`size-1.5 rounded-full ${STATUS_CONFIG[s as AppStatus].dot}`} />
-                {counts[s]} {STATUS_CONFIG[s as AppStatus].label.toLowerCase()}
+                <span className="font-mono tabular-nums">{counts[s]}</span> {STATUS_CONFIG[s as AppStatus].label.toLowerCase()}
               </span>
             ) : null,
           )}
@@ -105,7 +105,7 @@ export default async function ApplicationsPage() {
                 <p className="text-sm font-medium leading-snug truncate">{app.job.title}</p>
                 <Link
                   href={`/companies/${app.job.company.slug}`}
-                  className="text-xs text-muted-foreground hover:underline underline-offset-2"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   {app.job.company.name}
                 </Link>
@@ -117,7 +117,7 @@ export default async function ApplicationsPage() {
               </div>
 
               {/* Applied date */}
-              <div className="text-xs text-muted-foreground w-20 shrink-0 text-right tabular-nums">
+              <div className="font-mono text-xs text-muted-foreground w-20 shrink-0 text-right tabular-nums">
                 {app.appliedAt
                   ? app.appliedAt.toLocaleDateString("en-US", {
                       month: "short",

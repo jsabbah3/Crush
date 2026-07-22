@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signInWithGoogle, signOut } from "@/app/actions/auth";
+import { ThemeToggleButton } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 type User = { email: string; name: string | null; avatarUrl: string | null } | null;
@@ -52,42 +53,45 @@ export function SiteNav({ user }: { user: User }) {
           </nav>
         </div>
 
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Account menu"
-            >
-              <Avatar className="size-7">
-                <AvatarImage src={user.avatarUrl ?? undefined} />
-                <AvatarFallback>
-                  {(user.name ?? user.email).charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">
-                {user.email}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push("/settings")}>
-                <Settings className="size-3.5 mr-2" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onClick={() => signOut()}>
-                <LogOut className="size-3.5 mr-2" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <form action={signInWithGoogle}>
-            <Button size="sm" type="submit" variant="outline">
-              Sign in
-            </Button>
-          </form>
-        )}
+        <div className="flex items-center gap-1">
+          <ThemeToggleButton />
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Account menu"
+              >
+                <Avatar className="size-7">
+                  <AvatarImage src={user.avatarUrl ?? undefined} />
+                  <AvatarFallback>
+                    {(user.name ?? user.email).charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">
+                  {user.email}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  <Settings className="size-3.5 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={() => signOut()}>
+                  <LogOut className="size-3.5 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <form action={signInWithGoogle}>
+              <Button size="sm" type="submit" variant="outline">
+                Sign in
+              </Button>
+            </form>
+          )}
+        </div>
       </div>
     </header>
   );

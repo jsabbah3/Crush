@@ -5,15 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
+import { LandingHeroMock } from "@/components/landing-hero-mock";
+import { ThemeToggleButton } from "@/components/theme-toggle";
 import { signInWithGoogle } from "@/app/actions/auth";
 
-
-const MOCK_WATCHLIST = [
-  { name: "Anthropic", website: "https://anthropic.com", industry: "AI Research", matches: 2 },
-  { name: "Linear",    website: "https://linear.app",    industry: "Dev Tools",   matches: 1 },
-  { name: "Stripe",    website: "https://stripe.com",    industry: "Fintech",     matches: 0 },
-  { name: "Vercel",    website: "https://vercel.com",    industry: "Dev Tools",   matches: 0 },
-];
 
 const FEATURES = [
   {
@@ -95,13 +90,14 @@ export default async function HomePage({
             </Link>
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeToggleButton className="hidden sm:inline-flex" />
             <form action={signInWithGoogle}>
               <Button variant="ghost" size="sm" type="submit" className="text-sm font-normal text-muted-foreground hover:text-foreground">
                 Log in
               </Button>
             </form>
             <form action={signInWithGoogle}>
-              <Button size="sm" type="submit" className="text-sm bg-foreground text-background hover:bg-foreground/90 rounded-lg px-4">
+              <Button variant="ink" size="sm" type="submit" className="text-sm px-4">
                 Sign up
               </Button>
             </form>
@@ -116,7 +112,10 @@ export default async function HomePage({
           {/* Left — text */}
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-moss opacity-70 motion-safe:animate-ping" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-moss" />
+              </span>
               {roundedCount ? `${roundedCount} companies on Crush · updated weekly` : "Updated weekly with newly funded companies"}
             </div>
 
@@ -132,14 +131,14 @@ export default async function HomePage({
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <form action={signInWithGoogle}>
-                <Button size="lg" type="submit" className="gap-2 bg-foreground text-background hover:bg-foreground/90 rounded-lg w-full sm:w-auto">
+              <form action={signInWithGoogle} className="w-full sm:w-auto">
+                <Button variant="ink" size="lg" type="submit" className="gap-2 w-full sm:w-auto">
                   Start tracking free
                   <ArrowRight className="size-4" />
                 </Button>
               </form>
-              <Link href="/companies">
-                <Button size="lg" variant="outline" className="rounded-lg w-full sm:w-auto border-border/60">
+              <Link href="/companies" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-border/60">
                   Browse companies
                 </Button>
               </Link>
@@ -148,8 +147,8 @@ export default async function HomePage({
             {/* Recently funded strip */}
             {recentlyFunded.length > 0 && (
               <div className="pt-2 space-y-3">
-                <p className="text-[11px] text-muted-foreground/60 uppercase tracking-widest font-medium flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <p className="font-mono text-[11px] text-muted-foreground/70 uppercase tracking-widest font-medium flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-moss" />
                   Recently added to Crush
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -157,11 +156,11 @@ export default async function HomePage({
                     <Link
                       key={c.slug}
                       href={`/companies/${c.slug}`}
-                      className="flex items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-1.5 hover:border-border hover:bg-muted/60 transition-all"
+                      className="flex items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-1.5 transition-[border-color,background-color] duration-[var(--dur-fast)] hover:border-border hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                     >
                       <CompanyLogo name={c.name} website={c.website} size="sm" className="size-5 rounded-md" />
                       <span className="text-xs font-medium">{c.name}</span>
-                      <span className="text-[11px] text-emerald-600 font-medium">{fundingLabel(c.fundingStage)}</span>
+                      <span className="text-[11px] text-moss font-medium">{fundingLabel(c.fundingStage)}</span>
                     </Link>
                   ))}
                 </div>
@@ -169,64 +168,9 @@ export default async function HomePage({
             )}
           </div>
 
-          {/* Right — product mockup */}
+          {/* Right — product mockup (animated match arrival) */}
           <div className="hidden lg:block">
-            <div className="rounded-2xl border border-border/70 bg-card shadow-xl overflow-hidden">
-              {/* Browser chrome */}
-              <div className="border-b border-border/50 bg-muted/30 px-4 py-2.5 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                </div>
-                <div className="flex-1 mx-3 rounded bg-background/80 border border-border/40 px-3 py-1">
-                  <span className="text-[11px] text-muted-foreground/50 font-mono">crushco.app/dashboard</span>
-                </div>
-              </div>
-
-              {/* Dashboard content */}
-              <div className="p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">My watchlist</p>
-                  <span className="text-[11px] text-primary font-medium">3 new matches</span>
-                </div>
-
-                {/* Company rows */}
-                <div className="space-y-2">
-                  {MOCK_WATCHLIST.map((c) => (
-                    <div key={c.name} className="flex items-center justify-between rounded-xl border border-border/60 bg-background p-3 hover:border-border transition-colors">
-                      <div className="flex items-center gap-3">
-                        <CompanyLogo name={c.name} website={c.website} size="sm" />
-                        <div>
-                          <p className="text-sm font-semibold leading-none">{c.name}</p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">{c.industry}</p>
-                        </div>
-                      </div>
-                      {c.matches > 0 ? (
-                        <span className="text-[11px] font-bold bg-amber text-amber-foreground rounded-full px-2 py-0.5">
-                          {c.matches} new
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-muted-foreground/40">Watching</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Match card */}
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    <p className="text-[11px] font-semibold text-primary uppercase tracking-wide">New match</p>
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">Staff Engineer, ML Infrastructure</p>
-                  <p className="text-[11px] text-muted-foreground">Anthropic · Remote · Full-time · posted today</p>
-                  <p className="text-[11px] font-medium text-primary mt-1 cursor-pointer hover:underline underline-offset-2">
-                    View role →
-                  </p>
-                </div>
-              </div>
-            </div>
+            <LandingHeroMock />
           </div>
         </div>
       </section>
@@ -265,22 +209,24 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Positioning — dark */}
-      <section className="border-t bg-foreground text-background">
+      {/* Positioning — contrast band. Dramatic dark ink in light theme; an
+          elevated warm-ink panel in dark theme (so it doesn't invert to a
+          jarring light block). */}
+      <section className="border-t border-border bg-ink-band text-ink-band-foreground">
         <div className="mx-auto max-w-6xl px-6 py-24">
           <div className="max-w-xl space-y-6">
-            <h2 className="font-heading text-4xl font-bold leading-tight sm:text-5xl">
+            <h2 className="font-heading text-4xl font-bold leading-tight sm:text-5xl tracking-tight text-balance">
               Not a job board.
               <br />
               <span className="text-primary italic">A watchlist.</span>
             </h2>
-            <div className="space-y-3 text-sm leading-relaxed opacity-60 max-w-md">
+            <div className="space-y-3 text-sm leading-relaxed text-ink-band-foreground/70 max-w-[52ch]">
               <p>LinkedIn shows you everything. Indeed shows you everything. That&apos;s the problem.</p>
               <p>Crush shows you exactly one thing: when a company you care about posts a role you&apos;d actually apply for.</p>
               <p>Every company on Crush was added because someone smart would want to work there. The curation is the product.</p>
             </div>
             <form action={signInWithGoogle}>
-              <Button size="lg" type="submit" className="gap-2 bg-background text-foreground hover:bg-background/90 rounded-lg">
+              <Button size="lg" type="submit" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                 Build your watchlist
                 <ArrowRight className="size-4" />
               </Button>
@@ -294,10 +240,10 @@ export default async function HomePage({
         <div className="mx-auto max-w-6xl px-6 flex items-center justify-between">
           <span className="font-heading font-bold text-sm">Crush</span>
           <div className="flex items-center gap-6">
-            <Link href="/blog" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/blog" className="text-xs text-muted-foreground hover:text-foreground transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60">
               Blog
             </Link>
-            <Link href="/companies" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/companies" className="text-xs text-muted-foreground hover:text-foreground transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60">
               Browse
             </Link>
             <span className="text-xs text-muted-foreground/50">

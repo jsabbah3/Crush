@@ -17,12 +17,18 @@ export function CollapsibleSection({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  // Suppress the entry transition on first paint so a persisted-closed section
+  // doesn't animate shut on every load — it just starts closed.
+  const [ready, setReady] = useState(false);
 
-  // Restore persisted state
   useEffect(() => {
-    if (!storageKey) return;
-    const saved = localStorage.getItem(`crush:section:${storageKey}`);
-    if (saved !== null) setOpen(saved === "true");
+    if (storageKey) {
+      const saved = localStorage.getItem(`crush:section:${storageKey}`);
+      if (saved !== null) setOpen(saved === "true");
+    }
+    // Next frame: allow transitions for user-driven toggles only.
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
   }, [storageKey]);
 
   function toggle() {
@@ -38,11 +44,11 @@ export function CollapsibleSection({
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={toggle}
-          className="flex items-center gap-2 group"
+          className="group flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
           aria-expanded={open}
         >
           <ChevronDown
-            className={`size-4 text-muted-foreground transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+            className={`size-4 text-muted-foreground transition-transform duration-[var(--dur-med)] ease-[var(--ease-settle)] ${open ? "" : "-rotate-90"}`}
           />
           <h2 className="font-heading text-lg font-bold tracking-tight group-hover:text-foreground/80 transition-colors">
             {title}
@@ -50,7 +56,13 @@ export function CollapsibleSection({
         </button>
         {action && <div>{action}</div>}
       </div>
-      {open && children}
+      <div
+        className={`collapse-grid ${ready ? "" : "[transition:none]"}`}
+        data-collapsed={!open || undefined}
+        aria-hidden={!open}
+      >
+        <div className="min-w-0">{children}</div>
+      </div>
     </section>
   );
 }
