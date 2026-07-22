@@ -15,7 +15,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://crushco.app/#organization",
+      name: "Crush",
+      url: "https://crushco.app",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://crushco.app/#website",
+      name: "Crush",
+      url: "https://crushco.app",
+      publisher: { "@id": "https://crushco.app/#organization" },
+    },
+  ],
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://crushco.app"),
   title: "Crush — Your company crushes, now hiring",
   description:
     "Crush is your built-in VC best friend — a curated watchlist of dream companies that alerts you the moment your exact role opens. No job boards, no noise. Just the companies you'd actually leave for.",
@@ -45,6 +65,10 @@ export default function RootLayout({
       className={`${dmSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSON_LD) }}
+        />
         <PostHogProvider>
           {children}
         </PostHogProvider>

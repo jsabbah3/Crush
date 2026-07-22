@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { followCompany, untrackCompany } from "@/app/actions/tracking";
+import { addAnonTracked } from "@/lib/anon-tracking";
+import { analytics } from "@/lib/analytics";
 
 export function FollowButton({
   company,
@@ -23,6 +25,14 @@ export function FollowButton({
 
   function handleClick() {
     if (!userId) {
+      // Preserve intent through the login wall: stash the company so it can
+      // be auto-followed after auth (AnonTrackingReplay), and record the
+      // gated click so the funnel drop is measurable.
+      addAnonTracked(company.id);
+      analytics.track("follow_intent_gated", {
+        company_id: company.id,
+        company_name: company.name,
+      });
       router.push("/login");
       return;
     }

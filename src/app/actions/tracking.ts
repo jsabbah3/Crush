@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { trackServerEvent } from "@/lib/analytics-node";
 import { doesJobMatch } from "@/lib/matching";
-import type { JobType } from "@/generated/prisma/enums";
 
 type UserPrefs = {
   seniority?: string[];
@@ -22,6 +21,11 @@ type UserPrefs = {
  *                    if null, check all tracked companies (add-role flow)
  */
 export async function backfillMatchesForUser(userId: string) {
+  // Exported from a "use server" module, so this is a callable endpoint:
+  // verify the caller is acting on their own account.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.id !== userId) return 0;
   return backfillMatches(userId, null);
 }
 
@@ -89,7 +93,10 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
     const existing = await prisma.match.findFirst({ where: { trackedCompanyId, jobId: job.id } });
     if (!existing) {
       try {
-        await prisma.match.create({ data: { trackedCompanyId, jobId: job.id } });
+        // notified: true — backfilled matches are for roles that were already
+        // open when the user followed; they belong on the dashboard but must
+        // not trigger a "just opened" alert email.
+        await prisma.match.create({ data: { trackedCompanyId, jobId: job.id, notified: true } });
         created++;
       } catch {
         // Race condition — fine
@@ -104,7 +111,7 @@ async function backfillMatches(userId: string, companyIds: string[] | null) {
 
 export async function followCompany(
   companyId: string,
-  source: "browse" | "collection" | "company_page" = "browse",
+  source: "browse" | "collection" | "company_page" | "anon_replay" = "browse",
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -168,32 +175,6 @@ export async function trackCollection(companyIds: string[]) {
   revalidatePath("/dashboard");
   revalidatePath("/collections");
   revalidatePath("/companies");
-  return { success: true };
-}
-
-// Kept for API route backward compat (/api/tracked/[id] PATCH)
-export async function updateCriteria(
-  trackedId: string,
-  criteria: {
-    keywords: string[];
-    jobTypes: JobType[];
-    remoteOnly: boolean | null;
-    locationFilter: string | null;
-    emailAlerts: boolean;
-  }
-) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" };
-
-  const existing = await prisma.trackedCompany.findFirst({
-    where: { id: trackedId, userId: user.id },
-  });
-  if (!existing) return { error: "Not found" };
-
-  await prisma.trackedCompany.update({ where: { id: trackedId }, data: criteria });
-
-  revalidatePath("/dashboard");
   return { success: true };
 }
 

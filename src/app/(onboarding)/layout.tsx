@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { skipOnboarding } from "@/app/actions/onboarding";
 import { Button } from "@/components/ui/button";
+import { AnonTrackingReplay } from "@/components/anon-tracking-replay";
 
 export default function OnboardingLayout({
   children,
@@ -9,6 +10,7 @@ export default function OnboardingLayout({
 }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <AnonTrackingReplay />
       <header className="border-b px-6 py-3 flex items-center justify-between">
         <span className="font-heading font-bold text-lg tracking-tight">Crush</span>
         <form action={skipOnboarding}>

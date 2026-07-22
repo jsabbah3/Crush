@@ -7,8 +7,8 @@ const ROLE_CLUSTERS: string[][] = [
   ["product manager", "product management", "pm ", " pm", "product lead", "program manager"],
   ["data scientist", "ml engineer", "machine learning engineer", "ai engineer", "data science"],
   ["data engineer", "analytics engineer", "data platform engineer"],
-  ["frontend engineer", "front-end engineer", "frontend developer", "ui engineer", "react engineer", "web engineer"],
-  ["backend engineer", "back-end engineer", "backend developer", "server engineer", "api engineer"],
+  ["frontend engineer", "front-end engineer", "front end engineer", "frontend developer", "ui engineer", "react engineer", "web engineer"],
+  ["backend engineer", "back-end engineer", "back end engineer", "backend developer", "server engineer", "api engineer"],
   ["fullstack engineer", "full-stack engineer", "full stack engineer", "software engineer", "software developer", "swe"],
   ["devops engineer", "platform engineer", "infrastructure engineer", "site reliability engineer", "sre", "cloud engineer"],
   ["security engineer", "appsec engineer", "cybersecurity engineer", "infosec engineer"],
@@ -101,10 +101,22 @@ const SENIORITY_KEYWORDS: Record<string, string> = {
   "coop":            "intern",
 };
 
+// Territory/segment words ("Enterprise AE", "Commercial CSM") only signal
+// seniority when they appear in the TITLE. In descriptions they're generic
+// prose ("our enterprise customers", "we're a global company") and were
+// causing false seniority classification on otherwise-unleveled roles.
+const TITLE_ONLY_KEYWORDS = new Set([
+  "enterprise", "strategic", "national", "global", "named ",
+  "business partner", "mid market", "mid-market", "commercial", "velocity",
+  "digital success",
+]);
+
 export function detectSeniority(title: string, description?: string): string | null {
-  const text = title.toLowerCase() + " " + (description ?? "").toLowerCase().slice(0, 500);
+  const titleLower = title.toLowerCase();
+  const text = titleLower + " " + (description ?? "").toLowerCase().slice(0, 500);
   for (const [keyword, level] of Object.entries(SENIORITY_KEYWORDS)) {
-    if (text.includes(keyword)) return level;
+    const haystack = TITLE_ONLY_KEYWORDS.has(keyword) ? titleLower : text;
+    if (haystack.includes(keyword)) return level;
   }
   return null;
 }
@@ -150,8 +162,11 @@ export function doesJobMatch(
     if (loc && !loc.includes(filter)) return false;
   }
 
-  // No role titles → any role passes (filtered only by remote/location above)
-  if (roleTitles.length === 0) return true;
+  // No role titles → no matches. A watchlist with no target role would
+  // otherwise alert on every job at every tracked company — the exact
+  // noise the product exists to eliminate. Users are prompted to add a
+  // role (dashboard + matches page) before anything matches.
+  if (roleTitles.length === 0) return false;
 
   const titleLower = job.title.toLowerCase();
   const expanded = expandRoleTitles(roleTitles);

@@ -44,11 +44,11 @@ async function persistJobs(
 
   const created = await prisma.job.createManyAndReturn({
     data: incoming.map((job) => ({
-      title: job.title,
+      title: job.title.trim(),
       slug: buildSlug(companySlug, job.externalJobId),
       description: job.description,
       type: job.type,
-      location: job.location,
+      location: job.location?.trim() || null,
       remote: job.remote,
       url: job.url,
       postedAt: job.postedAt,
@@ -181,9 +181,42 @@ function fetchAtsJobs(sourceType: string, sourceId: string): Promise<IngestedJob
 // ── Aggregate sources: Remotive / The Muse ────────────────────────────────────
 // Fetch all jobs in bulk, then match by normalised company name.
 
+/**
+ * Close aggregate-sourced jobs that disappeared from their source feed.
+ * Only valid for sources whose feed is a COMPLETE listing (Remotive is a
+ * single full dump; The Muse is paginated with a page cap, so absence
+ * there does NOT mean the job is gone — never call this for it).
+ * External ids are source-prefixed, so scoping by prefix can't touch
+ * ATS-managed jobs. The floor guard protects against a half-broken feed
+ * response mass-closing live jobs.
+ */
+async function closeMissingAggregateJobs(
+  idPrefix: string,
+  fetchedIds: Set<string>,
+  minFeedSize: number,
+): Promise<number> {
+  if (fetchedIds.size < minFeedSize) return 0;
+
+  const active = await prisma.job.findMany({
+    where: { status: "ACTIVE", externalJobId: { startsWith: idPrefix } },
+    select: { id: true, externalJobId: true },
+  });
+  const staleIds = active
+    .filter((j) => j.externalJobId && !fetchedIds.has(j.externalJobId))
+    .map((j) => j.id);
+  if (staleIds.length === 0) return 0;
+
+  await prisma.job.updateMany({
+    where: { id: { in: staleIds } },
+    data: { status: "CLOSED" },
+  });
+  return staleIds.length;
+}
+
 async function runAggregateIngestion(
   label: string,
   fetchAll: () => Promise<Map<string, IngestedJob[]>>,
+  closeMissing?: { idPrefix: string; minFeedSize: number },
 ): Promise<IngestionResult> {
   const jobsByName = await fetchAll();
 
@@ -210,6 +243,18 @@ async function runAggregateIngestion(
     }
   }
 
+  if (closeMissing) {
+    try {
+      const allFetchedIds = new Set<string>();
+      for (const jobs of jobsByName.values()) {
+        for (const j of jobs) allFetchedIds.add(j.externalJobId);
+      }
+      await closeMissingAggregateJobs(closeMissing.idPrefix, allFetchedIds, closeMissing.minFeedSize);
+    } catch (err) {
+      errors.push(`[${label}:close-missing] ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   return { companiesProcessed, newJobs, newMatches, errors };
 }
 
@@ -229,7 +274,13 @@ export async function ingestCompanyById(companyId: string): Promise<{ newJobs: n
 export async function runIngestion(): Promise<IngestionResult> {
   const results = await Promise.allSettled([
     runAtsIngestion(),
-    runAggregateIngestion("Remotive", fetchRemotiveJobs),
+    // Remotive's API returns its complete active listing, so jobs absent
+    // from the feed are genuinely closed. (The Muse is page-capped — its
+    // absence means nothing, so it gets no closeMissing config.)
+    runAggregateIngestion("Remotive", fetchRemotiveJobs, {
+      idPrefix: "remotive-",
+      minFeedSize: 100,
+    }),
     runAggregateIngestion("The Muse", fetchTheMuseJobs),
   ]);
 

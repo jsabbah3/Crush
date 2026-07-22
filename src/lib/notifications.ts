@@ -17,7 +17,7 @@ type MatchRow = {
     type: string;
   };
   trackedCompany: {
-    company: { name: string };
+    company: { name: string; slug: string };
     user: {
       id: string;
       email: string;
@@ -71,11 +71,11 @@ export async function dispatchInstantAlerts(): Promise<{ sent: number; errors: n
 }
 
 // Called by /api/cron/digest once daily.
-// Sends one digest per user covering all unnotified matches from the last 24 hours.
+// Sends one digest per user covering all unnotified matches. No time floor:
+// a hard 24h window permanently dropped any match that slipped past one run
+// (failed cron, or a match created moments outside the window).
 export async function sendDailyDigest(): Promise<{ sent: number; errors: number }> {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-  const pending = await fetchPending({ alertMode: AlertMode.daily, since });
+  const pending = await fetchPending({ alertMode: AlertMode.daily });
   const byUser = groupByUser(pending);
 
   let sent = 0;
@@ -156,7 +156,7 @@ async function fetchPending({
       },
       trackedCompany: {
         select: {
-          company: { select: { name: true } },
+          company: { select: { name: true, slug: true } },
           user: {
             select: { id: true, email: true, name: true, unsubscribeToken: true },
           },
@@ -237,7 +237,7 @@ function buildHtml(
     const loc = m.job.remote ? "Remote" : (m.job.location ?? "On-site");
     const rawUrl = m.job.url ?? `${APP_URL}/matches`;
     const applyUrl = emailLink(rawUrl, userId, emailType, "apply");
-    const companyUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.name.toLowerCase().replace(/\s+/g, "-")}`, userId, emailType, "company");
+    const companyUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}`, userId, emailType, "company");
 
     return `
     <tr>

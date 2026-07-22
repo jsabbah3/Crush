@@ -18,6 +18,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${name}'s watchlist — Crush`,
     description: `See which companies ${name} is tracking on Crush.`,
+    // Personal page reached by shared link only — keep out of search indexes.
+    robots: { index: false },
   };
 }
 

@@ -1,0 +1,76 @@
+# Product audit — 2026-07-09
+
+Autonomous full-product pass: conversion funnel, matching/alerts correctness, SEO, security, performance, and data quality. Every claim below was verified against the code (file:line), the live site, or a read-only production query. Baseline for context: **5 users, 64 tracked companies, 10 tracked roles** — at this stage nothing matters more than the funnel working and the product keeping its "signal, not noise" promise the first time someone tests it.
+
+## The three highest-leverage findings
+
+**1. The highest-intent click in the product was being thrown away.** When an anonymous visitor clicked "Get alerts" on a company, the company id was discarded at the login redirect (`follow-button.tsx`), never restored after OAuth, and the click fired no analytics event — so the funnel's biggest leak was also invisible. The storage half of the fix (`src/lib/anon-tracking.ts`) already existed in the repo as dead code. **Fixed in this PR**: the click now stashes the company, fires `follow_intent_gated`, and an `AnonTrackingReplay` component follows the stashed companies right after auth, so users land on a watchlist that already contains the company they came for.
+
+**2. The matching engine violates the core promise in both directions, and most of it needs product decisions, not code.** Examples with real failure modes: the Follow-modal's per-company criteria (role keywords, seniority, remote) are written to columns that matching **never reads** — matching only consults global onboarding prefs; a user who skips onboarding matches **every job** at every company they track (`matching.ts:154` returns true when no roles are set); "Front End Engineer" (spaced) matched nothing; a job description mentioning "our enterprise customers" classified the role as senior. I fixed the unambiguous slices (details below) and left the design decisions for you — the biggest being **one source of truth for match criteria** (item 1 in the decisions table).
+
+**3. "Be first to know" runs on a once-a-day pipeline.** Ingest runs at 08:00, notify at 09:00 (`vercel.json`). Worst case, a role posted at 08:05 is emailed **~25 hours later**; the notification code was explicitly designed for a 15-minute cadence (`notifications.ts:32`). I did **not** change the schedule because Vercel Hobby plans limit cron frequency to daily — if the team is on Hobby, a `*/15` schedule breaks the deploy. Decision + one-line change once the plan question is settled (or move notify triggering into the ingest run itself, which is plan-independent).
+
+---
+
+## Implemented in this PR (all verified: tsc, eslint, production build)
+
+| # | Change | Evidence / rationale |
+|---|--------|----------------------|
+| 1 | **Auth + 5MB cap on `/api/resume/parse`** | Was fully unauthenticated file upload + server-side parsing — cost/DoS vector (security audit H1). Mirrors the sibling `/api/resume` auth pattern. |
+| 2 | **Session guard in `backfillMatchesForUser`** | Exported from a `"use server"` module = public endpoint; performed writes for an arbitrary userId (audit M2). Now verifies the session user. |
+| 3 | **Intent preservation through login** (finding #1 above) | `follow-button.tsx`, `track-collection-button.tsx`, new `anon-tracking-replay.tsx` in both post-auth layouts, `follow_intent_gated` event. |
+| 4 | **OAuth errors now render on /login** | `searchParams.error` was typed but never read — every failed sign-in showed a silently identical page. |
+| 5 | **JobPosting JSON-LD on company pages** | Google Jobs eligibility for a job-alert product = free high-intent distribution. Emitted for active roles with real descriptions, capped at 20/page. Zero structured data existed anywhere (live-site grep: 0 blocks). |
+| 6 | **Organization/WebSite JSON-LD + `metadataBase`** | Neither existed; metadataBase also fixes relative OG/canonical resolution. |
+| 7 | **Branded OG image (1200×630)** | `twitter.card` declared `summary_large_image` with **no image anywhere** — text-only cards on HN/Twitter, the audience's exact channels. |
+| 8 | **Per-page openGraph + canonical on company pages** | Shared company links previously advertised the generic homepage copy. |
+| 9 | **noindex: /login, /watchlist/[userId], thin company pages** | Watchlist page publicly exposes a user's name + targets by UUID (see decision #5). Thin = no jobs, no guide, no description. |
+| 10 | **Sitemap trimmed to content-worthy companies** (isolated commit — revert if you disagree) | 10,471 of 11,565 companies have zero active jobs; most have no description. Sitemap shrinks ~11.5k → ~2.3k URLs so crawl budget concentrates on pages that can rank. |
+| 11 | **Seniority territory-words are title-only now** | "enterprise/strategic/global/commercial…" in a job *description* misclassified the role's level (matching audit #5). |
+| 12 | **Spaced role variants** ("front end engineer", "back end engineer") | Pure substring matching missed the single most common ATS spelling variant — core-promise false negative. |
+| 13 | **Backfilled matches marked `notified: true`** | Following a company emailed months-old roles as "just opened" — a trust-killer for exactly the discerning user Crush wants. |
+| 14 | **Daily digest 24h floor removed** | Matches that slipped past one run (failed cron, timing) were silently never emailed, forever. |
+| 15 | **Remotive jobs close when absent from feed** | Aggregate-sourced jobs previously stayed ACTIVE forever (`closeStaleJobs` only ran for ATS sources). Remotive's feed is a complete dump so absence = closed; a floor guard prevents a broken feed response from mass-closing. The Muse is page-capped, so absence-closing stays off there (see decision #7). |
+| 16 | **Titles/locations trimmed at ingest; email links use real company slug** | 2,735 active jobs have untrimmed titles; name-derived slugs broke for irregular names (e.g. the company literally named `" ALO"` with a leading space). |
+
+Not verified end-to-end in a browser: I did not run the dev server against the production database (it's the only database there is, and clicking through authed flows would write to it). Verification was tsc + eslint + full production build + live-site inspection of the pre-change state.
+
+## Needs your decision (ranked by leverage)
+
+> **Decisions #1 and #2 were decided and implemented 2026-07-09** (see "Decisions implemented" below). The remaining rows are still open.
+
+| # | Decision | Why it matters | Impact / Effort | Evidence |
+|---|----------|----------------|-----------------|----------|
+| 3 | **Alert cadence.** Code designed for 15-minute notify; cron runs daily (finding #3). Check the Vercel plan: on Pro, set `*/15 * * * *` for notify; on Hobby, trigger notification sending at the end of the ingest run instead (no extra cron). | "Be first" is the product's one promise; ~25h worst-case latency breaks it. | **H / L** (after plan check) | `vercel.json:2-8`, `notifications.ts:32` |
+| 4 | **Onboarding shape.** All 5 steps are skippable; the only step that tracks companies is step 3; tracking a collection but skipping roles yields a watchlist with permanently zero matches (silent). Recommend: make "one collection + one role" the required spine, move LinkedIn/CSV import post-activation. | Users can finish setup with literally nothing saved. | **M-H / M** | `onboarding-wizard.tsx:34,363-369,446-452`, `tracking.ts:50` |
+| 5 | **Watchlist privacy.** `/watchlist/[userId]` publicly shows a user's name + full target list keyed by their auth UUID (which leaks into email-tracking URLs). Now noindexed (this PR), but recommend an opt-in share token instead of the auth UUID. | A user's job search being discoverable is a real-world harm; trust is the product. | **M-H / M** | `watchlist/[userId]/page.tsx:24-54`, security audit M3 |
+| 6 | **Rate-limit the Anthropic-backed endpoints** (`/api/resume`, `/api/resume/score`). Authed but unthrottled; any free account can script unbounded model spend. Needs an infra choice (Upstash/KV/DB counter). | Cost abuse vector. | **M / M** | security audit M4 |
+| 7 | **The Muse staleness policy.** Its fetcher caps at 15 pages, so absence-closing is unsafe. Options: raise the cap to fetch all pages (then enable absence-close like Remotive), or age out Muse jobs after N days. ~790 aggregate jobs active today. | Dead listings shown as live = "I clicked apply and it was gone." | **M / L** | `the-muse.ts:21` (MAX_PAGES=15) |
+| 8 | **Landing meta description says "your built-in VC best friend."** Confusing framing for a job product, and it's the text Google shows under your homepage result. It was set deliberately in a recent commit (`6f5c79f`), so I didn't touch it — but I'd rewrite it around the brand line ("the companies you'd actually leave for"). | First impression in every SERP. | **M / L** | `layout.tsx:21`, live homepage HTML |
+| 9 | **Landing credibility details.** Testimonials have no names/companies (reads fabricated to this audience); the hero dashboard is a hardcoded mock with invented numbers. Attribute or cut the testimonials; label the mock as a preview. | Discerning-audience bounce triggers. | **M / L** | `page.tsx:11-16,36-47,190-227` |
+| 10 | **`/companies` index exposes only 100 companies with no pagination** — the other ~11k pages are reachable only via sitemap + sparse related-links. Add crawlable pagination or an A-Z/industry hub. | Internal linking for the pages that CAN rank; also a UX ceiling. | **M / M** | `companies/page.tsx:88,117`, `company-browser.tsx` |
+| 11 | **Public pages are all dynamically rendered per-request** (the browse layout reads cookies for auth chrome), defeating blog static generation and giving 1.1-1.4s TTFB on landing//companies. Fix is an auth-island refactor. | Crawl efficiency at 11.5k URLs + Core Web Vitals. | **M / M-H** | `lib/supabase/server.ts:5`, `(browse)/layout.tsx:11-12`, live TTFB measurements |
+| 12 | **Duplicate active jobs & cross-source dupes.** 453 same-title-same-location duplicate groups within companies; a company on both an ATS and an aggregator can produce two rows → two alerts for one role. Needs a dedup policy (normalized title+location) at ingest or match time. | Double alerts = noise. | **M / M** | prod query; matching audit #12 |
+| 13 | **Data hygiene batch (needs prod writes, your call):** trim the 2,735 untrimmed job titles and whitespace company names in place; merge the 2 duplicate company pairs (`aircomfort`/`aircomfortasp`, `alma`/`alma31`); investigate Gem ingestion (39 companies, only 1 with active jobs — likely broken). | Small, but this stuff is visible on public pages. | **L-M / L** | prod queries from this audit |
+| 14 | **Repo housekeeping:** `insights/` (29 guides) vs `content/insights/` (11) duplicate directories with 4 overlapping companies — DB is the live source (36 rows), so consolidate the repo folders to one canonical location; two stray untracked files from another session (`content/blog/best-companies-for-salespeople.md`, `scripts/seed-sales-collection.ts`) need a home or deletion; `.env.local` holds a live service-role key — fine while gitignored (verified), but worth rotating if it was ever pasted anywhere. | Hygiene. | **L / L** | repo inspection |
+
+## Decisions implemented (2026-07-09)
+
+- **#1 — Match criteria: global only.** Decided to drop per-company filters rather than wire them in. Removed the dead surface that implied otherwise: `follow-modal.tsx`, `criteria-editor.tsx`, the `updateCriteria` action, and the unreferenced `/api/tracked/[id]` route (all were orphaned — nothing rendered or called them). Matching already reads only global criteria (`User.defaultCriteria` + global `TrackedRole`), so live behavior is unchanged; the misleading UI is just gone. The four filter columns on `TrackedCompany` (`keywords/jobTypes/remoteOnly/locationFilter`) are now vestigial — safe to drop in a later migration; `emailAlerts` stays (matching/notifications read it).
+- **#2 — No roles → no matches.** `doesJobMatch` now returns `false` when the user has zero target roles (was `true` = match everything). Paired with a load-bearing prompt on the matches page ("Add a target role to get matches") for the tracking-companies-but-no-roles case, which previously showed a misleading "You're all set up." The dashboard already nudges this via its setup checklist.
+
+## Needs more data
+
+- **Hiring-momentum UI** (snapshot data started accruing 2026-07-08): ship the consumer "recent hiring" module once ~4 weeks of snapshots exist. The spec is already written (`docs/` from the prior session / spec message). Blocked on time, not decisions.
+- **Match quality measurement**: there is no way to know the false-positive rate of matching today (765 matches for 10 roles looks high but backfill inflates it). Cheapest instrumentation: log which rule fired per match (`cluster`, `exact`, `no-roles`) as a Match column or PostHog event, then look at dismiss rates per rule.
+- **`Match.aiScore` is decorative**: computed in `/api/resume/score`, held in client state, never persisted (column exists, never written). Decide whether AI scoring is a real ranking feature or should be cut.
+- **Funnel instrumentation gaps** (now partially closed by `follow_intent_gated`): landing CTA clicks fire no event, `signup_started` under-counts (most signups bypass /login), `trackCollection` fires no server event. Add before spending on any traffic.
+
+## Appendix — codebase notes for a second pass
+
+- Matching is one function: `doesJobMatch` (`src/lib/matching.ts:135`), called from 5 sites (ingest, manual ingest, two backfills). Any matching change lands everywhere; be careful about the ingest-time vs backfill-time asymmetry (`notified` semantics differ — see PR commit).
+- Ingestion: ATS sources (greenhouse/lever/ashby/gem) are authoritative per-company and close stale jobs by absence; aggregates (Remotive full-dump, Muse page-capped) attach by normalized company-name equality — which silently fails for name variants ("Alo" vs "ALO, Inc."), an under-match source.
+- `updated_at` on jobs is NOT a liveness signal (rows are never touched after create; only status flips update them). Don't build staleness metrics on it.
+- The browse route group's cookie read makes everything dynamic; the blog's `generateStaticParams` is currently dead weight.
+- Email templates: `companyUrl` and `utm` in `notifications.ts` are computed but unused (pre-existing dead code; the template never links the company).
+- Prisma client generates to `src/generated/prisma` (custom output); always use the `@/lib/prisma` singleton. `prisma migrate deploy` history had drift (one migration recorded under an old name) — resolved 2026-07-08.
