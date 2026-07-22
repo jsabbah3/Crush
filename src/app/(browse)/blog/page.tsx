@@ -11,9 +11,9 @@ export default function BlogIndexPage() {
 
   return (
     <div className="max-w-2xl mx-auto py-12">
-      <div className="mb-12">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">From the Crush team</h1>
-        <p className="text-muted-foreground text-base">
+      <div className="mb-12 space-y-2">
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-balance">From the Crush team</h1>
+        <p className="text-muted-foreground text-base max-w-[60ch]">
           Insights on AI careers, hiring trends, and the companies worth watching.
         </p>
       </div>
@@ -21,21 +21,27 @@ export default function BlogIndexPage() {
       {posts.length === 0 ? (
         <p className="text-muted-foreground">No posts yet.</p>
       ) : (
-        <ul className="space-y-10">
+        <ul className="divide-y divide-border border-t border-border">
           {posts.map((post) => (
             <li key={post.slug}>
-              <Link href={`/blog/${post.slug}`} className="group block -mx-4 px-4 py-4 rounded-xl hover:bg-muted/40 transition-colors">
+              <Link
+                href={`/blog/${post.slug}`}
+                className="group block -mx-4 px-4 py-6 rounded-xl transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              >
                 {post.readTime && (
-                  <p className="text-xs text-muted-foreground mb-2">{post.readTime}</p>
+                  <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground/70 mb-2">
+                    {post.readTime}
+                  </p>
                 )}
-                <h2 className="text-xl font-semibold group-hover:text-primary transition-colors mb-2 leading-snug">
+                <h2 className="font-heading text-xl font-bold tracking-tight leading-snug text-balance transition-colors group-hover:text-primary mb-2">
                   {post.title}
                 </h2>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-[62ch]">
                   {post.description}
                 </p>
-                <span className="mt-3 inline-block text-sm font-medium text-primary group-hover:underline underline-offset-2 transition-colors">
-                  Read more →
+                <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                  Read more
+                  <span className="transition-transform duration-[var(--dur-fast)] group-hover:translate-x-0.5">→</span>
                 </span>
               </Link>
             </li>

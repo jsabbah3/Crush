@@ -61,7 +61,7 @@ export function FollowingList({
         return (
           <div
             key={trackedId}
-            className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 transition-all duration-150 hover:border-border hover:shadow-sm"
+            className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 transition-[border-color,box-shadow,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:border-border hover:shadow-sm hover:-translate-y-0.5"
           >
             <div className="flex items-start gap-3">
               <CompanyLogo
@@ -73,7 +73,7 @@ export function FollowingList({
               <div className="flex-1 min-w-0 space-y-0.5">
                 <a
                   href={`/companies/${company.slug}`}
-                  className="font-semibold text-sm leading-snug hover:underline underline-offset-2"
+                  className="font-semibold text-sm leading-snug hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   {company.name}
                 </a>
@@ -82,7 +82,7 @@ export function FollowingList({
                 )}
               </div>
               {_count.matches > 0 && (
-                <span className="shrink-0 rounded-full bg-amber text-amber-foreground text-xs font-semibold px-2 py-0.5">
+                <span className="shrink-0 rounded-full bg-amber text-amber-foreground font-mono text-xs font-semibold px-2 py-0.5 tabular-nums">
                   {_count.matches} new
                 </span>
               )}
@@ -105,7 +105,7 @@ export function FollowingList({
                   <span className="text-xs text-muted-foreground">No open roles</span>
                 )}
                 {connections > 0 && (
-                  <span className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+                  <span className="flex items-center gap-1 font-mono text-xs font-medium text-slate-warm tabular-nums">
                     <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                       <circle cx="9" cy="7" r="4" />

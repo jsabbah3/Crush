@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { trackServerEvent } from "@/lib/analytics-node";
 import { doesJobMatch } from "@/lib/matching";
+import { ingestCompanyById } from "@/lib/ingestion";
 
 type UserPrefs = {
   seniority?: string[];
@@ -118,6 +119,18 @@ export async function followCompany(
   if (!user) return { error: "Unauthorized" };
 
   const priorCount = await prisma.trackedCompany.count({ where: { userId: user.id } });
+
+  // Populate this company's roles now instead of waiting for the daily cron,
+  // so a just-followed company shows its openings immediately. Runs BEFORE the
+  // user starts tracking it, so the ingest itself creates no matches for them
+  // (backfillMatches below handles those, as backfill — no "just opened" email).
+  // Best-effort: a slow/failed ATS fetch must not fail the follow. No-op for
+  // unsourced companies (ingestCompanyById returns early).
+  try {
+    await ingestCompanyById(companyId);
+  } catch (err) {
+    console.error("ingest-on-follow failed", companyId, err);
+  }
 
   await prisma.trackedCompany.upsert({
     where: { userId_companyId: { userId: user.id, companyId } },

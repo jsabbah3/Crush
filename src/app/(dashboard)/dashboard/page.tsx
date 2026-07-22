@@ -140,14 +140,14 @@ export default async function DashboardPage() {
 
       {/* Stats strip */}
       {tracked.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3 stagger-children">
           {[
             { label: "Companies watched", value: tracked.length },
             { label: "Open roles", value: openRolesCount.toLocaleString() },
             { label: "Total matches", value: totalMatches.toLocaleString() },
           ].map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-border/60 bg-card px-4 py-3">
-              <p className="text-2xl font-bold tracking-tight">{value}</p>
+            <div key={label} className="animate-rise rounded-xl border border-border/60 bg-card px-4 py-3">
+              <p className="font-heading text-2xl font-bold tracking-tight tabular-nums">{value}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
             </div>
           ))}
@@ -160,12 +160,12 @@ export default async function DashboardPage() {
           <p className="text-sm font-semibold">Get started</p>
           <div className="space-y-2.5">
             <div className="flex items-center gap-3 text-sm">
-              <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+              <CheckCircle2 className="size-4 text-moss shrink-0" />
               <span className="text-muted-foreground line-through">Create your account</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
               {trackedRoles.length > 0
-                ? <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+                ? <CheckCircle2 className="size-4 text-moss shrink-0" />
                 : <Circle className="size-4 text-muted-foreground/50 shrink-0" />
               }
               <span className={trackedRoles.length > 0 ? "text-muted-foreground line-through" : "font-medium"}>
@@ -179,7 +179,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-3 text-sm">
               {tracked.length > 0
-                ? <CheckCircle2 className="size-4 text-green-500 shrink-0" />
+                ? <CheckCircle2 className="size-4 text-moss shrink-0" />
                 : <Circle className="size-4 text-muted-foreground/50 shrink-0" />
               }
               <span className={tracked.length > 0 ? "text-muted-foreground line-through" : "font-medium"}>
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex gap-2 mt-2">
               <Link href="/collections">
-                <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
+                <Button variant="ink" size="sm">
                   Browse collections
                 </Button>
               </Link>
@@ -260,7 +260,7 @@ export default async function DashboardPage() {
           defaultOpen={false}
           action={
             <Link href="/companies">
-              <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
+              <Button variant="ink" size="sm">
                 <Plus className="size-3.5" />
                 Add company
               </Button>

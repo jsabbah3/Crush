@@ -129,14 +129,14 @@ export function OnboardingWizard({ collections }: Props) {
     });
   }
 
-  const pillBase = "rounded-full px-4 py-1.5 text-sm font-medium border transition-colors";
+  const pillBase = "rounded-full px-4 py-1.5 text-sm font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
   const pillActive = "border-primary bg-primary text-primary-foreground";
   const pillInactive = "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground";
 
   // ─── Step 1: LinkedIn ───────────────────────────────────────────────────────
   if (step === 1) {
     return (
-      <div className="space-y-8">
+      <div key={step} className="space-y-8 animate-rise">
         <StepHeader
           step={1}
           title={<>Let&apos;s personalize your experience</>}
@@ -212,7 +212,7 @@ export function OnboardingWizard({ collections }: Props) {
     const hasSuggestions = currentTitleInput.trim().length > 0;
 
     return (
-      <div className="space-y-8">
+      <div key={step} className="space-y-8 animate-rise">
         <StepHeader
           step={2}
           title="What roles are you looking for?"
@@ -379,7 +379,7 @@ export function OnboardingWizard({ collections }: Props) {
   // ─── Step 3: Collection ─────────────────────────────────────────────────────
   if (step === 3) {
     return (
-      <div className="space-y-8">
+      <div key={step} className="space-y-8 animate-rise">
         <StepHeader
           step={3}
           title="Pick a collection to start tracking"
@@ -479,7 +479,7 @@ export function OnboardingWizard({ collections }: Props) {
     }
 
     return (
-      <div className="space-y-8">
+      <div key={step} className="space-y-8 animate-rise">
         <StepHeader
           step={4}
           title="See who you know"
@@ -574,7 +574,7 @@ export function OnboardingWizard({ collections }: Props) {
   const chosenCollection = collections.find((c) => c.slug === selectedCollection);
 
   return (
-    <div className="space-y-8">
+    <div key={step} className="space-y-8 animate-rise">
       <StepHeader
         step={5}
         title={<>You&apos;re all set.</>}

@@ -1,0 +1,4 @@
+import { MatchesSkeleton } from "@/components/skeletons";
+export default function Loading() {
+  return <MatchesSkeleton />;
+}

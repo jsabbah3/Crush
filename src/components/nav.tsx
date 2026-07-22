@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/app/actions/auth";
+import { ThemeToggleButton } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 type UserProps = {
@@ -59,8 +60,9 @@ export function DashboardNav({
                   <Link
                     key={href}
                     href={href}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors",
+                      "relative flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset",
                       active
                         ? "text-foreground font-semibold"
                         : "text-muted-foreground hover:text-foreground"
@@ -69,7 +71,7 @@ export function DashboardNav({
                     <Icon className="size-3.5" />
                     {label}
                     {badge && unreadMatches > 0 && (
-                      <span className="h-4 min-w-4 rounded-full bg-amber text-amber-foreground text-[10px] font-bold leading-none flex items-center justify-center px-1">
+                      <span className="h-4 min-w-4 rounded-full bg-primary text-primary-foreground font-mono text-[10px] font-semibold leading-none flex items-center justify-center px-1 tabular-nums">
                         {unreadMatches > 99 ? "99+" : unreadMatches}
                       </span>
                     )}
@@ -83,6 +85,7 @@ export function DashboardNav({
           </div>
 
           <div className="flex items-center gap-1">
+            <ThemeToggleButton />
             <Link href="/settings">
               <Button
                 variant="ghost"
@@ -141,15 +144,16 @@ export function DashboardNav({
               <Link
                 key={href}
                 href={href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors flex-1",
+                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   active ? "text-foreground" : "text-muted-foreground"
                 )}
               >
                 <div className="relative">
                   <Icon className={cn("size-5", active && "stroke-[2.5]")} />
                   {badge && unreadMatches > 0 && (
-                    <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 rounded-full bg-amber text-amber-foreground text-[9px] font-bold leading-none flex items-center justify-center px-0.5">
+                    <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 rounded-full bg-primary text-primary-foreground font-mono text-[9px] font-semibold leading-none flex items-center justify-center px-0.5 tabular-nums">
                       {unreadMatches > 99 ? "99+" : unreadMatches}
                     </span>
                   )}

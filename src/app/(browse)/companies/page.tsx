@@ -175,13 +175,13 @@ export default async function CompaniesPage({
         <div className="flex items-end justify-between gap-4 border-b pb-0">
           <div className="flex gap-0">
             <Link href="/companies" className={cn(
-              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               "border-foreground text-foreground"
             )}>
               My Companies
             </Link>
             <Link href="/companies?view=browse" className={cn(
-              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               "border-transparent text-muted-foreground hover:text-foreground"
             )}>
               Discover
@@ -238,7 +238,7 @@ export default async function CompaniesPage({
         <div className="flex items-end border-b pb-0">
           <div className="flex gap-0">
             <Link href="/companies" className={cn(
-              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               "border-transparent text-muted-foreground hover:text-foreground"
             )}>
               My Companies

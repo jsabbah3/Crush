@@ -65,7 +65,8 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveCompany(null)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+            aria-pressed={activeCompany === null}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
               activeCompany === null
                 ? "bg-foreground text-background border-foreground"
                 : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
@@ -77,7 +78,8 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
             <button
               key={company.slug}
               onClick={() => setActiveCompany(activeCompany === company.name ? null : company.name)}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+              aria-pressed={activeCompany === company.name}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
                 activeCompany === company.name
                   ? "bg-foreground text-background border-foreground"
                   : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
@@ -96,22 +98,22 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
       {filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground py-8 text-center">No matches in this filter.</p>
       ) : (
-        <div className="space-y-8">
+        <div key={activeCompany ?? "all"} className="space-y-8 stagger-children">
           {Array.from(byCompany.entries()).map(([companyName, companyMatches]) => {
             const company = companyMatches[0].job.company;
             return (
-              <section key={companyName} className="space-y-2">
+              <section key={companyName} className="space-y-2 animate-rise">
                 <div className="flex items-center gap-2">
                   {company.website && (
                     <CompanyLogo name={company.name} website={company.website} size="sm" className="size-5 rounded-md" />
                   )}
                   <Link
                     href={`/companies/${company.slug}`}
-                    className="text-sm font-semibold hover:underline underline-offset-2"
+                    className="text-sm font-semibold hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
                     {companyName}
                   </Link>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="font-mono text-xs text-muted-foreground tabular-nums">
                     {companyMatches.length} {companyMatches.length === 1 ? "role" : "roles"}
                   </span>
                   {(networkBySlug[company.slug] ?? 0) > 0 && (
