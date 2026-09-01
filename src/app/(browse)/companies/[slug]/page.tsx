@@ -9,6 +9,7 @@ import { JobCard } from "@/components/job-card";
 import { RoleList } from "@/components/role-list";
 import { MarkdownBody } from "@/components/markdown-body";
 import { JobPostingJsonLd } from "@/components/job-posting-jsonld";
+import { isCompanyPublic } from "@/lib/company-relevance";
 
 export async function generateMetadata({
   params,
@@ -22,11 +23,27 @@ export async function generateMetadata({
       name: true,
       description: true,
       industry: true,
+      sourceType: true,
+      tags: true,
       insights: { select: { id: true }, take: 1 },
       jobs: { where: { status: "ACTIVE" }, select: { id: true }, take: 1 },
     },
   });
   if (!company) return {};
+
+  // Private companies (no ATS/tag/industry signal) don't get real metadata
+  // for anyone who isn't already tracking them — see isCompanyPublic().
+  if (!isCompanyPublic(company)) {
+    const supabase = await createClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const tracked = authUser
+      ? await prisma.trackedCompany.findFirst({
+          where: { userId: authUser.id, company: { slug } },
+          select: { id: true },
+        })
+      : null;
+    if (!tracked) return {};
+  }
 
   const hasGuide = company.insights.length > 0;
   const hasJobs = company.jobs.length > 0;
@@ -89,6 +106,13 @@ export default async function CompanyDetailPage({
   ]);
 
   if (!company) notFound();
+
+  // Private companies (no ATS/tag/industry signal) are only visible to
+  // whoever is already tracking them — see isCompanyPublic(). This is what
+  // makes self-serve "Add Company" safe: a real company graduates to public
+  // the moment ATS detection finds something; a zero-signal personal pick
+  // (see the outdoor-brand incident) never becomes a stranger-visible page.
+  if (!isCompanyPublic(company) && !tracked) notFound();
 
   const relatedCompanies = await prisma.company.findMany({
     where: { industry: company.industry ?? undefined, slug: { not: slug } },

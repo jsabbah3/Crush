@@ -45,7 +45,7 @@ export function AddCompanyModal() {
       // added
       const msg = res.atsFound
         ? `Added! Found ${res.jobCount} open role${res.jobCount === 1 ? "" : "s"} via their job board.`
-        : "Added! No job board detected — we'll check periodically.";
+        : "Added to your watchlist. No job board detected yet, so it's private to you for now — we'll check periodically, and it'll open up publicly the moment we find one.";
       setResult({ type: "success", message: msg });
       router.refresh();
       setTimeout(handleClose, 2200);
