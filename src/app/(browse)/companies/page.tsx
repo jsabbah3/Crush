@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { relevantCompanyWhere, relevantCompanySql } from "@/lib/company-relevance";
 import { CompanyBrowser } from "@/components/company-browser";
 import { FollowingList } from "@/components/following-list";
 import { CompanySearch } from "@/components/company-search";
@@ -56,16 +57,18 @@ type ActiveRow = {
 };
 
 async function fetchByActive(q: string, industry: string, vc: string): Promise<BrowseCompany[]> {
-  const conditions: Prisma.Sql[] = [];
+  // Discovery surfaces only show companies with real signal (ATS source, VC
+  // tag, or industry label) — self-serve "Add Company" has no relevance
+  // check, so this is the actual gate. Rows that don't pass this stay in the
+  // database and are still reachable by direct link.
+  const conditions: Prisma.Sql[] = [relevantCompanySql];
   if (q) conditions.push(Prisma.sql`(c.name ILIKE ${`%${q}%`} OR c.description ILIKE ${`%${q}%`})`);
   if (industry) conditions.push(Prisma.sql`c.industry ILIKE ${industry}`);
   if (vc) conditions.push(Prisma.sql`${vc} = ANY(c.tags)`);
   // When filtering by VC or industry, only show companies that are actively hiring
   if (vc || industry) conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM jobs j2 WHERE j2.company_id = c.id AND j2.status = 'ACTIVE'::job_status)`);
 
-  const where = conditions.length > 0
-    ? Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`
-    : Prisma.empty;
+  const where = Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`;
 
   const rows = await prisma.$queryRaw<ActiveRow[]>`
     SELECT
@@ -102,11 +105,14 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
 async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | "followed"): Promise<BrowseCompany[]> {
   const rows = await prisma.company.findMany({
     where: {
-      ...(q && { OR: [{ name: { contains: q, mode: "insensitive" } }, { description: { contains: q, mode: "insensitive" } }] }),
-      ...(industry && { industry: { equals: industry, mode: "insensitive" } }),
-      ...(vc && { tags: { has: vc } }),
-      // When filtering by VC or industry, only show actively hiring companies
-      ...((vc || industry) && { jobs: { some: { status: "ACTIVE" } } }),
+      AND: [
+        relevantCompanyWhere,
+        ...(q ? [{ OR: [{ name: { contains: q, mode: "insensitive" as const } }, { description: { contains: q, mode: "insensitive" as const } }] }] : []),
+        ...(industry ? [{ industry: { equals: industry, mode: "insensitive" as const } }] : []),
+        ...(vc ? [{ tags: { has: vc } }] : []),
+        // When filtering by VC or industry, only show actively hiring companies
+        ...((vc || industry) ? [{ jobs: { some: { status: "ACTIVE" as const } } }] : []),
+      ],
     },
     include: {
       _count: { select: { trackedBy: true, jobs: { where: { status: "ACTIVE" } } } },

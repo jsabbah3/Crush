@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { relevantCompanyWhere } from "@/lib/company-relevance";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -12,13 +13,16 @@ export async function GET(request: NextRequest) {
 
   const companies = await prisma.company.findMany({
     where: {
-      ...(q && {
-        OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
-        ],
-      }),
-      ...(industry && { industry: { equals: industry, mode: "insensitive" } }),
+      AND: [
+        relevantCompanyWhere,
+        ...(q ? [{
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { description: { contains: q, mode: "insensitive" as const } },
+          ],
+        }] : []),
+        ...(industry ? [{ industry: { equals: industry, mode: "insensitive" as const } }] : []),
+      ],
     },
     include: {
       _count: { select: { jobs: true, trackedBy: true } },

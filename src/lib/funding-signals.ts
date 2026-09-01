@@ -6,9 +6,20 @@
  */
 
 import Parser from "rss-parser";
+import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/prisma";
 
 const APP_URL = process.env.APP_URL ?? "https://crushco.app";
+
+// Lazily constructed — same reason as getResend() in notifications.ts: a
+// module-level `new Anthropic()` would make `next build` require
+// ANTHROPIC_API_KEY at build time (it collects page data for /api/cron/*
+// which import this file). Runtime is the only place the key is needed.
+let _anthropic: Anthropic | null = null;
+function getAnthropic(): Anthropic {
+  if (!_anthropic) _anthropic = new Anthropic();
+  return _anthropic;
+}
 
 // ─── Tier-1 investors ─────────────────────────────────────────────────────────
 
@@ -149,35 +160,6 @@ interface ParsedFunding {
   roundStage: RoundStage;
 }
 
-const PRIMARY_RE   = /^(.+?)\s+(?:raises?|secures?|closes?|nabs?|lands?|gets?|announces?|snags?)\s+\$(\d+(?:\.\d+)?)\s*([MBK])\b/i;
-const SECONDARY_RE = /^(.+?)\s+(?:reportedly\s+|just\s+)?(?:raised?|raising|plans?\s+to\s+raise)\s+\$(\d+(?:\.\d+)?)\s*([MBK])\b/i;
-const ROUND_RE     = /\b(Series\s+[A-Z]{1,2}|Pre-[Ss]eed|[Ss]eed(?:\s+round)?|[Gg]rowth(?:\s+round)?|[Ll]ate[- ][Ss]tage)\b/i;
-
-function cleanupCompanyName(raw: string): string | null {
-  let cleaned = raw.trim()
-    .replace(/^(?:AI|ML|crypto|fintech|edtech|healthtech|proptech|chip|data|cloud|deep[- ]tech|clean[- ]tech|climate[- ]tech)\s+(?:startup|company|firm)\s+/i, "")
-    .replace(/^(?:after|before|as|with|for)\s+.+?,\s*/i, "")
-    .trim();
-
-  const words = cleaned.split(/\s+/);
-  if (words.length > 1) {
-    let lastCapIdx = -1;
-    for (let i = words.length - 1; i >= 0; i--) {
-      if (/^[A-Z]/.test(words[i])) { lastCapIdx = i; break; }
-    }
-    if (lastCapIdx > 0) {
-      let start = lastCapIdx;
-      while (start > 0 && /^[A-Z]/.test(words[start - 1])) start--;
-      const hasFiller = words.slice(0, start).some(w => /^[a-z]/.test(w));
-      if (hasFiller || start > 0) cleaned = words.slice(start).join(" ");
-    }
-  }
-
-  if (cleaned.length > 35 || cleaned.split(/\s+/).length > 4) return null;
-  if (/^(the|a|an|this|that|it|he|she|they)\s/i.test(cleaned)) return null;
-  return cleaned || null;
-}
-
 function parseRound(round: string): RoundStage {
   const r = round.toLowerCase();
   if (r.includes("pre-seed") || r.includes("pre seed")) return "pre_seed";
@@ -198,44 +180,89 @@ function toPrismaFundingStage(stage: RoundStage): string | null {
   return map[stage] ?? null;
 }
 
-function parseFundingTitle(title: string): ParsedFunding | null {
-  const m = title.match(PRIMARY_RE) ?? title.match(SECONDARY_RE);
-  if (!m) return null;
-
-  const companyName = cleanupCompanyName(m[1].trim());
-  if (!companyName) return null;
-  if (/^(the|a|an|this|that|it|he|she|they)\s/i.test(companyName)) return null;
-
-  const num = parseFloat(m[2]);
-  const suffix = m[3].toUpperCase();
-  const amountM = suffix === "B" ? num * 1000 : suffix === "K" ? num / 1000 : num;
-  if (amountM < 5) return null;
-
-  const roundMatch = title.match(ROUND_RE);
-  const round = roundMatch
-    ? roundMatch[1].trim().replace(/\s+(round)$/i, "").trim()
-    : amountM >= 100 ? "Growth" : amountM >= 30 ? "Series B" : "Series A";
-
-  return { companyName, amount: `$${m[2]}${suffix}`, amountM, round, roundStage: parseRound(round) };
-}
-
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function extractInvestors(content: string): string {
-  const text = stripHtml(content).slice(0, 2000);
-  const patterns = [/led by ([A-Z][^.]+?)(?:\.|,|$)/gi, /backed by ([A-Z][^.]+?)(?:\.|,|$)/gi];
-  const found: string[] = [];
-  for (const re of patterns) {
-    let match;
-    while ((match = re.exec(text)) !== null) found.push(match[1].trim());
-  }
-  return [...new Set(found)].slice(0, 3).join("; ");
+/**
+ * Regex extraction used to produce junk here: "Travis Kalanick's robotics
+ * company", "CTO", "Reach Capital" (a VC closing a new FUND, not a startup
+ * raising one) all matched the same "$X raised/raises" shape a hand-rolled
+ * pattern can't tell apart. An LLM reads the actual sentence instead of
+ * pattern-matching its shape, so it can reject the VC-fund-close case
+ * entirely and pull the real proper noun out of a noisy headline.
+ */
+async function extractFundingSignal(
+  title: string,
+  content: string,
+): Promise<ParsedFunding & { investors: string[] } | null> {
+  const snippet = stripHtml(content).slice(0, 1200);
+
+  let response;
+  try {
+    response = await getAnthropic().messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: `You extract startup funding announcements from news headlines. Given a headline and article snippet, determine whether this is a STARTUP raising a NEW round of venture funding — not a VC firm closing a new fund of its own, not an acquisition, not an IPO, not a valuation report with no new funding, not layoffs.
+
+Headline: ${title}
+Snippet: ${snippet}
+
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "isStartupFundingRound": boolean,
+  "companyName": string or null — the exact company name that raised money, no descriptive filler (e.g. "Acme", not "AI infrastructure startup Acme" or "Travis Kalanick's robotics company"),
+  "amountM": number or null — funding amount in millions USD,
+  "round": string or null — e.g. "Seed", "Series A", "Series B", "Growth",
+  "investors": array of investor/VC firm names mentioned, or []
 }
 
-function hasTier1Investor(investors: string, fullContent: string): boolean {
-  const text = (investors + " " + fullContent.slice(0, 3000)).toLowerCase();
+If this is not a startup funding round, or you cannot confidently extract both a company name and an amount, set isStartupFundingRound to false.`,
+        },
+      ],
+    });
+  } catch {
+    return null;
+  }
+
+  const raw = response.content[0]?.type === "text" ? response.content[0].text : "";
+  // Haiku wraps JSON in a ```json fence often enough to matter even when
+  // told not to — strip it before parsing instead of failing closed.
+  const jsonText = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+  let parsed: {
+    isStartupFundingRound: boolean;
+    companyName: string | null;
+    amountM: number | null;
+    round: string | null;
+    investors: string[];
+  };
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    return null;
+  }
+
+  if (!parsed.isStartupFundingRound || !parsed.companyName || !parsed.amountM) return null;
+  if (parsed.amountM < 5) return null;
+
+  const round = parsed.round?.trim() ||
+    (parsed.amountM >= 100 ? "Growth" : parsed.amountM >= 30 ? "Series B" : "Series A");
+
+  return {
+    companyName: parsed.companyName.trim(),
+    amountM: parsed.amountM,
+    amount: parsed.amountM >= 1000 ? `$${(parsed.amountM / 1000).toFixed(1)}B` : `$${parsed.amountM}M`,
+    round,
+    roundStage: parseRound(round),
+    investors: Array.isArray(parsed.investors) ? parsed.investors.slice(0, 5) : [],
+  };
+}
+
+function hasTier1Investor(investors: string[], fullContent: string): boolean {
+  const text = (investors.join(" ") + " " + fullContent.slice(0, 3000)).toLowerCase();
   for (const inv of TIER_1_INVESTORS) {
     if (text.includes(inv)) return true;
   }
@@ -324,11 +351,11 @@ export async function runFundingSignalIngest(): Promise<FundingIngestResult> {
       const existing = await prisma.fundingSignal.findUnique({ where: { sourceUrl: link } });
       if (existing) continue;
 
-      const parsed = parseFundingTitle(title);
+      const parsed = await extractFundingSignal(title, content);
       if (!parsed) continue;
 
-      const investors = extractInvestors(content);
-      const tier1     = hasTier1Investor(investors, content);
+      const investors = parsed.investors.join("; ") || null;
+      const tier1      = hasTier1Investor(parsed.investors, content);
 
       if (!shouldQueue(parsed.roundStage, tier1)) continue;
 
@@ -359,7 +386,7 @@ export async function runFundingSignalIngest(): Promise<FundingIngestResult> {
             companyName: parsed.companyName,
             amount: parsed.amount,
             round: parsed.round,
-            investors: investors || null,
+            investors: investors,
             sourceUrl: link,
             atsUrl: ats?.url ?? null,
             atsPlatform: ats?.type ?? null,
@@ -379,7 +406,7 @@ export async function runFundingSignalIngest(): Promise<FundingIngestResult> {
           companyName: parsed.companyName,
           amount: parsed.amount,
           round: parsed.round,
-          investors: investors || null,
+          investors: investors,
           sourceUrl: link,
           atsUrl: ats?.url ?? null,
           atsPlatform: ats?.type ?? null,
