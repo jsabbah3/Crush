@@ -259,6 +259,11 @@
   }
   .collapse-grid[data-collapsed="true"] { grid-template-rows: 0fr; }
   .collapse-grid > * { overflow: hidden; min-width: 0; }
+  /* Once fully open (past the height transition), let content escape the
+     row again — a dropdown/popover inside a collapsible section needs to
+     render outside its natural height, and the clip above only exists to
+     make the collapse/expand animation itself look right. */
+  .collapse-grid[data-settled="true"] > * { overflow: visible; }
 }
 
 /* Hard rule: motion is a courtesy, not a requirement. */

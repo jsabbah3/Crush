@@ -10,6 +10,7 @@ import { JobCard } from "@/components/job-card";
 import type { AppStatus } from "@/components/status-picker";
 import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
+import { CompanySearch } from "@/components/company-search";
 import { TrackedRoles } from "@/components/tracked-roles";
 import { TrendingRoles } from "@/components/trending-roles";
 import { RefreshMatchesButton } from "@/components/refresh-matches-button";
@@ -224,6 +225,22 @@ export default async function DashboardPage() {
 
           <TrendingRoles
             trackedTitles={trackedRoles.map((r) => r.title)}
+          />
+        </div>
+      </CollapsibleSection>
+
+      {/* Add companies — collapsed once you have some, open to invite the action for new users */}
+      <CollapsibleSection
+        title="Add companies"
+        storageKey="add-companies"
+        defaultOpen={tracked.length === 0}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Search for a company to start watching it. We&apos;ll check for a job board automatically.
+          </p>
+          <CompanySearch
+            trackedCompanyIds={tracked.map((tc) => tc.companyId)}
           />
         </div>
       </CollapsibleSection>

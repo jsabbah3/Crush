@@ -56,11 +56,11 @@ export function AddCompanyModal() {
     <>
       <Button
         variant="outline"
-        size="sm"
+        size="lg"
         className="shrink-0"
         onClick={() => setOpen(true)}
       >
-        <Building2 className="size-3.5" />
+        <Building2 className="size-4" />
         Add a company
       </Button>
 

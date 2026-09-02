@@ -177,6 +177,16 @@ export default async function CompaniesPage({
 
     return (
       <div className="space-y-6">
+        {/* Search is the primary action on this page — prominent, left-aligned */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <CompanySearch
+            trackedCompanyIds={tracked.map((t) => t.companyId)}
+            size="lg"
+            className="sm:max-w-xl"
+          />
+          <AddCompanyModal />
+        </div>
+
         {/* Tab bar */}
         <div className="flex items-end justify-between gap-4 border-b pb-0">
           <div className="flex gap-0">
@@ -192,12 +202,6 @@ export default async function CompaniesPage({
             )}>
               Discover
             </Link>
-          </div>
-          <div className="flex items-center gap-2 pb-2">
-            <CompanySearch
-              trackedCompanyIds={tracked.map((t) => t.companyId)}
-            />
-            <AddCompanyModal />
           </div>
         </div>
 

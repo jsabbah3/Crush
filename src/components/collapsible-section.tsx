@@ -20,16 +20,32 @@ export function CollapsibleSection({
   // Suppress the entry transition on first paint so a persisted-closed section
   // doesn't animate shut on every load — it just starts closed.
   const [ready, setReady] = useState(false);
+  // True once a section is open AND its height transition has finished —
+  // only then is it safe to let content overflow the row (a search dropdown,
+  // a tooltip). Clipped while collapsed or mid-transition so the
+  // collapse/expand animation itself still looks right.
+  const [settled, setSettled] = useState(defaultOpen);
 
   useEffect(() => {
     if (storageKey) {
       const saved = localStorage.getItem(`crush:section:${storageKey}`);
-      if (saved !== null) setOpen(saved === "true");
+      if (saved !== null) {
+        const initial = saved === "true";
+        setOpen(initial);
+        setSettled(initial);
+      }
     }
     // Next frame: allow transitions for user-driven toggles only.
     const id = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(id);
   }, [storageKey]);
+
+  useEffect(() => {
+    if (!ready) return; // initial mount / storage sync — not an animated transition
+    if (!open) { setSettled(false); return; }
+    const id = setTimeout(() => setSettled(true), 260); // matches --dur-med (240ms) + margin
+    return () => clearTimeout(id);
+  }, [open, ready]);
 
   function toggle() {
     setOpen((v) => {
@@ -59,6 +75,7 @@ export function CollapsibleSection({
       <div
         className={`collapse-grid ${ready ? "" : "[transition:none]"}`}
         data-collapsed={!open || undefined}
+        data-settled={settled || undefined}
         aria-hidden={!open}
       >
         <div className="min-w-0">{children}</div>
