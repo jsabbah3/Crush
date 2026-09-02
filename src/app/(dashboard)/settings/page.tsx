@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertSettingsForm } from "@/components/alert-settings-form";
 import { TrackedRoles } from "@/components/tracked-roles";
+import { TrendingRoles } from "@/components/trending-roles";
 import { ResumeUpload } from "@/components/resume-upload";
 import { NetworkImport } from "@/components/network-import";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -79,7 +80,7 @@ export default async function SettingsPage() {
             Role titles and preferences applied globally across all your tracked companies.
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <TrackedRoles
             initialRoles={trackedRoles}
             trackedCount={trackedCount}
@@ -87,6 +88,7 @@ export default async function SettingsPage() {
             initialRemoteOnly={prefs?.remoteOnly ?? null}
             initialLocationFilter={prefs?.locationFilter ?? null}
           />
+          <TrendingRoles trackedTitles={trackedRoles.map((r) => r.title)} />
         </CardContent>
       </Card>
 

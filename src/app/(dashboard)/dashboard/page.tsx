@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, ArrowRight, CheckCircle2, Circle, Building2 } from "lucide-react";
+import { Plus, ArrowRight, CheckCircle2, Circle, Building2, Target } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
 import { CompanySearch } from "@/components/company-search";
 import { TrackedRoles } from "@/components/tracked-roles";
-import { TrendingRoles } from "@/components/trending-roles";
 import { RefreshMatchesButton } from "@/components/refresh-matches-button";
 import { SuggestedRoles } from "@/components/suggested-roles";
 import { ShareWatchlistButton } from "@/components/share-watchlist-button";
@@ -129,7 +128,7 @@ export default async function DashboardPage() {
                   {" "}since your last visit
                 </>
               ) : (
-                <>Watching {tracked.length} {tracked.length === 1 ? "company" : "companies"} — nothing new yet. We&apos;ll email you the moment your role opens.</>
+                <>Watching {tracked.length} {tracked.length === 1 ? "company" : "companies"} — the moment a role matches, you&apos;ll see it here.</>
               )}
             </p>
           )}
@@ -139,13 +138,19 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats strip */}
+      {/* Stats strip — matches gets top billing, it's the reason this tool exists */}
       {tracked.length > 0 && (
         <div className="grid grid-cols-3 gap-3 stagger-children">
+          <div className="animate-rise rounded-xl border-2 border-primary/40 bg-primary/5 px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="font-heading text-3xl font-bold tracking-tight tabular-nums text-primary">{totalMatches.toLocaleString()}</p>
+              <p className="text-xs font-medium text-primary/80 mt-0.5">Total matches</p>
+            </div>
+            <Target className="size-6 text-primary/50 shrink-0" />
+          </div>
           {[
             { label: "Companies watched", value: tracked.length },
             { label: "Open roles", value: openRolesCount.toLocaleString() },
-            { label: "Total matches", value: totalMatches.toLocaleString() },
           ].map(({ label, value }) => (
             <div key={label} className="animate-rise rounded-xl border border-border/60 bg-card px-4 py-3">
               <p className="font-heading text-2xl font-bold tracking-tight tabular-nums">{value}</p>
@@ -222,10 +227,6 @@ export default async function DashboardPage() {
           {trackedRoles.length === 0 && dbUser?.currentTitle && (
             <SuggestedRoles currentTitle={dbUser.currentTitle} />
           )}
-
-          <TrendingRoles
-            trackedTitles={trackedRoles.map((r) => r.title)}
-          />
         </div>
       </CollapsibleSection>
 
