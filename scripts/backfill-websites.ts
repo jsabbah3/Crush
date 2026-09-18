@@ -66,7 +66,7 @@ const TIMEOUT_MS = 8000;
 const TLDS = ["com", "io", "ai", "co"] as const;
 
 /** Strip a company name down to a comparable alphanumeric stem. */
-function nameStem(name: string): string | null {
+export function nameStem(name: string): string | null {
   const cleaned = name
     .toLowerCase()
     .replace(/\(.*?\)/g, "")
@@ -176,19 +176,19 @@ function toOrigin(finalUrl: string): string | null {
  * A single-token name that is also an ordinary English word can't be told apart
  * from an unrelated company of the same name by anything on the page.
  */
-function isCommonWord(name: string, stem: string): boolean {
+export function isCommonWord(name: string, stem: string): boolean {
   const multiWord = name.trim().split(/\s+/).length > 1;
   return !multiWord && DICTIONARY.has(stem);
 }
 
-type Outcome =
-  | { kind: "accepted"; website: string; via: string; title: string }
-  | { kind: "review"; website: string; via: string; title: string }
+export type Outcome =
+  | { kind: "accepted"; website: string; via: string; title: string; siteName: string }
+  | { kind: "review"; website: string; via: string; title: string; siteName: string }
   | { kind: "rejected"; reason: string; domain: string; title: string }
   | { kind: "no-answer" }
   | { kind: "no-candidate" };
 
-async function classify(name: string): Promise<Outcome> {
+export async function classify(name: string): Promise<Outcome> {
   const stem = nameStem(name);
   if (!stem) return { kind: "no-candidate" };
 
@@ -216,8 +216,8 @@ async function classify(name: string): Promise<Outcome> {
       continue;
     }
     return isCommonWord(name, stem)
-      ? { kind: "review", website: origin, via: domain, title: p.title }
-      : { kind: "accepted", website: origin, via: domain, title: p.title };
+      ? { kind: "review", website: origin, via: domain, title: p.title, siteName: p.siteName }
+      : { kind: "accepted", website: origin, via: domain, title: p.title, siteName: p.siteName };
   }
 
   return lastReject ?? { kind: "no-answer" };
@@ -313,4 +313,8 @@ async function main() {
   await prisma.$disconnect();
 }
 
-main().catch(console.error);
+// Guard so importing classify() from another script (resolve-review-websites.ts)
+// doesn't also trigger this file's own main() run as a side effect.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(console.error);
+}
