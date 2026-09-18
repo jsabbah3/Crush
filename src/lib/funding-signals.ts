@@ -8,6 +8,7 @@
 import Parser from "rss-parser";
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/prisma";
+import { CompanySource, FundingStage } from "@/generated/prisma/enums";
 
 const APP_URL = process.env.APP_URL ?? "https://crushco.app";
 
@@ -127,23 +128,26 @@ async function probeAshby(slug: string): Promise<string | null> {
       { signal: AbortSignal.timeout(4000) },
     );
     if (!res.ok) return null;
-    const json = await res.json() as { jobPostings?: unknown[] };
-    return json && "jobPostings" in json ? `https://jobs.ashbyhq.com/${slug}` : null;
+    // posting-api returns { jobs, apiVersion } — NOT jobPostings, which is
+    // the shape of Ashby's GraphQL jobBoardWithTeams query. Testing for the
+    // wrong key here silently failed every Ashby board.
+    const json = await res.json() as { jobs?: unknown[] };
+    return Array.isArray(json?.jobs) ? `https://jobs.ashbyhq.com/${slug}` : null;
   } catch { return null; }
 }
 
 async function detectAts(
   companyName: string,
-): Promise<{ type: string; slug: string; url: string } | null> {
+): Promise<{ type: CompanySource; slug: string; url: string } | null> {
   for (const slug of slugCandidates(companyName)) {
     const [gh, lv, ash] = await Promise.all([
       probeGreenhouse(slug),
       probeLever(slug),
       probeAshby(slug),
     ]);
-    if (gh)  return { type: "greenhouse", slug, url: gh };
-    if (lv)  return { type: "lever",      slug, url: lv };
-    if (ash) return { type: "ashby",      slug, url: ash };
+    if (gh)  return { type: CompanySource.greenhouse, slug, url: gh };
+    if (lv)  return { type: CompanySource.lever,      slug, url: lv };
+    if (ash) return { type: CompanySource.ashby,      slug, url: ash };
   }
   return null;
 }
@@ -171,11 +175,11 @@ function parseRound(round: string): RoundStage {
   return "unknown";
 }
 
-function toPrismaFundingStage(stage: RoundStage): string | null {
-  const map: Record<string, string> = {
-    pre_seed: "pre_seed", seed: "seed",
-    series_a: "series_a", series_b: "series_b",
-    series_c_plus: "series_c", growth: "growth",
+function toPrismaFundingStage(stage: RoundStage): FundingStage | null {
+  const map: Record<string, FundingStage> = {
+    pre_seed: FundingStage.pre_seed, seed: FundingStage.seed,
+    series_a: FundingStage.series_a, series_b: FundingStage.series_b,
+    series_c_plus: FundingStage.series_c, growth: FundingStage.growth,
   };
   return map[stage] ?? null;
 }
@@ -286,7 +290,7 @@ function shouldQueue(stage: RoundStage, tier1: boolean): boolean {
 
 async function createOrUpdateCompany(
   parsed: ParsedFunding,
-  ats: { type: string; slug: string; url: string },
+  ats: { type: CompanySource; slug: string; url: string },
   signalId: string,
 ) {
   const slug = toSlug(parsed.companyName);
@@ -297,15 +301,15 @@ async function createOrUpdateCompany(
     create: {
       name: parsed.companyName,
       slug,
-      sourceType: ats.type as any,
+      sourceType: ats.type,
       sourceId: ats.slug,
-      fundingStage: fundingStage as any,
+      fundingStage,
       recentlyFundedAt: new Date(),
     },
     update: {
-      fundingStage: fundingStage as any,
+      fundingStage,
       recentlyFundedAt: new Date(),
-      sourceType: ats.type as any,
+      sourceType: ats.type,
       sourceId: ats.slug,
     },
   });
@@ -374,9 +378,9 @@ export async function runFundingSignalIngest(): Promise<FundingIngestResult> {
           where: { id: existingCompany.id },
           data: {
             recentlyFundedAt: new Date(),
-            ...(fundingStage && { fundingStage: fundingStage as any }),
+            ...(fundingStage && { fundingStage }),
             ...(ats && !existingCompany.sourceId && {
-              sourceType: ats.type as any,
+              sourceType: ats.type,
               sourceId: ats.slug,
             }),
           },

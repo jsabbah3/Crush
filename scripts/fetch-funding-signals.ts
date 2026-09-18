@@ -139,9 +139,11 @@ async function probeAshby(slug: string): Promise<string | null> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
     if (!res.ok) return null;
-    const json = await res.json() as { jobPostings?: unknown[] };
-    // Valid Ashby boards return an object with jobPostings array
-    if (json && typeof json === "object" && "jobPostings" in json) {
+    // posting-api returns { jobs, apiVersion } — NOT jobPostings, which is
+    // the shape of Ashby's GraphQL jobBoardWithTeams query. Testing for the
+    // wrong key here silently failed every Ashby board.
+    const json = await res.json() as { jobs?: unknown[] };
+    if (Array.isArray(json?.jobs)) {
       return `https://jobs.ashbyhq.com/${slug}`;
     }
   } catch { /* ignore */ }
@@ -411,7 +413,6 @@ async function main() {
   let newSignals = 0;
   let autoApproved = 0;
   let queued = 0;
-  let skipped = 0;
 
   for (const feedUrl of RSS_FEEDS) {
     console.log(`\nParsing feed: ${feedUrl}`);
@@ -544,7 +545,6 @@ async function main() {
   New signals processed : ${newSignals}
   Auto-approved         : ${autoApproved}
   Queued for review     : ${queued}
-  Skipped               : ${skipped}
 ─────────────────────────────`);
 
   if (queued > 0) {
