@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { ExternalLink, ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { Badge } from "@/components/ui/badge";
 import { StatusPicker, STATUS_CONFIG, type AppStatus } from "@/components/status-picker";
 import { ApplicationStatus } from "@/generated/prisma/enums";
 
@@ -17,16 +16,6 @@ const ACTIVE_STATUSES: ApplicationStatus[] = [
   ApplicationStatus.OFFER,
   ApplicationStatus.REJECTED,
 ];
-
-function StatusBadge({ status }: { status: AppStatus }) {
-  const cfg = STATUS_CONFIG[status];
-  return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${cfg.text}`}>
-      <span className={`size-1.5 rounded-full ${cfg.dot}`} />
-      {cfg.label}
-    </span>
-  );
-}
 
 export default async function ApplicationsPage() {
   const supabase = await createClient();
@@ -58,7 +47,7 @@ export default async function ApplicationsPage() {
       <div>
         <h1 className="font-heading text-3xl font-bold tracking-tight">Applications</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Everything you've applied to or are in process with
+          Everything you&apos;ve applied to or are in process with
         </p>
       </div>
 
@@ -84,7 +73,7 @@ export default async function ApplicationsPage() {
           <ClipboardList className="size-10 text-muted-foreground/40" />
           <p className="font-medium">No applications yet</p>
           <p className="text-sm text-muted-foreground max-w-xs">
-            When you mark a matched job as Applied, Interviewing, or Offer, it'll appear here.
+            When you mark a matched job as Applied, Interviewing, or Offer, it&apos;ll appear here.
           </p>
           <Link
             href="/matches"

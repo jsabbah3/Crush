@@ -56,7 +56,7 @@ ${resumeText.slice(0, 4000)}`,
   return NextResponse.json(parsed);
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

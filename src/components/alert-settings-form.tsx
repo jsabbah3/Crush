@@ -92,7 +92,7 @@ export function AlertSettingsForm({ alertMode: initialMode, alertsPaused: initia
       {paused && (
         <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-3">
           <p className="text-xs text-amber-800">
-            All email alerts are paused. You'll still see matches in your dashboard.
+            All email alerts are paused. You&apos;ll still see matches in your dashboard.
           </p>
           <Button
             size="sm"

@@ -265,7 +265,6 @@ async function upsertCompany({
 // ── platform runner ───────────────────────────────────────────────────────────
 
 async function runPlatform({
-  label,
   sourceType,
   getSlugs,
   getName,

@@ -34,10 +34,18 @@ async function probeAts(type: AtsType, slug: string): Promise<number | null> {
     };
     const res = await fetchWithTimeout(urls[type]);
     if (!res.ok) return null;
-    const data = await res.json() as any;
-    if (type === "greenhouse") return Array.isArray(data.jobs) ? data.jobs.length : null;
+    // Greenhouse and Ashby's posting-api both nest under `jobs`; Lever and
+    // Gem return a bare array.
+    const data: unknown = await res.json();
+    const jobsLength = (): number | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const value = (data as Record<string, unknown>).jobs;
+      return Array.isArray(value) ? value.length : null;
+    };
+
+    if (type === "greenhouse") return jobsLength();
+    if (type === "ashby")      return jobsLength();
     if (type === "lever")      return Array.isArray(data) ? data.length : null;
-    if (type === "ashby")      return Array.isArray(data.jobs) ? data.jobs.length : null;
     if (type === "gem")        return Array.isArray(data) ? data.length : null;
     return null;
   } catch {

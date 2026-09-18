@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { JobCard } from "@/components/job-card";
-import { type AppStatus } from "@/components/status-picker";
 import { CompanyLogo } from "@/components/company-logo";
 import Link from "next/link";
 

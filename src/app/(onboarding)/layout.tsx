@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { skipOnboarding } from "@/app/actions/onboarding";
 import { Button } from "@/components/ui/button";
 import { AnonTrackingReplay } from "@/components/anon-tracking-replay";

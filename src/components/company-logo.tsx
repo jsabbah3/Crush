@@ -30,7 +30,7 @@ function extractDomain(website: string | null): string | null {
 }
 
 // Try multiple logo sources in order, falling back to next on error
-function logoUrls(website: string | null, name: string): string[] {
+function logoUrls(website: string | null): string[] {
   const domain = extractDomain(website);
   const urls: string[] = [];
 
@@ -53,7 +53,7 @@ export function CompanyLogo({
   className?: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const sources = logoUrls(website, name);
+  const sources = logoUrls(website);
   const [srcIndex, setSrcIndex] = useState(0);
   const color = colorFor(name);
   const initial = name.charAt(0).toUpperCase();

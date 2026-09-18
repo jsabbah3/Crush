@@ -78,7 +78,7 @@ export function AddCompanyModal() {
               <div>
                 <h2 className="font-semibold text-base">Add a company</h2>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  We'll detect their job board and pull open roles automatically.
+                  We&apos;ll detect their job board and pull open roles automatically.
                 </p>
               </div>
               <button onClick={handleClose} className="text-muted-foreground hover:text-foreground transition-colors mt-0.5">

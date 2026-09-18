@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { AlertMode } from "@/generated/prisma/enums";
 import { trackServerEvent } from "@/lib/analytics-node";
+import { emailLink } from "@/lib/email-links";
 
 // Lazily constructed: the Resend constructor throws on a missing key, so a
 // module-level `new Resend()` made `next build` require RESEND_API_KEY at
@@ -237,12 +238,6 @@ async function sendEmail({
   return !error;
 }
 
-function emailLink(dest: string, uid: string, type: string, utm: string): string {
-  const utmDest = `${dest}${dest.includes("?") ? "&" : "?"}utm_source=email&utm_medium=email&utm_campaign=${type}`;
-  const wrapped = `${APP_URL}/api/email/click?uid=${uid}&type=${type}&url=${encodeURIComponent(utmDest)}`;
-  return wrapped;
-}
-
 function buildHtml(
   name: string,
   matches: MatchRow[],
@@ -252,16 +247,16 @@ function buildHtml(
   networkByCompanyId: Map<string, number> = new Map(),
 ): string {
   const pauseUrl = `${APP_URL}/api/unsubscribe?token=${token}`;
-  const settingsUrl = emailLink(`${APP_URL}/settings`, userId, emailType, "settings");
-  const matchesUrl = emailLink(`${APP_URL}/matches`, userId, emailType, "view_matches");
+  const settingsUrl = emailLink(`${APP_URL}/settings`, userId, emailType);
+  const matchesUrl = emailLink(`${APP_URL}/matches`, userId, emailType);
   const pixelUrl = `${APP_URL}/api/email/pixel?uid=${userId}&type=${emailType}`;
 
   const jobCards = matches.map((m) => {
     const loc = m.job.remote ? "Remote" : (m.job.location ?? "On-site");
     const rawUrl = m.job.url ?? `${APP_URL}/matches`;
-    const applyUrl = emailLink(rawUrl, userId, emailType, "apply");
+    const applyUrl = emailLink(rawUrl, userId, emailType);
     const networkCount = networkByCompanyId.get(m.trackedCompany.company.id) ?? 0;
-    const networkUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}#network`, userId, emailType, "network");
+    const networkUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}#network`, userId, emailType);
     const networkLine = networkCount > 0
       ? `<p style="margin:0 0 10px;font-size:13px;color:#374151;">You know <strong>${networkCount} ${networkCount === 1 ? "person" : "people"}</strong> here — <a href="${networkUrl}" style="color:#111111;font-weight:600;">see who →</a></p>`
       : "";

@@ -73,7 +73,6 @@ async function findBetterAts(
   name: string,
   website: string | null,
   currentType: AtsType,
-  currentSlug: string,
 ): Promise<{ type: AtsType; slug: string; count: number } | null> {
   const candidates = slugCandidates(name);
   const otherTypes = (["greenhouse", "lever", "ashby", "gem"] as AtsType[]).filter(t => t !== currentType);
@@ -118,7 +117,7 @@ async function main() {
     if (count === null) {
       broken.push(company);
       if (FIX) {
-        const better = await findBetterAts(company.name, company.website, type, slug);
+        const better = await findBetterAts(company.name, company.website, type);
         if (better) {
           await prisma.company.update({
             where: { id: company.id },

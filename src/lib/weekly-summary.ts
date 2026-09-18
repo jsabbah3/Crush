@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { trackServerEvent } from "@/lib/analytics-node";
+import { emailLink } from "@/lib/email-links";
 
 // Lazily constructed — see notifications.ts: a module-level Resend client
 // makes the build require RESEND_API_KEY, which it shouldn't.
@@ -197,11 +198,6 @@ export async function sendWeeklySummary(): Promise<{
 }
 
 // ─── Email builder ────────────────────────────────────────────────────────────
-
-function emailLink(dest: string, uid: string, type: string): string {
-  const utmDest = `${dest}${dest.includes("?") ? "&" : "?"}utm_source=email&utm_medium=email&utm_campaign=${type}`;
-  return `${APP_URL}/api/email/click?uid=${uid}&type=${type}&url=${encodeURIComponent(utmDest)}`;
-}
 
 function buildEmailPayload(p: WeeklyPayload) {
   const name = p.user.name ?? "there";

@@ -73,7 +73,7 @@ export async function addCustomCompany(
   const atsMatch = await detectAts(trimName, websiteUrl);
 
   // Build unique slug
-  let baseSlug = toSlug(trimName);
+  const baseSlug = toSlug(trimName);
   let slug = baseSlug;
   let suffix = 2;
   while (await prisma.company.findUnique({ where: { slug } })) {

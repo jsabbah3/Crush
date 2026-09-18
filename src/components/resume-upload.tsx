@@ -16,11 +16,9 @@ type TrackedRole = { id: string; title: string };
 
 export function ResumeUpload({
   initialResumeText,
-  userId,
   initialTrackedRoles = [],
 }: {
   initialResumeText: string | null;
-  userId: string;
   initialTrackedRoles?: TrackedRole[];
 }) {
   const router = useRouter();

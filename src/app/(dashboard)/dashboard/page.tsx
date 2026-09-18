@@ -92,8 +92,6 @@ export default async function DashboardPage() {
   const showCollections = tracked.length < 5;
   const openRolesCount = tracked.reduce((sum, tc) => sum + (tc.company._count?.jobs ?? 0), 0);
 
-  // If no matches from followed companies but user has tracked roles,
-  // surface discovery jobs from the broader job board
   const trackedCompanyIds = tracked.map((tc) => tc.companyId);
 
   // Build location filter: respect remoteOnly + locationFilter prefs
@@ -241,7 +239,7 @@ export default async function DashboardPage() {
             Search for a company to start watching it. We&apos;ll check for a job board automatically.
           </p>
           <CompanySearch
-            trackedCompanyIds={tracked.map((tc) => tc.companyId)}
+            trackedCompanyIds={trackedCompanyIds}
           />
         </div>
       </CollapsibleSection>
