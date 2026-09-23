@@ -161,6 +161,7 @@ model CollectionCompany {
   company    Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@id([collectionId, companyId])
+  @@index([companyId])
   @@map("collection_companies")
 }
 
@@ -274,6 +275,7 @@ model CompanyInsight {
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  @@index([companyId])
   @@map("company_insights")
 }
 
