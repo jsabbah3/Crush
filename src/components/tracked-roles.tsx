@@ -166,7 +166,7 @@ export function TrackedRoles({
     });
   }
 
-  const pillBase = "rounded-[3px] px-2.5 py-1 text-xs font-medium border transition-colors cursor-pointer";
+  const pillBase = " px-2.5 py-1 text-xs font-medium border transition-colors cursor-pointer";
   const pillActive = "border-foreground bg-foreground text-background";
   const pillInactive = "border-foreground/20 bg-paper text-muted-foreground hover:border-foreground/45 hover:text-foreground";
 
@@ -243,7 +243,7 @@ export function TrackedRoles({
             {roles.map((role) => (
               <span
                 key={role.id}
-                className="inline-flex items-center gap-1 rounded-[3px] border border-airmail/40 bg-airmail-soft px-2 py-0.5 text-xs font-semibold text-airmail"
+                className="inline-flex items-center gap-1 border border-graphite/40 bg-wash px-2 py-0.5 text-xs font-semibold text-graphite"
               >
                 {role.title}
                 <button

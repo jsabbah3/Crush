@@ -9,11 +9,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-archivo);
   --font-mono: var(--font-plex-mono);
-  --font-heading: var(--font-besley);
-  --font-hand: var(--font-reenie);
+  --font-heading: var(--font-newsreader);
   --color-paper: var(--paper);
-  --color-airmail: var(--airmail);
-  --color-airmail-soft: var(--airmail-soft);
+  --color-graphite: var(--graphite);
+  --color-wash: var(--wash);
   --color-note: var(--note);
   --color-note-foreground: var(--note-foreground);
   --color-kraft: var(--kraft);
@@ -62,89 +61,83 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --ease-settle: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-thunk: cubic-bezier(0.2, 1.6, 0.4, 1);
   --animate-rise: rise var(--dur-med) var(--ease-settle) both;
   --animate-shimmer: shimmer 1.3s linear infinite;
-  --animate-thunk: thunk 380ms var(--ease-thunk) both;
 }
 
-/* ── Crush "Par Avion" ────────────────────────────────────────────────────
-   The product is a letter: you tell us who you have a crush on, and we write
-   the moment they're ready for you. So the interface is correspondence —
-   airmail-blue paper, fountain-pen ink, postal red, stamps and postmarks.
+/* ── Crush "The Shortlist" ────────────────────────────────────────────────
+   Crush is a short list: the handful of companies you'd actually leave for,
+   watched every morning. So the interface reads like the hot list in a weekly
+   magazine — cream newsprint, warm black ink, ranked numbers, hairline rules.
 
-   Red is the letter arriving. It marks a match, a new alert, and the one
-   primary action on a screen — never decoration. Blue is structure.
+   Vermilion is the only colour. It marks a match, something new, and the one
+   primary action on a screen — never decoration. Everything else is ink.
 
-   .paper-light re-declares the daylight inks on any element: a stamp or a
-   letter is white paper whatever the theme, so its contents keep dark ink
-   in Night post instead of inheriting pale text onto a white sheet.        */
+   .paper-light re-declares the daylight inks on any element that must stay
+   light whatever the theme (logo tiles: favicons are drawn for white).      */
 :root,
 .paper-light {
-  /* Canvas: pale airmail paper. Cards are the warmer white of an envelope. */
-  --background: oklch(0.972 0.008 255);
-  --foreground: oklch(0.24 0.06 266);        /* fountain-pen blue-black */
-  --paper: oklch(0.995 0.004 95);
+  /* Newsprint. Cards are a sheet lighter than the page. */
+  --background: oklch(0.966 0.013 84);
+  --foreground: oklch(0.2 0.012 62);         /* warm black ink */
+  --paper: oklch(0.987 0.007 88);
 
   --card: var(--paper);
   --card-foreground: var(--foreground);
   --popover: var(--paper);
   --popover-foreground: var(--foreground);
 
-  /* Postal red — signal only. */
-  --primary: oklch(0.62 0.2 38);
-  --primary-deep: oklch(0.52 0.18 36);
-  --primary-foreground: oklch(0.995 0.004 95);
+  /* Vermilion — signal only. */
+  --primary: oklch(0.615 0.205 37);
+  --primary-deep: oklch(0.52 0.185 35);
+  --primary-foreground: oklch(0.985 0.008 88);
 
-  /* Airmail blue — structure, links-at-rest, "applied", your network. */
-  --airmail: oklch(0.45 0.165 262);
-  --airmail-soft: oklch(0.935 0.028 258);
+  /* Graphite — the second ink: kickers at rest, "applied", your network. */
+  --graphite: oklch(0.43 0.016 62);
+  --wash: oklch(0.935 0.014 80);
 
-  --secondary: oklch(0.945 0.016 257);
+  --secondary: oklch(0.94 0.013 82);
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.945 0.016 257);
-  --muted-foreground: oklch(0.49 0.045 264);
-  --accent: oklch(0.925 0.024 257);
+  --muted: oklch(0.94 0.013 82);
+  --muted-foreground: oklch(0.47 0.016 62);
+  --accent: oklch(0.925 0.016 80);
   --accent-foreground: var(--foreground);
 
-  --destructive: oklch(0.52 0.2 22);
+  --destructive: oklch(0.52 0.2 25);
 
-  --border: oklch(0.875 0.024 260);
-  --input: oklch(0.875 0.024 260);
-  --ring: var(--airmail);
+  --border: oklch(0.86 0.016 78);
+  --input: oklch(0.84 0.016 78);
+  --ring: var(--foreground);
 
   --chart-1: var(--foreground);
-  --chart-2: var(--airmail);
+  --chart-2: var(--graphite);
   --chart-3: var(--primary);
-  --chart-4: oklch(0.72 0.05 260);
-  --chart-5: oklch(0.88 0.024 260);
+  --chart-4: oklch(0.7 0.014 70);
+  --chart-5: oklch(0.86 0.014 78);
 
-  /* A red-pencil note in the margin: "3 new". */
-  --note: oklch(0.95 0.035 45);
-  --note-foreground: oklch(0.5 0.17 38);
+  /* A highlighter swipe: "3 new". */
+  --note: oklch(0.94 0.045 50);
+  --note-foreground: oklch(0.5 0.17 37);
 
-  /* Kraft — parcels, tags, the manila of an office envelope. */
-  --kraft: oklch(0.74 0.075 72);
-  --kraft-soft: oklch(0.93 0.035 80);
+  /* Tan — tags, the manila of a file folder. */
+  --kraft: oklch(0.74 0.06 72);
+  --kraft-soft: oklch(0.93 0.03 80);
 
-  /* Status inks */
-  --moss: oklch(0.36 0.03 264);              /* hiring / approved */
-  --moss-soft: oklch(0.94 0.012 257);
-  --clay: oklch(0.5 0.07 55);                /* returned to sender */
-  --clay-soft: oklch(0.935 0.025 70);
+  /* Status inks — deliberately not green: ink for "good", clay for "no". */
+  --moss: oklch(0.3 0.014 62);
+  --moss-soft: oklch(0.93 0.012 80);
+  --clay: oklch(0.5 0.06 55);
+  --clay-soft: oklch(0.935 0.022 70);
 
-  /* Full-bleed contrast band */
-  --ink-band: oklch(0.32 0.13 264);
-  --ink-band-foreground: oklch(0.97 0.01 255);
+  /* Full-bleed black band */
+  --ink-band: oklch(0.2 0.012 62);
+  --ink-band-foreground: oklch(0.96 0.012 85);
 
-  /* Paper is cut, not moulded. */
-  --radius: 0.25rem;
+  /* Newsprint is cut square. */
+  --radius: 0.125rem;
 
   --dur-fast: 140ms;
   --dur-med: 240ms;
-
-  /* Edge rule: plain ink. */
-  --stripe: linear-gradient(var(--foreground), var(--foreground));
 
   --sidebar: var(--paper);
   --sidebar-foreground: var(--foreground);
@@ -156,45 +149,45 @@
   --sidebar-ring: var(--ring);
 }
 
-/* Night post: the sorting office after dark. Navy, never grey. */
+/* Late edition: the same page under a reading lamp. Warm black, never blue. */
 .dark {
-  --background: oklch(0.185 0.045 266);
-  --foreground: oklch(0.94 0.014 255);
-  --paper: oklch(0.235 0.052 266);
+  --background: oklch(0.165 0.008 62);
+  --foreground: oklch(0.935 0.014 85);
+  --paper: oklch(0.205 0.009 62);
 
-  --primary: oklch(0.71 0.17 45);
-  --primary-deep: oklch(0.58 0.17 40);
-  --primary-foreground: oklch(0.17 0.04 266);
+  --primary: oklch(0.7 0.175 42);
+  --primary-deep: oklch(0.6 0.17 39);
+  --primary-foreground: oklch(0.16 0.01 62);
 
-  --airmail: oklch(0.74 0.115 258);
-  --airmail-soft: oklch(0.3 0.075 264);
+  --graphite: oklch(0.78 0.014 80);
+  --wash: oklch(0.245 0.01 62);
 
-  --secondary: oklch(0.275 0.055 266);
-  --muted: oklch(0.265 0.052 266);
-  --muted-foreground: oklch(0.73 0.04 260);
-  --accent: oklch(0.3 0.06 266);
+  --secondary: oklch(0.24 0.01 62);
+  --muted: oklch(0.235 0.01 62);
+  --muted-foreground: oklch(0.72 0.014 80);
+  --accent: oklch(0.26 0.011 62);
 
-  --destructive: oklch(0.68 0.19 25);
+  --destructive: oklch(0.68 0.19 28);
 
-  --border: oklch(0.335 0.058 266);
-  --input: oklch(0.335 0.058 266);
+  --border: oklch(0.31 0.011 62);
+  --input: oklch(0.34 0.011 62);
 
-  --chart-4: oklch(0.5 0.06 262);
-  --chart-5: oklch(0.36 0.058 266);
+  --chart-4: oklch(0.5 0.012 70);
+  --chart-5: oklch(0.34 0.01 62);
 
-  --note: oklch(0.33 0.08 42);
-  --note-foreground: oklch(0.84 0.1 50);
+  --note: oklch(0.32 0.07 42);
+  --note-foreground: oklch(0.84 0.11 50);
 
-  --kraft: oklch(0.66 0.07 72);
-  --kraft-soft: oklch(0.31 0.04 75);
+  --kraft: oklch(0.66 0.055 72);
+  --kraft-soft: oklch(0.3 0.03 75);
 
-  --moss: oklch(0.86 0.02 255);
-  --moss-soft: oklch(0.29 0.04 266);
-  --clay: oklch(0.74 0.07 60);
-  --clay-soft: oklch(0.3 0.035 65);
+  --moss: oklch(0.88 0.014 85);
+  --moss-soft: oklch(0.27 0.01 62);
+  --clay: oklch(0.74 0.06 60);
+  --clay-soft: oklch(0.3 0.03 65);
 
-  --ink-band: oklch(0.255 0.075 266);
-  --ink-band-foreground: oklch(0.94 0.014 255);
+  --ink-band: oklch(0.12 0.006 62);
+  --ink-band-foreground: oklch(0.935 0.014 85);
 }
 
 @layer base {
@@ -214,7 +207,7 @@
     inset: 0;
     z-index: 60;
     pointer-events: none;
-    opacity: 0.055;
+    opacity: 0.04;
     mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
   }
@@ -237,7 +230,7 @@
 @layer utilities {
   /* ── Type voices ─────────────────────────────────────────────────────── */
 
-  /* Rubber-stamp / sorting-label caps: Archivo squeezed to its narrow width. */
+  /* Small caps label: Archivo squeezed to its narrow width. */
   .label-caps {
     font-family: var(--font-archivo);
     font-stretch: 72%;
@@ -247,100 +240,82 @@
     letter-spacing: 0.13em;
     text-transform: uppercase;
   }
-  /* Ballpoint in the margin. Sized up — the face runs small. */
-  .hand {
-    font-family: var(--font-reenie);
-    font-size: 1.5em;
-    line-height: 0.95;
-    letter-spacing: 0.005em;
-  }
-
-  /* ── Airmail edge ────────────────────────────────────────────────────── */
-  .airmail-rule {
-    height: 2px;
-    background: var(--stripe);
-  }
-  /* A chevron border that still respects border-radius. */
-  .airmail-frame {
-    border: 2px solid transparent;
-    background:
-      linear-gradient(var(--paper), var(--paper)) padding-box,
-      var(--stripe) border-box,
-      linear-gradient(var(--paper), var(--paper)) border-box;
-  }
-
-  /* ── Postage stamp ───────────────────────────────────────────────────────
-     Perforations are bitten out of the edge with a mask: a solid centre plus
-     a grid of holes whose centres sit exactly on the border. Size the element
-     in multiples of --perf so the holes meet cleanly at the corners.       */
-  .stamp {
-    --perf: 8px;
-    --hole: 2.4px;
-    background: var(--paper);
-    color: var(--foreground);
-    padding: calc(var(--perf) * 0.75);
-    -webkit-mask:
-      linear-gradient(#000 0 0) center / calc(100% - var(--perf)) calc(100% - var(--perf)) no-repeat,
-      radial-gradient(circle at center, #0000 var(--hole), #000 calc(var(--hole) + 0.6px))
-        calc(var(--perf) / -2) calc(var(--perf) / -2) / var(--perf) var(--perf) round;
-    mask:
-      linear-gradient(#000 0 0) center / calc(100% - var(--perf)) calc(100% - var(--perf)) no-repeat,
-      radial-gradient(circle at center, #0000 var(--hole), #000 calc(var(--hole) + 0.6px))
-        calc(var(--perf) / -2) calc(var(--perf) / -2) / var(--perf) var(--perf) round;
-  }
-  /* The mask clips box-shadow, so depth comes from a filter on the parent. */
-  .stamp-lift {
-    filter: drop-shadow(0 1px 0.5px oklch(0.24 0.06 266 / 0.22))
-      drop-shadow(0 3px 6px oklch(0.24 0.06 266 / 0.1));
-  }
-  .dark .stamp-lift {
-    filter: drop-shadow(0 2px 4px oklch(0 0 0 / 0.45));
-  }
-
-  /* ── Rubber stamp ────────────────────────────────────────────────────── */
-  .rubber {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35em;
-    padding: 0.32em 0.55em 0.28em;
-    border: 1.5px solid currentColor;
-    border-radius: 2px;
+  /* Kicker: the small red caps over a magazine headline. */
+  .kicker {
     font-family: var(--font-archivo);
     font-stretch: 72%;
     font-weight: 700;
     font-size: 0.6875rem;
     line-height: 1;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.13em;
     text-transform: uppercase;
-    white-space: nowrap;
-    transform: rotate(var(--tilt, -3deg));
-    /* An unevenly inked pad. */
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.55'/%3E%3C/filter%3E%3Crect width='120' height='60' filter='url(%23r)'/%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.55'/%3E%3C/filter%3E%3Crect width='120' height='60' filter='url(%23r)'/%3E%3C/svg%3E");
+    color: var(--primary);
   }
 
-  /* ── Paper surfaces ──────────────────────────────────────────────────── */
+  /* Rank numerals: 01, 02 … in the display face. */
+  .rank {
+    font-family: var(--font-newsreader);
+    font-style: italic;
+    font-weight: 500;
+    font-variant-numeric: lining-nums;
+    line-height: 1;
+  }
+
+  /* ── Rules ───────────────────────────────────────────────────────────── */
+  /* The masthead double rule: thick over thin. */
+  .rule-double {
+    height: 6px;
+    border-top: 3px solid var(--foreground);
+    border-bottom: 1px solid var(--foreground);
+  }
+  /* A boxed item: hairline sides, heavy head rule. */
+  .frame {
+    background: var(--paper);
+    border: 1px solid var(--foreground);
+    border-top-width: 4px;
+  }
+  /* Table-of-contents dot leaders between a name and its number. */
+  .leader {
+    flex: 1 1 auto;
+    min-width: 1.5rem;
+    align-self: baseline;
+    border-bottom: 1.5px dotted color-mix(in oklab, var(--foreground) 35%, transparent);
+    transform: translateY(-0.28em);
+  }
+
+  /* ── Logo tile ───────────────────────────────────────────────────────── */
+  .tile {
+    background: #fff;
+    border: 1px solid color-mix(in oklab, var(--foreground) 16%, transparent);
+  }
+
+  /* ── Tag ──────────────────────────────────────────────────────────────── */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.34em 0.5em 0.3em;
+    border: 1px solid currentColor;
+    font-family: var(--font-archivo);
+    font-stretch: 72%;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .tag-solid {
+    background: currentColor;
+  }
+  .tag-solid > * {
+    color: var(--primary-foreground);
+  }
+
+  /* ── Surfaces ────────────────────────────────────────────────────────── */
   .sheet {
     background: var(--paper);
     border: 1px solid var(--border);
-    box-shadow:
-      0 1px 0 oklch(0.24 0.06 266 / 0.04),
-      0 8px 24px -12px oklch(0.24 0.06 266 / 0.18);
-  }
-  .dark .sheet {
-    box-shadow: 0 10px 30px -14px oklch(0 0 0 / 0.6);
-  }
-  /* Ruled writing paper: a feint line every 1.75rem, like a letter pad. */
-  .ruled {
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent 0 calc(1.75rem - 1px),
-      color-mix(in oklab, var(--airmail) 16%, transparent) calc(1.75rem - 1px) 1.75rem
-    );
-  }
-  /* Tear-off perforation between sections of a form. */
-  .tear {
-    border-top: 2px dashed color-mix(in oklab, var(--foreground) 22%, transparent);
   }
 
   /* ── Motion ──────────────────────────────────────────────────────────── */
@@ -360,31 +335,14 @@
   .stagger-children > :nth-child(7) { animation-delay: 180ms; }
   .stagger-children > :nth-child(8) { animation-delay: 210ms; }
 
-  /* A stamp coming down on the pad: arrives big and skewed, lands with a bounce. */
-  @keyframes thunk {
-    0% { opacity: 0; transform: scale(1.9) rotate(calc(var(--tilt, -3deg) - 9deg)); }
-    55% { opacity: 1; }
-    100% { opacity: 1; transform: scale(1) rotate(var(--tilt, -3deg)); }
+  /* A new line on the list: slides in under the rule. */
+  @keyframes slot-in {
+    from { opacity: 0; transform: translateY(-6px); background-color: var(--note); }
+    60% { opacity: 1; transform: none; background-color: var(--note); }
+    to { opacity: 1; transform: none; background-color: transparent; }
   }
-  .animate-thunk {
-    animation: thunk 380ms var(--ease-thunk) both;
-  }
-
-  /* The letter coming out of its envelope. */
-  @keyframes letter-out {
-    from { transform: translateY(46%) rotate(var(--tilt, 0deg)); }
-    to { transform: translateY(0) rotate(var(--tilt, 0deg)); }
-  }
-  @keyframes drop-in {
-    from { opacity: 0; transform: translateY(-28px) rotate(calc(var(--tilt, 0deg) + 5deg)); }
-    to { opacity: 1; transform: translateY(0) rotate(var(--tilt, 0deg)); }
-  }
-  @keyframes draw {
-    to { stroke-dashoffset: 0; }
-  }
-  @keyframes drift {
-    0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
-    50% { transform: translateY(-7px) rotate(calc(var(--tilt, 0deg) + 0.6deg)); }
+  .animate-slot {
+    animation: slot-in 900ms var(--ease-settle) both;
   }
 
   @keyframes shimmer {

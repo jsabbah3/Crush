@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, LayoutGrid, Mail, Settings, LogOut, Layers, BookOpen } from "lucide-react";
+import { Building2, CircleDot, LayoutGrid, Settings, LogOut, Layers, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/app/actions/auth";
 import { ThemeToggleButton } from "@/components/theme-toggle";
-import { AirmailRule, Wordmark } from "@/components/brand";
+import { Rule, Wordmark } from "@/components/brand";
 import { cn } from "@/lib/utils";
 
 type UserProps = {
@@ -27,7 +27,7 @@ const navLinks = [
   { href: "/dashboard",    label: "Dashboard",    icon: LayoutGrid,    badge: false },
   { href: "/companies",    label: "Companies",    icon: Building2,    badge: false },
   { href: "/collections",  label: "Collections",  icon: Layers,       badge: false },
-  { href: "/matches",      label: "Matches",      icon: Mail,         badge: true  },
+  { href: "/matches",      label: "Matches",      icon: CircleDot,    badge: true  },
   { href: "/blog",         label: "Blog",         icon: BookOpen,     badge: false },
 ];
 
@@ -46,9 +46,8 @@ export function DashboardNav({
 
   return (
     <>
-      <AirmailRule />
       {/* ── Top nav (desktop) ── */}
-      <header className="sticky top-0 z-20 border-b border-foreground/10 bg-background/90 backdrop-blur">
+      <header className="sticky top-0 z-20 bg-background/92 backdrop-blur">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-4 sm:px-6 h-14">
           <div className="flex items-center gap-4 sm:gap-6">
             <Link
@@ -138,6 +137,7 @@ export function DashboardNav({
             </DropdownMenu>
           </div>
         </div>
+        <Rule />
       </header>
 
       {/* ── Bottom nav (mobile only) ── */}

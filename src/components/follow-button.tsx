@@ -66,7 +66,7 @@ export function FollowButton({
 
       if (next) {
         toast.success(`${company.name} is on your list`, {
-          description: "We'll write the day a role that fits you opens there.",
+          description: "We'll email you the day a role that fits you opens there.",
         });
       }
       router.refresh();

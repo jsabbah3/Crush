@@ -75,7 +75,7 @@ export default async function BlogPostPage({ params }: Props) {
           Track the companies you&apos;d actually leave for
         </p>
         <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
-          Crush watches your shortlist and writes to you the day your exact role opens. One letter, nothing else.
+          Crush watches your shortlist and emails you the day your exact role opens. One email, nothing else.
         </p>
         <Link
           href="/companies"

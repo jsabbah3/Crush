@@ -47,7 +47,7 @@ export function FollowingList({
 }) {
   if (tracked.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 rounded-[4px] border border-dashed border-foreground/25 py-20 text-center">
+      <div className="flex flex-col items-center justify-center gap-2 border border-dashed border-foreground/25 py-20 text-center">
         <p className="font-heading text-xl font-extrabold tracking-[-0.02em]">Your list is empty</p>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           Search above for a company you&apos;d actually leave for, or open Discover to browse.
@@ -64,7 +64,7 @@ export function FollowingList({
         return (
           <div
             key={trackedId}
-            className="group relative flex flex-col gap-3 rounded-[4px] border border-border bg-card p-4 transition-[border-color,box-shadow,transform] duration-200 ease-[var(--ease-settle)] hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-[0_10px_24px_-14px_oklch(0.24_0.06_266/0.35)]"
+            className="group relative flex flex-col gap-3 border border-border bg-card p-4 transition-[border-color,box-shadow,transform] duration-200 ease-[var(--ease-settle)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-foreground hover:shadow-[4px_4px_0_-1px_var(--foreground)]"
           >
             <div className="flex items-start gap-3">
               <CompanyLogo
@@ -85,7 +85,7 @@ export function FollowingList({
                 )}
               </div>
               {_count.matches > 0 && (
-                <span className="shrink-0 rounded-[2px] bg-note text-note-foreground font-mono text-xs font-semibold px-1.5 py-0.5 tabular-nums">
+                <span className="shrink-0 bg-note text-note-foreground font-mono text-xs font-semibold px-1.5 py-0.5 tabular-nums">
                   {_count.matches} new
                 </span>
               )}
@@ -113,7 +113,7 @@ export function FollowingList({
                   <span className="text-xs text-muted-foreground">No open roles right now</span>
                 )}
                 {connections > 0 && (
-                  <span className="flex items-center gap-1 font-mono text-xs font-medium text-airmail tabular-nums">
+                  <span className="flex items-center gap-1 font-mono text-xs font-medium text-graphite tabular-nums">
                     <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                       <circle cx="9" cy="7" r="4" />

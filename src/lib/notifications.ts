@@ -250,24 +250,21 @@ function esc(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-// The letter's palette — the site's airmail tokens, as the hex email needs.
-const INK = "#17204A";
+// The site's palette, as the hex email needs.
+const INK = "#2A2520";
 const RED = "#E0491F";
-const BLUE = "#2548B8";
-const PAPER = "#FFFDF8";
-const DESK = "#E9EEF7";
-const MUTE = "#5E6788";
-const RULE = "#D5DCEB";
+const PAPER = "#FDFBF6";
+const DESK = "#F3EFE6";
+const MUTE = "#6E665D";
+const RULE = "#DDD5C8";
 const SERIF = "Georgia,'Times New Roman',serif";
 const SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 const MONO = "'SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
-// Top edge: a plain ink rule.
-const STRIPE = `background-color:${INK};`;
+const CAPS = `font-family:${SANS};font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;`;
 
 /**
- * The alert email. The site promises "one letter", so this is one: a date, a
- * salutation, the role, and a sign-off — on airmail paper, not a card stack
- * dressed as a newsletter.
+ * The alert email, set like the site: a masthead, a heavy rule, then the role
+ * as the headline. Short on purpose — the role is the whole message.
  */
 export function buildHtml(
   name: string,
@@ -282,7 +279,7 @@ export function buildHtml(
   const matchesUrl = emailLink(`${APP_URL}/matches`, userId, emailType);
   const pixelUrl = `${APP_URL}/api/email/pixel?uid=${userId}&type=${emailType}`;
 
-  const firstName = esc(name.trim().split(/\s+/)[0] || "there");
+  const firstName = esc(name.trim().split(/\s+/)[0] || "you");
   const single = matches.length === 1;
   const dateLine = new Date().toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York",
@@ -296,29 +293,27 @@ export function buildHtml(
     const networkCount = networkByCompanyId.get(m.trackedCompany.company.id) ?? 0;
     const networkUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}#network`, userId, emailType);
     const networkLine = networkCount > 0
-      ? `<p style="margin:10px 0 0;font-family:${SANS};font-size:14px;line-height:1.5;color:${BLUE};">P.S. You know <strong>${networkCount} ${networkCount === 1 ? "person" : "people"}</strong> there. <a href="${networkUrl}" style="color:${BLUE};font-weight:600;">See who &rarr;</a></p>`
+      ? `<p style="margin:10px 0 0;font-family:${SANS};font-size:14px;line-height:1.5;color:${INK};">You know <strong>${networkCount} ${networkCount === 1 ? "person" : "people"}</strong> there. <a href="${networkUrl}" style="color:${RED};font-weight:600;">See who &rarr;</a></p>`
       : "";
+    const rank = String(i + 1).padStart(2, "0");
 
     return `
           <tr>
-            <td style="padding:${i === 0 ? "0" : "22px"} 0 ${i === matches.length - 1 ? "0" : "22px"} 0;${i === 0 ? "" : `border-top:1px dashed ${RULE};`}">
-              <p style="margin:0 0 6px;font-family:${SANS};font-size:15px;line-height:1.5;color:${INK};"><strong>${company}</strong> just opened</p>
-              <p style="margin:0 0 8px;font-family:${SERIF};font-size:${single ? "26" : "21"}px;font-weight:700;line-height:1.15;letter-spacing:-0.01em;color:${INK};">${esc(m.job.title)}</p>
-              <p style="margin:0;font-family:${MONO};font-size:12px;line-height:1.5;color:${MUTE};">${loc}</p>
+            <td style="padding:${i === 0 ? "0" : "22px"} 0 ${i === matches.length - 1 ? "0" : "22px"} 0;${i === 0 ? "" : `border-top:1px solid ${RULE};`}">
+              <p style="margin:0 0 8px;${CAPS}color:${RED};">${single ? "" : `${rank} &middot; `}New role &middot; ${company}</p>
+              <p style="margin:0 0 8px;font-family:${SERIF};font-size:${single ? "30" : "23"}px;font-weight:700;line-height:1.1;letter-spacing:-0.02em;color:${INK};">${esc(m.job.title)}</p>
+              <p style="margin:0;font-family:${MONO};font-size:12px;line-height:1.5;color:${MUTE};">${company} &middot; ${loc}</p>
               ${networkLine}
               <p style="margin:16px 0 0;">
-                <a href="${applyUrl}" style="display:inline-block;padding:10px 18px;background:${single ? RED : INK};border-radius:3px;font-family:${SANS};font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">See the role &rarr;</a>
+                <a href="${applyUrl}" style="display:inline-block;padding:11px 20px;background:${single ? RED : INK};font-family:${SANS};font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">See the role &rarr;</a>
               </p>
             </td>
           </tr>`;
   }).join("");
 
-  const opener = single
-    ? ""
-    : `<p style="margin:0 0 22px;font-family:${SANS};font-size:15px;line-height:1.6;color:${INK};">${matches.length} roles opened at companies on your list.</p>`;
-  const closer = single
-    ? "You said you&rsquo;d leave for this one."
-    : "You said you&rsquo;d leave for these.";
+  const intro = single
+    ? `A company on your list just posted a role that fits what you asked for.`
+    : `${matches.length} roles that fit what you asked for opened at companies on your list.`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -331,55 +326,41 @@ export function buildHtml(
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${DESK};padding:28px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${PAPER};border:1px solid ${RULE};">
-
-          <!-- Airmail edge -->
-          <tr><td style="height:3px;line-height:3px;font-size:0;${STRIPE}">&nbsp;</td></tr>
-
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${PAPER};border:1px solid ${INK};border-top:4px solid ${INK};">
           <tr>
-            <td style="padding:28px 32px 30px;">
+            <td style="padding:22px 32px 30px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 
-                <!-- Letterhead -->
+                <!-- Masthead -->
                 <tr>
-                  <td style="padding:0 0 26px 0;">
+                  <td style="padding:0 0 12px 0;border-bottom:1px solid ${INK};">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td>
-                          <a href="${APP_URL}" style="font-family:${SERIF};font-size:22px;font-weight:700;font-style:italic;color:${INK};text-decoration:none;letter-spacing:-0.02em;"><span style="color:${RED};font-style:normal;">&hearts;</span> Crush</a>
+                          <a href="${APP_URL}" style="font-family:${SERIF};font-size:24px;font-weight:700;color:${INK};text-decoration:none;letter-spacing:-0.03em;">Crush<span style="color:${RED};">&bull;</span></a>
                         </td>
-                        <td align="right" style="font-family:${MONO};font-size:11px;color:${MUTE};">${dateLine}</td>
+                        <td align="right" style="font-family:${MONO};font-size:11px;color:${MUTE};">For ${firstName} &middot; ${dateLine}</td>
                       </tr>
                     </table>
                   </td>
                 </tr>
 
-                <!-- Salutation -->
                 <tr>
-                  <td style="padding:0 0 18px 0;">
-                    <p style="margin:0;font-family:${SERIF};font-size:18px;font-style:italic;line-height:1.4;color:${INK};">Dear ${firstName},</p>
+                  <td style="padding:20px 0 24px 0;">
+                    <p style="margin:0;font-family:${SANS};font-size:15px;line-height:1.6;color:${MUTE};">${intro}</p>
                   </td>
                 </tr>
 
                 <tr>
                   <td>
-                    ${opener}
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       ${roles}
                     </table>
                   </td>
                 </tr>
 
-                <!-- Sign-off -->
-                <tr>
-                  <td style="padding:26px 0 0 0;">
-                    <p style="margin:0 0 14px;font-family:${SANS};font-size:15px;line-height:1.6;color:${INK};">${closer}</p>
-                    <p style="margin:0;font-family:${SERIF};font-size:18px;font-style:italic;color:${RED};">&mdash; Crush</p>
-                  </td>
-                </tr>
-
                 ${single ? "" : `<tr>
-                  <td style="padding:22px 0 0 0;">
+                  <td style="padding:24px 0 0 0;">
                     <a href="${matchesUrl}" style="font-family:${SANS};font-size:14px;font-weight:600;color:${INK};">Open all of them on Crush &rarr;</a>
                   </td>
                 </tr>`}
@@ -390,10 +371,10 @@ export function buildHtml(
 
           <!-- Footer -->
           <tr>
-            <td style="padding:18px 32px 22px;border-top:1px dashed ${RULE};">
+            <td style="padding:18px 32px 22px;border-top:1px solid ${RULE};">
               <p style="margin:0 0 6px;font-family:${SANS};font-size:12px;line-height:1.6;color:${MUTE};">
                 You&rsquo;re getting this because ${single ? "this company is" : "these companies are"} on your list at
-                <a href="${APP_URL}" style="color:${MUTE};text-decoration:underline;">Crush</a>. We only write when a role fits.
+                <a href="${APP_URL}" style="color:${MUTE};text-decoration:underline;">Crush</a>. We only email when a role fits.
               </p>
               <p style="margin:0;font-family:${SANS};font-size:12px;">
                 <a href="${settingsUrl}" style="color:${INK};text-decoration:underline;">Alert settings</a>
@@ -402,8 +383,6 @@ export function buildHtml(
               </p>
             </td>
           </tr>
-
-          <tr><td style="height:3px;line-height:3px;font-size:0;${STRIPE}">&nbsp;</td></tr>
         </table>
       </td>
     </tr>

@@ -66,7 +66,7 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
           <button
             onClick={() => setActiveCompany(null)}
             aria-pressed={activeCompany === null}
-            className={`cursor-pointer rounded-[3px] px-2.5 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
+            className={`cursor-pointer px-2.5 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
               activeCompany === null
                 ? "bg-foreground text-background border-foreground"
                 : "bg-paper text-muted-foreground border-foreground/20 hover:border-foreground/45 hover:text-foreground"
@@ -79,7 +79,7 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
               key={company.slug}
               onClick={() => setActiveCompany(activeCompany === company.name ? null : company.name)}
               aria-pressed={activeCompany === company.name}
-              className={`flex items-center gap-1.5 cursor-pointer rounded-[3px] px-2.5 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
+              className={`flex items-center gap-1.5 cursor-pointer px-2.5 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
                 activeCompany === company.name
                   ? "bg-foreground text-background border-foreground"
                   : "bg-paper text-muted-foreground border-foreground/20 hover:border-foreground/45 hover:text-foreground"
@@ -119,7 +119,7 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
                   {(networkBySlug[company.slug] ?? 0) > 0 && (
                     <Link
                       href={`/companies/${company.slug}#network`}
-                      className="text-xs font-semibold text-airmail hover:underline underline-offset-2"
+                      className="text-xs font-semibold text-graphite hover:underline underline-offset-2"
                     >
                       · you know {networkBySlug[company.slug]} here
                     </Link>

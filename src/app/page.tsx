@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import { redirect } from "next/navigation";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
@@ -9,9 +8,9 @@ import { relevantCompanyWhere } from "@/lib/company-relevance";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
 import { SiteNav } from "@/components/site-nav";
-import { HeroLetter } from "@/components/hero-letter";
+import { HotList } from "@/components/hot-list";
 import { ListBuilder, type Pick } from "@/components/list-builder";
-import { AirmailRule, PaperPlane, Postmark, Rubber, Seal, Underline, Wordmark } from "@/components/brand";
+import { Rank, Rule, Tag, Wordmark } from "@/components/brand";
 import { signInWithGoogle } from "@/app/actions/auth";
 
 const STEPS = [
@@ -27,20 +26,19 @@ const STEPS = [
   },
   {
     n: "3",
-    title: "Get one letter.",
-    body: "We check each company's own job board early every morning. If your role went up, the letter is waiting when you wake.",
+    title: "Get one email.",
+    body: "We check each company's own job board early every morning. If your role went up, the email is waiting when you wake.",
   },
 ];
 
-// What an inbox full of job-board mail actually says.
+// What an inbox full of job-board email actually says.
 const JUNK = [
-  { text: "127 new jobs for you!", tilt: -8, x: "0%", y: "2%" },
-  { text: "Are you still looking?", tilt: 6, x: "44%", y: "0%" },
-  { text: "Jobs you may be interested in", tilt: -3, x: "12%", y: "17%" },
-  { text: "A recruiter viewed your profile", tilt: 4, x: "30%", y: "33%" },
-  { text: "Top picks this week (43)", tilt: -6, x: "2%", y: "40%" },
-  { text: "Apply now — 2,000+ applicants", tilt: 3, x: "8%", y: "58%" },
-  { text: "Don't miss out: 18 new roles", tilt: -4, x: "0%", y: "76%" },
+  { from: "JobBoard", text: "127 new jobs for you!" },
+  { from: "Careers Digest", text: "Are you still looking?" },
+  { from: "JobBoard", text: "Jobs you may be interested in" },
+  { from: "Network", text: "A recruiter viewed your profile" },
+  { from: "Job Alerts", text: "Top picks this week (43)" },
+  { from: "JobBoard", text: "Apply now — 2,000+ applicants" },
 ];
 
 const FAQ = [
@@ -50,7 +48,7 @@ const FAQ = [
   },
   {
     q: "How fast will I hear?",
-    a: "Boards are checked early every morning, and letters go out right after. A role posted today is in your inbox by tomorrow morning — usually before it has been picked over.",
+    a: "Boards are checked early every morning, and alerts go out right after. A role posted today is in your inbox by tomorrow morning — usually before it has been picked over.",
   },
   {
     q: "What if my company isn't listed?",
@@ -72,6 +70,16 @@ function fundingLabel(stage: string | null): string {
 
 function roundDown(n: number, to: number): string {
   return `${(Math.floor(n / to) * to).toLocaleString("en-US")}+`;
+}
+
+// "Monday, November 16" in New York, where the morning check is timed.
+function dateline(): string {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: "America/New_York",
+  });
 }
 
 const activeJobs = { select: { jobs: { where: { status: "ACTIVE" as const } } } };
@@ -140,36 +148,37 @@ export default async function HomePage({
     id: c.id, name: c.name, slug: c.slug, website: c.website, openRoles: c._count.jobs,
   }));
 
+  const today = dateline();
+
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip bg-background">
       <SiteNav user={null} />
 
+      {/* ── Dateline ─────────────────────────────────────────────────────── */}
+      <div className="border-b border-foreground/80">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 font-mono text-[0.7rem] text-muted-foreground sm:px-6">
+          <span>{today}</span>
+          <span className="hidden sm:inline">
+            {companyCount >= 100 ? `${roundDown(companyCount, 100)} companies on file` : "Not a job board"} · Boards checked
+            every morning
+          </span>
+          <span>Free while we&apos;re early</span>
+        </div>
+      </div>
+
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pt-16 lg:pb-24 lg:pt-20">
-        <div className="grid grid-cols-1 items-center gap-x-10 gap-y-14 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="grid grid-cols-1 items-start gap-x-14 gap-y-14 lg:grid-cols-[1.12fr_0.88fr]">
           <div className="stagger-children space-y-7">
-            <p className="label-caps animate-rise flex items-center gap-2 text-muted-foreground">
-              <span className="relative flex size-1.5">
-                <span className="absolute inline-flex size-full rounded-full bg-moss opacity-70 motion-safe:animate-ping" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-moss" />
-              </span>
-              {companyCount >= 100 ? `${roundDown(companyCount, 100)} companies on file` : "Not a job board"}
-              <span className="hidden text-foreground/25 sm:inline">/</span>
-              <span className="hidden sm:inline">Boards checked every morning</span>
-            </p>
+            <p className="kicker animate-rise">Not a job board</p>
 
-            <h1 className="animate-rise font-heading text-[2.85rem] font-black leading-[0.98] tracking-[-0.035em] sm:text-[3.9rem] lg:text-[4.15rem] xl:text-[4.5rem]">
-              The companies you&apos;d{" "}
-              <span className="relative inline-block italic text-primary">
-                actually
-                <Underline />
-              </span>{" "}
-              leave for.
+            <h1 className="animate-rise font-heading text-[3rem] font-bold leading-[0.95] tracking-[-0.045em] sm:text-[4.1rem] lg:text-[4.4rem] xl:text-[4.9rem]">
+              The companies you&apos;d <span className="font-medium italic text-primary">actually</span> leave for.
             </h1>
 
             <p className="animate-rise max-w-[34rem] text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              Tell us who you have a crush on. We watch their job boards and write to you the day your exact role opens.{" "}
-              <span className="text-foreground">One letter. Nothing else.</span>
+              Tell us who you have a crush on. We watch their job boards every morning and email you the day your exact
+              role opens. <span className="text-foreground">One email. Nothing else.</span>
             </p>
 
             <div className="animate-rise max-w-[34rem]">
@@ -177,112 +186,82 @@ export default async function HomePage({
             </div>
           </div>
 
-          <HeroLetter />
+          <div className="animate-rise lg:pt-4" style={{ animationDelay: "160ms" }}>
+            <HotList rows={popular.slice(0, 6)} dateline={today} />
+          </div>
         </div>
       </section>
 
-      {/* ── Stamp sheet: just funded ─────────────────────────────────────── */}
+      {/* ── Just funded ──────────────────────────────────────────────────── */}
       {recentlyFunded.length > 0 && (
-        <section className="border-y border-foreground/10 bg-paper">
-          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <section className="border-y border-foreground bg-paper">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <div className="space-y-1.5">
-                <p className="label-caps text-airmail">New issues</p>
-                <h2 className="font-heading text-2xl font-extrabold tracking-[-0.02em] sm:text-3xl">
-                  Just funded, about to hire.
-                </h2>
+              <div className="space-y-2">
+                <p className="kicker">Fresh money</p>
+                <h2 className="font-heading text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Just funded, about to hire.</h2>
               </div>
-              <p className="hand text-airmail">money in the bank = roles on the way →</p>
+              <p className="max-w-xs text-sm leading-snug text-muted-foreground">
+                A new round usually means a hiring plan. These raised most recently.
+              </p>
             </div>
 
-            <ul className="-mx-4 mt-8 flex gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
+            <ol className="mt-9 grid grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
               {recentlyFunded.map((c, i) => (
-                <li key={c.slug} className="shrink-0">
+                <li key={c.slug} className="border-t border-foreground/80">
                   <Link
                     href={`/companies/${c.slug}`}
-                    className="stamp-lift group block rounded-sm transition-transform duration-200 ease-[var(--ease-settle)] hover:-translate-y-1.5 hover:rotate-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    style={{ transform: `rotate(${[-2, 1.5, -1, 2.5, -1.5, 1][i % 6]}deg)` }}
+                    className="group flex items-center gap-4 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <span className="stamp paper-light block h-48 w-36" style={{ "--perf": "8px" } as CSSProperties}>
-                      <span className="flex h-full flex-col items-center border border-foreground/60 px-2 pb-2 pt-1.5">
-                        <span className="label-caps flex w-full items-center justify-between text-[0.55rem] text-foreground/60">
-                          Crush Post
-                          <span className="font-mono text-[0.7rem] font-semibold tracking-normal text-primary">
-                            {c._count.jobs > 0 ? c._count.jobs : "·"}
-                          </span>
+                    <Rank n={i + 1} className="w-7 shrink-0 text-xl text-muted-foreground" />
+                    <CompanyLogo name={c.name} website={c.website} size="md" className="size-11" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-heading text-lg font-semibold leading-tight tracking-[-0.01em] group-hover:text-primary">
+                        {c.name}
+                      </span>
+                      <span className="mt-1 flex items-center gap-2">
+                        <Tag tone="graphite" className="text-[0.6rem]">{fundingLabel(c.fundingStage)}</Tag>
+                        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                          {c._count.jobs > 0 ? `${c._count.jobs} open` : "watching"}
                         </span>
-                        <span className="flex flex-1 items-center">
-                          <CompanyLogo name={c.name} website={c.website} size="sm" className="size-14 border-0 text-2xl" />
-                        </span>
-                        <span className="line-clamp-2 text-center font-heading text-sm font-bold leading-tight">
-                          {c.name}
-                        </span>
-                        <span className="label-caps mt-1.5 text-[0.58rem] text-moss">{fundingLabel(c.fundingStage)}</span>
                       </span>
                     </span>
                   </Link>
                 </li>
               ))}
-            </ul>
-            <p className="mt-2 font-mono text-[0.7rem] text-muted-foreground">
-              The number in the corner is open roles today.
-            </p>
+            </ol>
           </div>
         </section>
       )}
 
-      {/* ── How it works: one route, three stops ─────────────────────────── */}
+      {/* ── How it works ─────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
         <div className="max-w-2xl space-y-3">
-          <p className="label-caps text-airmail">How it works</p>
-          <h2 className="font-heading text-4xl font-black leading-[1.02] tracking-[-0.03em] sm:text-5xl">
-            Three stops, <span className="italic">then we go quiet.</span>
+          <p className="kicker">How it works</p>
+          <h2 className="font-heading text-4xl font-bold leading-[1] tracking-[-0.04em] sm:text-[3.4rem]">
+            Three steps, <span className="font-medium italic">then we go quiet.</span>
           </h2>
         </div>
 
-        <div className="relative mt-14">
-          {/* Flight path */}
-          <svg
-            viewBox="0 0 1100 90"
-            preserveAspectRatio="none"
-            aria-hidden
-            className="absolute inset-x-0 -top-9 hidden h-[5.5rem] w-full text-airmail/50 md:block"
-          >
-            <path
-              d="M40 62 C 190 -8, 290 96, 420 46 S 660 -4, 780 50 S 980 86, 1066 22"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeDasharray="2 9"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-          <PaperPlane className="absolute -top-14 right-0 hidden size-10 rotate-[8deg] text-airmail md:block" />
-
-          <ol className="relative grid grid-cols-1 gap-x-10 gap-y-12 md:grid-cols-3">
-            {STEPS.map(({ n, title, body }) => (
-              <li key={n} className="space-y-4">
-                <span className="flex size-14 items-center justify-center rounded-full border-2 border-foreground bg-paper font-heading text-2xl font-black italic">
-                  {n}
-                </span>
-                <h3 className="font-heading text-2xl font-extrabold tracking-[-0.02em]">{title}</h3>
-                <p className="max-w-[34ch] leading-relaxed text-muted-foreground">{body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <ol className="mt-14 grid grid-cols-1 gap-x-10 gap-y-12 md:grid-cols-3">
+          {STEPS.map(({ n, title, body }) => (
+            <li key={n} className="space-y-4 border-t-[3px] border-foreground pt-5">
+              <Rank n={Number(n)} className="block text-5xl text-primary" />
+              <h3 className="font-heading text-2xl font-bold tracking-[-0.025em]">{title}</h3>
+              <p className="max-w-[34ch] leading-relaxed text-muted-foreground">{body}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      {/* ── Junk mail vs. one letter ─────────────────────────────────────── */}
+      {/* ── Their inbox vs. ours ─────────────────────────────────────────── */}
       <section className="bg-ink-band text-ink-band-foreground">
-        <AirmailRule className="opacity-90" />
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-x-12 gap-y-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-x-14 gap-y-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
           <div className="space-y-6">
-            <h2 className="font-heading text-[2.6rem] font-black leading-[0.98] tracking-[-0.035em] sm:text-6xl">
-              Job boards send junk mail.
+            <h2 className="font-heading text-[2.7rem] font-bold leading-[0.98] tracking-[-0.045em] sm:text-[3.6rem]">
+              Job boards send you everything.
               <br />
-              <span className="italic text-[oklch(0.8_0.14_30)]">We send one letter.</span>
+              <span className="font-medium italic text-primary">We send one.</span>
             </h2>
             <div className="max-w-[46ch] space-y-3 leading-relaxed text-ink-band-foreground/75">
               <p>
@@ -302,50 +281,45 @@ export default async function HomePage({
             </form>
           </div>
 
-          {/* The pile, and the one that matters */}
-          <div className="paper-light relative mx-auto h-[25rem] w-full max-w-md text-foreground" aria-hidden>
-            {JUNK.map((j) => (
-              <span
-                key={j.text}
-                className="absolute whitespace-nowrap rounded-[2px] border border-foreground/10 bg-[oklch(0.88_0.016_260)] px-4 py-2.5 text-sm font-medium text-foreground/45 line-through decoration-foreground/40 shadow-[0_6px_14px_-8px_oklch(0.1_0.05_266/0.7)]"
-                style={{ left: j.x, top: j.y, transform: `rotate(${j.tilt}deg)` }}
-              >
-                {j.text}
+          {/* An inbox: six things you didn't ask for, one you did. */}
+          <div aria-hidden className="w-full border-t-[3px] border-ink-band-foreground">
+            <p className="label-caps flex justify-between py-3 text-ink-band-foreground/50">
+              <span>Inbox</span>
+              <span>7 unread</span>
+            </p>
+            <ul className="divide-y divide-ink-band-foreground/15 border-y border-ink-band-foreground/15 font-mono text-[0.8rem]">
+              {JUNK.map((j, i) => (
+                <li key={i} className="flex gap-4 py-2.5 text-ink-band-foreground/40">
+                  <span className="w-28 shrink-0 truncate">{j.from}</span>
+                  <span className="truncate line-through decoration-ink-band-foreground/40">{j.text}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 flex items-start gap-4 bg-ink-band-foreground px-4 py-4 text-ink-band">
+              <span className="mt-1.5 inline-block size-2.5 shrink-0 rounded-full bg-primary" />
+              <span className="min-w-0">
+                <span className="label-caps block text-ink-band/60">Crush</span>
+                <span className="mt-1 block font-heading text-xl font-bold leading-tight tracking-[-0.02em]">
+                  Figma just opened your role.
+                </span>
+                <span className="mt-1 block font-mono text-xs text-ink-band/60">Senior Account Executive · New York</span>
               </span>
-            ))}
-            <Rubber tone="red" tilt={-11} className="absolute left-[4%] top-[24%] z-10 border-2 bg-[oklch(0.88_0.016_260)] px-3 py-2 text-xl">
-              Return to sender
-            </Rubber>
-
-            <div
-              className="airmail-frame absolute bottom-0 right-0 z-20 w-[74%] rounded-[3px] shadow-[0_24px_50px_-20px_oklch(0.1_0.05_266/0.8)]"
-              style={{ "--tilt": "5deg", animation: "drift 7s ease-in-out infinite" } as CSSProperties}
-            >
-              <div className="relative px-5 pb-5 pt-12">
-                <Seal className="absolute right-3 top-3 size-10" />
-                <Postmark top="Crush Post" lines={["TODAY"]} waves={false} className="absolute right-10 top-2 h-12 -rotate-12 text-foreground/50" />
-                <p className="label-caps text-airmail">For you only</p>
-                <p className="mt-2 font-heading text-[1.6rem] font-extrabold leading-[1.05] tracking-[-0.02em]">
-                  Figma is ready for you.
-                </p>
-                <p className="hand mt-2 text-primary">open me</p>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Ledger: real numbers ─────────────────────────────────────────── */}
-      <section className="border-b border-foreground/10 bg-paper">
-        <dl className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-8 px-4 py-12 sm:px-6 lg:grid-cols-4">
+      {/* ── By the numbers ───────────────────────────────────────────────── */}
+      <section className="border-b border-foreground bg-paper">
+        <dl className="mx-auto grid max-w-6xl grid-cols-2 gap-x-8 gap-y-10 px-4 py-14 sm:px-6 lg:grid-cols-4">
           {[
             { k: "Companies on file", v: companyCount >= 100 ? roundDown(companyCount, 100) : "—" },
             { k: "Roles open today", v: openRoleCount >= 1000 ? roundDown(openRoleCount, 1000) : openRoleCount.toLocaleString("en-US") },
             { k: "Boards checked", v: "Daily" },
             { k: "Emails per match", v: "1" },
           ].map(({ k, v }) => (
-            <div key={k} className="space-y-1.5 border-l-2 border-foreground/15 pl-4">
-              <dd className="font-heading text-4xl font-black tracking-[-0.03em] sm:text-5xl">{v}</dd>
+            <div key={k} className="flex flex-col-reverse gap-2 border-t-[3px] border-foreground pt-3">
+              <dd className="font-heading text-4xl font-bold tracking-[-0.04em] sm:text-5xl">{v}</dd>
               <dt className="label-caps text-muted-foreground">{k}</dt>
             </div>
           ))}
@@ -357,9 +331,9 @@ export default async function HomePage({
         <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 lg:py-24">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-xl space-y-3">
-              <p className="label-caps text-airmail">Don&apos;t have a list yet?</p>
-              <h2 className="font-heading text-4xl font-black leading-[1.02] tracking-[-0.03em] sm:text-5xl">
-                Borrow someone&apos;s <span className="italic">type.</span>
+              <p className="kicker">Don&apos;t have a list yet?</p>
+              <h2 className="font-heading text-4xl font-bold leading-[1] tracking-[-0.04em] sm:text-5xl">
+                Borrow someone&apos;s <span className="font-medium italic">type.</span>
               </h2>
               <p className="leading-relaxed text-muted-foreground">
                 Hand-picked bundles of companies. Follow a whole one in a click, then cross off the ones you
@@ -375,18 +349,18 @@ export default async function HomePage({
             </Link>
           </div>
 
-          <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
             {collections.map((col) => (
               <li key={col.slug}>
                 <Link
                   href={`/collections/${col.slug}`}
-                  className="sheet group flex h-full flex-col gap-4 rounded-[4px] p-5 transition-[transform,border-color] duration-200 ease-[var(--ease-settle)] hover:-translate-y-1 hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="group flex h-full flex-col gap-3 border-t border-foreground py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-heading text-xl font-extrabold leading-tight tracking-[-0.015em] group-hover:text-primary">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <h3 className="font-heading text-2xl font-bold leading-tight tracking-[-0.025em] group-hover:text-primary">
                       {col.name}
                     </h3>
-                    <span className="label-caps shrink-0 pt-1 text-muted-foreground">
+                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
                       {col._count.companies} companies
                     </span>
                   </div>
@@ -411,18 +385,16 @@ export default async function HomePage({
       )}
 
       {/* ── Small print ──────────────────────────────────────────────────── */}
-      <section className="border-t border-foreground/10 bg-paper">
+      <section className="border-t border-foreground bg-paper">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-12 gap-y-8 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="space-y-3">
-            <p className="label-caps text-airmail">The small print</p>
-            <h2 className="font-heading text-4xl font-black leading-[1.02] tracking-[-0.03em]">
-              Fair questions.
-            </h2>
+            <p className="kicker">The small print</p>
+            <h2 className="font-heading text-4xl font-bold leading-[1] tracking-[-0.04em]">Fair questions.</h2>
           </div>
-          <dl className="divide-y divide-dashed divide-foreground/20 border-y border-dashed border-foreground/20">
+          <dl className="divide-y divide-foreground/20 border-y border-foreground">
             {FAQ.map(({ q, a }) => (
               <div key={q} className="grid gap-x-8 gap-y-2 py-5 sm:grid-cols-[14rem_1fr]">
-                <dt className="font-heading text-lg font-bold leading-snug tracking-[-0.01em]">{q}</dt>
+                <dt className="font-heading text-lg font-bold leading-snug tracking-[-0.015em]">{q}</dt>
                 <dd className="leading-relaxed text-muted-foreground">{a}</dd>
               </div>
             ))}
@@ -430,30 +402,30 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ── Sign-off ─────────────────────────────────────────────────────── */}
+      {/* ── Close ────────────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
-        <div className="airmail-frame rounded-[4px] shadow-[0_30px_60px_-30px_oklch(0.24_0.06_266/0.45)]">
-          <div className="relative flex flex-col items-center gap-6 px-6 py-14 text-center sm:py-20">
-            <Seal className="size-16" />
-            <h2 className="max-w-3xl font-heading text-4xl font-black leading-[1] tracking-[-0.035em] sm:text-6xl">
-              You already know who it is.
+        <div className="frame flex flex-col items-start gap-6 px-6 py-12 sm:px-12 sm:py-16 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-4">
+            <p className="kicker">Your list</p>
+            <h2 className="max-w-2xl font-heading text-4xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-6xl">
+              You already know who&apos;s on it.
             </h2>
             <p className="max-w-md text-lg leading-relaxed text-muted-foreground">
-              Write the list down. We&apos;ll take it from there.
+              Write it down. We&apos;ll take it from there.
             </p>
-            <form action={signInWithGoogle}>
-              <Button size="xl" type="submit">
-                Start your list — it&apos;s free
-                <ArrowRight className="size-4" />
-              </Button>
-            </form>
-            <p className="hand absolute bottom-4 right-6 hidden -rotate-6 text-airmail sm:block">xo</p>
           </div>
+          <form action={signInWithGoogle} className="shrink-0">
+            <Button size="xl" type="submit">
+              Start your list — it&apos;s free
+              <ArrowRight className="size-4" />
+            </Button>
+          </form>
         </div>
       </section>
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer className="mt-auto border-t border-foreground/10">
+      <footer className="mt-auto">
+        <Rule />
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6">
           <Wordmark size="sm" />
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
@@ -463,7 +435,6 @@ export default async function HomePage({
             <span className="font-mono text-xs text-muted-foreground/70">© {new Date().getFullYear()} Crush</span>
           </nav>
         </div>
-        <AirmailRule />
       </footer>
     </div>
   );

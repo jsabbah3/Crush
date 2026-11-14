@@ -66,7 +66,7 @@ export function JobCard({
   hideCompany?: boolean;
   /** First-degree LinkedIn connections at this company — "who you know here" */
   networkCount?: number;
-  /** Not yet seen by the user — gets the NEW stamp. */
+  /** Not yet seen by the user — gets the NEW tag. */
   isNew?: boolean;
 }) {
   // "leaving" drives the exit animation; "gone" removes from layout after it.
@@ -114,11 +114,11 @@ export function JobCard({
       <div>
         <div
           className={cn(
-            "group relative rounded-[4px] border border-border bg-card px-4 py-3.5",
-            // A match is a letter: red down the left edge, like the fold of an envelope.
+            "group relative border border-border bg-card px-4 py-3.5",
+            // A match carries the signal colour down its left edge.
             matchId && "border-l-[3px] border-l-primary",
             "transition-[border-color,box-shadow,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)]",
-            "hover:border-foreground/35 hover:shadow-[0_10px_24px_-16px_oklch(0.24_0.06_266/0.4)] hover:-translate-y-px",
+            "hover:border-foreground/50",
             matchId && "hover:border-l-primary",
             className,
           )}
@@ -133,7 +133,7 @@ export function JobCard({
               {!hideCompany && (
                 <Link
                   href={`/companies/${job.company.slug}`}
-                  className="label-caps text-airmail hover:text-foreground transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="label-caps text-graphite hover:text-foreground transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   {job.company.name}
                 </Link>
@@ -162,7 +162,7 @@ export function JobCard({
               {(networkCount ?? 0) > 0 && (
                 <Link
                   href={`/companies/${job.company.slug}#network`}
-                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-airmail hover:underline underline-offset-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-graphite hover:underline underline-offset-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   <Users className="size-3" />
                   You know {networkCount} {networkCount === 1 ? "person" : "people"} here
@@ -170,8 +170,8 @@ export function JobCard({
               )}
             </div>
             {isNew && (
-              <span className="rubber shrink-0 self-start text-primary" style={{ "--tilt": "4deg" } as React.CSSProperties}>
-                New
+              <span className="tag tag-solid shrink-0 self-start text-primary">
+                <span>New</span>
               </span>
             )}
             {matchId && (
@@ -202,7 +202,7 @@ export function JobCard({
                   href={job.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex shrink-0 items-center gap-1 rounded-[3px] bg-foreground px-2.5 py-1.5 text-xs font-semibold text-background transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="flex shrink-0 items-center gap-1 bg-foreground px-2.5 py-1.5 text-xs font-semibold text-background transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   Apply <ExternalLink className="size-3" />
                 </a>

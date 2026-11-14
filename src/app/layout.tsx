@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
-import { Archivo, Besley, IBM_Plex_Mono, Reenie_Beanie } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "@/components/posthog-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-// Besley: a Clarendon — the face of stamps, wanted posters, and letterheads.
-const besley = Besley({
-  variable: "--font-besley",
+// Newsreader: a text face with a real display cut (opsz) — tight and
+// editorial at headline size, readable at 14px. The voice of the list.
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
   style: ["normal", "italic"],
+  axes: ["opsz"],
 });
 
-// Archivo carries the interface; its width axis doubles as the narrow caps of
-// a sorting label (.label-caps, .rubber).
+// Archivo carries the interface; its width axis gives the narrow caps of
+// kickers and tags (.label-caps, .kicker, .tag).
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
@@ -21,18 +23,11 @@ const archivo = Archivo({
   axes: ["wdth"],
 });
 
-// Typewritten: addresses, dates, counts.
+// Figures: counts, dates, salaries.
 const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-});
-
-// Ballpoint in the margin. Used sparingly.
-const reenie = Reenie_Beanie({
-  variable: "--font-reenie",
-  subsets: ["latin"],
-  weight: "400",
 });
 
 const SITE_JSON_LD = {
@@ -58,11 +53,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://crushco.app"),
   title: "Crush — The companies you'd actually leave for",
   description:
-    "Tell Crush which companies you'd actually leave for. We watch their job boards every morning and write to you the day your exact role opens. One letter, nothing else.",
+    "Tell Crush which companies you'd actually leave for. We watch their job boards every morning and email you the day your exact role opens. One email, nothing else.",
   keywords: ["startup jobs", "tech job alerts", "dream company hiring", "job tracker", "startup hiring", "tech jobs", "job alerts"],
   openGraph: {
     title: "Crush — The companies you'd actually leave for",
-    description: "Name the companies you'd actually leave for. We watch their job boards and write the day your exact role opens. One letter, nothing else.",
+    description: "Name the companies you'd actually leave for. We watch their job boards and email you the day your exact role opens. One email, nothing else.",
     url: "https://crushco.app",
     siteName: "Crush",
     type: "website",
@@ -70,7 +65,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Crush — The companies you'd actually leave for",
-    description: "Name the companies you'd actually leave for. We watch their job boards and write the day your exact role opens. One letter, nothing else.",
+    description: "Name the companies you'd actually leave for. We watch their job boards and email you the day your exact role opens. One email, nothing else.",
   },
 };
 
@@ -82,7 +77,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${besley.variable} ${archivo.variable} ${plexMono.variable} ${reenie.variable} h-full antialiased`}
+      className={`${newsreader.variable} ${archivo.variable} ${plexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

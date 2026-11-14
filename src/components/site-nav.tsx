@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signInWithGoogle, signOut } from "@/app/actions/auth";
 import { ThemeToggleButton } from "@/components/theme-toggle";
-import { AirmailRule, Wordmark } from "@/components/brand";
+import { Rule, Wordmark } from "@/components/brand";
 import { cn } from "@/lib/utils";
 
 type User = { email: string; name: string | null; avatarUrl: string | null } | null;
@@ -33,8 +33,7 @@ export function SiteNav({ user }: { user: User }) {
 
   return (
     <>
-      <AirmailRule />
-      <header className="sticky top-0 z-20 border-b border-foreground/10 bg-background/90 backdrop-blur">
+      <header className="sticky top-0 z-20 bg-background/92 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-5 sm:gap-8">
             <Link
@@ -118,6 +117,7 @@ export function SiteNav({ user }: { user: User }) {
             )}
           </div>
         </div>
+        <Rule />
       </header>
     </>
   );

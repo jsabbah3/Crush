@@ -76,7 +76,7 @@ function FilterPill({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "cursor-pointer rounded-[3px] px-2.5 py-1 text-xs font-medium border transition-colors duration-150",
+        "cursor-pointer px-2.5 py-1 text-xs font-medium border transition-colors duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
         active
           ? "border-foreground bg-foreground text-background"
@@ -185,7 +185,7 @@ export function CompanyBrowser({
           <div
             role="radiogroup"
             aria-label="Sort companies"
-            className="flex items-center rounded-[3px] border border-foreground/25 bg-paper p-0.5"
+            className="flex items-center border border-foreground/25 bg-paper p-0.5"
           >
             {SORT_OPTIONS.map((opt) => (
               <button
@@ -197,7 +197,7 @@ export function CompanyBrowser({
                   navigate(q, industry, vc, opt.value);
                 }}
                 className={cn(
-                  "cursor-pointer rounded-[2px] px-3 py-1.5 text-xs font-semibold transition-colors duration-150",
+                  "cursor-pointer px-3 py-1.5 text-xs font-semibold transition-colors duration-150",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   sort === opt.value
                     ? "bg-foreground text-background"
@@ -270,7 +270,7 @@ export function CompanyBrowser({
       </div>
 
       {companies.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center rounded-[4px] border border-dashed border-foreground/25">
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center border border-dashed border-foreground/25">
           <Search className="size-5 text-muted-foreground/50" />
           <div className="space-y-1">
             <p className="font-heading text-lg font-bold text-foreground">Nobody by that name on file</p>
@@ -316,7 +316,7 @@ export function CompanyBrowser({
             <div className="flex flex-col items-center gap-2 pt-4">
               <button
                 onClick={() => setVisibleCount((c) => c + REVEAL_STEP)}
-                className="cursor-pointer rounded-[3px] border border-foreground/25 bg-paper px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-foreground/45 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                className="cursor-pointer border border-foreground/25 bg-paper px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-foreground/45 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               >
                 Show more companies
               </button>
@@ -354,7 +354,7 @@ function CompanyCard({
   const recentlyFunded = isRecentlyFunded(company.recentlyFundedAt);
 
   return (
-    <div className="group relative flex flex-col gap-3 rounded-[4px] border border-border bg-card p-4 transition-[border-color,transform,box-shadow] duration-200 ease-[var(--ease-settle)] hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-[0_10px_24px_-14px_oklch(0.24_0.06_266/0.35)]">
+    <div className="group relative flex flex-col gap-3 border border-border bg-card p-4 transition-[border-color,transform,box-shadow] duration-200 ease-[var(--ease-settle)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-foreground hover:shadow-[4px_4px_0_-1px_var(--foreground)]">
       <div className="flex items-start gap-3">
         <CompanyLogo
           name={company.name}
@@ -371,7 +371,7 @@ function CompanyCard({
               {company.name}
             </a>
             {recentlyFunded && (
-              <span className="rubber mt-0.5 shrink-0 text-[0.6rem] text-moss" style={{ "--tilt": "-2deg" } as React.CSSProperties}>
+              <span className="tag mt-0.5 shrink-0 text-[0.6rem] text-primary">
                 {fundingLabel ?? "Just funded"}
               </span>
             )}
@@ -405,7 +405,7 @@ function CompanyCard({
             </span>
           )}
           {connectionCount > 0 && (
-            <span className="flex items-center gap-1 font-medium text-airmail">
+            <span className="flex items-center gap-1 font-medium text-graphite">
               <Users className="size-3" />
               {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
             </span>

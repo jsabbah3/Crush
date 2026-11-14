@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
+import { Rank } from "@/components/brand";
 import { signInWithGoogle } from "@/app/actions/auth";
 import { addAnonTracked, getAnonTracked, removeAnonTracked } from "@/lib/anon-tracking";
 import { analytics } from "@/lib/analytics";
@@ -21,8 +22,6 @@ export type Pick = {
 // AnonTrackingReplay turns into real follows on the first page after sign-in.
 const LIST_KEY = "crush_anon_list";
 const MAX_PICKS = 8;
-// Each stamp sits a little differently, the way stuck-on stamps do.
-const TILTS = [-4, 3, -2, 5, -5, 2, -3, 4];
 
 function readList(): Pick[] {
   try {
@@ -152,13 +151,15 @@ export function ListBuilder({ popular }: { popular: Pick[] }) {
 
   return (
     <div className="space-y-4">
-      {/* The address line */}
+      {/* The entry line */}
       <div ref={boxRef} className="relative">
         <label
           htmlFor="crush-to"
-          className="sheet flex items-center gap-3 rounded-[4px] border-foreground/30 px-4 py-3 focus-within:border-airmail focus-within:ring-3 focus-within:ring-airmail/25"
+          className="flex items-center gap-3 border-b-[3px] border-foreground bg-paper px-4 py-3 shadow-[inset_0_0_0_1px_var(--border)] focus-within:border-primary"
         >
-          <span className="label-caps shrink-0 text-airmail">To</span>
+          <span className="rank shrink-0 text-xl text-primary">
+            {String(Math.min(picks.length + 1, MAX_PICKS)).padStart(2, "0")}
+          </span>
           <input
             id="crush-to"
             ref={inputRef}
@@ -173,8 +174,8 @@ export function ListBuilder({ popular }: { popular: Pick[] }) {
             aria-expanded={open}
             aria-controls="crush-to-results"
             aria-autocomplete="list"
-            placeholder={full ? "That's a full envelope" : "a company you'd leave for…"}
-            className="min-w-0 flex-1 bg-transparent font-heading text-xl font-semibold italic outline-none placeholder:font-medium placeholder:text-muted-foreground/70 sm:text-2xl"
+            placeholder={full ? "That's a full list" : "Add a company you'd leave for…"}
+            className="min-w-0 flex-1 bg-transparent font-heading text-xl font-semibold outline-none placeholder:font-normal placeholder:italic placeholder:text-muted-foreground/70 sm:text-2xl"
           />
           {fetching && <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />}
         </label>
@@ -183,11 +184,11 @@ export function ListBuilder({ popular }: { popular: Pick[] }) {
           <ul
             id="crush-to-results"
             role="listbox"
-            className="sheet absolute inset-x-0 top-full z-30 mt-1.5 overflow-hidden rounded-[4px] border-foreground/25 py-1"
+            className="sheet absolute inset-x-0 top-full z-30 mt-1 overflow-hidden border-foreground py-1 shadow-[6px_6px_0_-1px_var(--foreground)]"
           >
             {results.length === 0 ? (
               <li className="px-4 py-3 text-sm text-muted-foreground">
-                Not in the sorting room yet. Sign in and you can add any company by name.
+                Not on file yet. Sign in and you can add any company by name.
               </li>
             ) : (
               results.map((r, i) => {
@@ -223,35 +224,40 @@ export function ListBuilder({ popular }: { popular: Pick[] }) {
         )}
       </div>
 
-      {/* Stamps collected so far */}
+      {/* The list so far */}
       {picks.length > 0 ? (
         <div className="space-y-4">
-          <ul className="flex flex-wrap items-start gap-x-3 gap-y-4 pt-1">
+          <ol className="border-t border-foreground">
             {picks.map((p, i) => (
               <li
                 key={p.id}
-                className={cn("group relative", p.id === fresh && "animate-thunk")}
-                style={{ "--tilt": `${TILTS[i % TILTS.length]}deg`, transform: "rotate(var(--tilt))" } as CSSProperties}
+                className={cn(
+                  "group flex items-baseline gap-3 border-b border-foreground/15 px-1 py-2",
+                  p.id === fresh && "animate-slot",
+                )}
               >
-                <CompanyLogo name={p.name} website={p.website} size="lg" />
+                <Rank n={i + 1} className="w-7 shrink-0 text-lg text-muted-foreground" />
+                <CompanyLogo name={p.name} website={p.website} size="sm" className="size-6 translate-y-1" />
+                <span className="truncate font-heading text-lg font-semibold tracking-[-0.01em]">{p.name}</span>
+                <span className="leader" />
+                <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+                  {p.openRoles > 0 ? `${p.openRoles} open` : "watching"}
+                </span>
                 <button
                   type="button"
                   onClick={() => remove(p.id)}
                   aria-label={`Remove ${p.name}`}
-                  className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-foreground text-background opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+                  className="flex size-6 shrink-0 translate-y-1.5 cursor-pointer items-center justify-center self-start text-muted-foreground hover:text-primary"
                 >
-                  <X className="size-3" />
+                  <X className="size-3.5" />
                 </button>
-                <span className="mt-1 block max-w-16 truncate text-center text-[11px] font-medium text-muted-foreground">
-                  {p.name}
-                </span>
               </li>
             ))}
-          </ul>
+          </ol>
 
           <form action={signInWithGoogle} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <Button type="submit" size="xl" className="w-full sm:w-auto">
-              Seal it &amp; start watching
+              Start watching {picks.length === 1 ? "it" : `these ${picks.length}`}
               <ArrowRight className="size-4" />
             </Button>
             <p className="text-sm leading-snug text-muted-foreground">
@@ -268,13 +274,13 @@ export function ListBuilder({ popular }: { popular: Pick[] }) {
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-          <span className="hand text-airmail">try</span>
+          <span className="label-caps mr-1 text-muted-foreground">Popular</span>
           {suggestions.map((p) => (
             <button
               key={p.id}
               type="button"
               onClick={() => add(p, "popular")}
-              className="inline-flex items-center gap-1.5 rounded-[3px] border border-foreground/20 bg-paper py-1 pl-1 pr-2.5 text-sm font-medium hover:border-foreground/45 hover:bg-accent"
+              className="inline-flex cursor-pointer items-center gap-1.5 border border-foreground/25 bg-paper py-1 pl-1 pr-2.5 text-sm font-medium hover:border-foreground"
             >
               <CompanyLogo name={p.name} website={p.website} size="sm" className="size-5" />
               {p.name}

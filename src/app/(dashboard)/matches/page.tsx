@@ -88,7 +88,7 @@ export default async function MatchesPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Your mail"
+        eyebrow="Matches"
         title="Matches"
         action={<RefreshMatchesButton />}
       >
@@ -96,8 +96,8 @@ export default async function MatchesPage() {
       </PageHeader>
 
       {matches.length > 0 && totalConnections === 0 && (
-        <div className="flex items-start gap-3 rounded-[4px] border border-airmail/30 bg-airmail-soft/60 px-4 py-3">
-          <Users className="mt-0.5 size-4 shrink-0 text-airmail" />
+        <div className="flex items-start gap-3 border-l-[3px] border-foreground bg-wash/60 px-4 py-3">
+          <Users className="mt-0.5 size-4 shrink-0 text-graphite" />
           <p className="text-sm leading-relaxed">
             You might already know someone at these companies. Import your LinkedIn
             connections and we&apos;ll show who can refer you — most roles are landed
@@ -115,7 +115,7 @@ export default async function MatchesPage() {
           // until they add one. This is the load-bearing prompt for the
           // "no roles = no matches" rule.
           <EmptyState
-            stamp={["WHICH", "ROLE?"]}
+            kicker="Which role?"
             title="Tell us the role"
             action={
               <Link href="/settings">
@@ -123,11 +123,11 @@ export default async function MatchesPage() {
               </Link>
             }
           >
-            You have companies on your list, but we don&apos;t know which job you want at them — so nothing can match yet. Add a title or two and we&apos;ll write the day one opens.
+            You have companies on your list, but we don&apos;t know which job you want at them — so nothing can match yet. Add a title or two and we&apos;ll email you the day one opens.
           </EmptyState>
         ) : !hasCompanies ? (
           <EmptyState
-            stamp={["NO", "ADDRESS"]}
+            kicker="Your list is empty"
             title="Nobody on your list yet"
             action={
               <Link href="/companies?view=browse">
@@ -139,7 +139,7 @@ export default async function MatchesPage() {
           </EmptyState>
         ) : (
           <EmptyState
-            stamp={["NO MAIL", "TODAY"]}
+            kicker="Nothing new today"
             title="Nothing yet. That's normal."
             action={
               <>

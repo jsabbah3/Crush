@@ -46,10 +46,10 @@ export function HiringPulse({
       ? { word: "Hiring more", tone: "text-moss" }
       : delta < -Math.max(2, first * 0.1)
         ? { word: "Hiring less", tone: "text-clay" }
-        : { word: "Holding steady", tone: "text-airmail" };
+        : { word: "Holding steady", tone: "text-graphite" };
 
   return (
-    <div className={cn("sheet rounded-[4px] p-4", className)}>
+    <div className={cn("sheet p-4", className)}>
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="label-caps text-muted-foreground">Hiring pulse</h2>
         <span className={cn("label-caps", verdict.tone)}>{verdict.word}</span>
@@ -73,11 +73,11 @@ export function HiringPulse({
         role="img"
         aria-label={`Open roles went from ${first} to ${now} between ${fmt(points[0].capturedOn)} and ${fmt(points[points.length - 1].capturedOn)}`}
       >
-        <path d={area} className="fill-airmail-soft" />
+        <path d={area} className="fill-wash" />
         <path
           d={line}
           fill="none"
-          className="stroke-airmail"
+          className="stroke-graphite"
           strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"

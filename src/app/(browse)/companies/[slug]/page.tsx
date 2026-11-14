@@ -12,7 +12,7 @@ import { JobPostingJsonLd } from "@/components/job-posting-jsonld";
 import { isCompanyPublic } from "@/lib/company-relevance";
 import { boardStatus } from "@/lib/board-status";
 import { HiringPulse } from "@/components/hiring-pulse";
-import { Rubber } from "@/components/brand";
+import { Tag } from "@/components/brand";
 
 // How many open roles to send to the page. Enough for the biggest boards we
 // track; the list filters and paginates client-side.
@@ -202,7 +202,7 @@ export default async function CompanyDetailPage({
         <CompanyLogo name={company.name} website={company.website} size="lg" className="size-20 shrink-0 text-3xl" />
         <div className="min-w-0 flex-1 space-y-3">
           {eyebrow.length > 0 && (
-            <p className="label-caps flex flex-wrap gap-x-2 gap-y-1 text-airmail">
+            <p className="label-caps flex flex-wrap gap-x-2 gap-y-1 text-graphite">
               {eyebrow.map((e, i) => (
                 <span key={e} className="flex items-center gap-2">
                   {i > 0 && <span className="text-foreground/25">/</span>}
@@ -212,10 +212,10 @@ export default async function CompanyDetailPage({
             </p>
           )}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <h1 className="font-heading text-4xl font-black leading-[1.02] tracking-[-0.03em] sm:text-5xl">
+            <h1 className="font-heading text-4xl font-bold leading-[1] tracking-[-0.04em] sm:text-[3.4rem]">
               {company.name}
             </h1>
-            {tracked && <Rubber tone="green" tilt={-4}>On your list</Rubber>}
+            {tracked && <Tag tone="ink">On your list</Tag>}
           </div>
           {company.description && (
             <p className="max-w-[65ch] leading-relaxed text-muted-foreground">{company.description}</p>
@@ -254,8 +254,8 @@ export default async function CompanyDetailPage({
           {company.insights.length > 0 && (
             <section className="space-y-3">
               {company.insights.map((insight) => (
-                <details key={insight.id} className="sheet group rounded-[4px]">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-[4px] px-5 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 [&::-webkit-details-marker]:hidden">
+                <details key={insight.id} className="sheet group">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 [&::-webkit-details-marker]:hidden">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <BookOpen className="size-4 shrink-0 text-primary" />
                       <span className="truncate font-heading text-base font-bold tracking-[-0.01em]">{insight.title}</span>
@@ -314,23 +314,23 @@ export default async function CompanyDetailPage({
             {roles.length > 0 ? (
               <RoleList jobs={roles} total={openRoleTotal} />
             ) : board.connected ? (
-              <div className="rounded-[4px] border border-dashed border-foreground/25 px-6 py-10 text-center">
+              <div className="border border-dashed border-foreground/25 px-6 py-10 text-center">
                 <p className="mx-auto max-w-sm leading-relaxed text-muted-foreground">
                   Nothing open right now. We read {company.name}&apos;s {board.board} board every morning.{" "}
                   {tracked
-                    ? "The day something fits what you asked for, you'll get a letter."
-                    : "Add them to your list and we'll write the day your role goes up."}
+                    ? "The day something fits what you asked for, you'll get an email."
+                    : "Add them to your list and we'll email you the day your role goes up."}
                 </p>
               </div>
             ) : (
-              <div className="rounded-[4px] border border-dashed border-kraft bg-kraft-soft/60 px-6 py-8">
+              <div className="border border-dashed border-kraft bg-kraft-soft/60 px-6 py-8">
                 <p className="label-caps text-clay">Board not connected</p>
                 <p className="mt-2 max-w-[60ch] leading-relaxed">
                   We haven&apos;t found {company.name}&apos;s job board yet, so we can&apos;t see what they have open —
                   an empty list here doesn&apos;t mean they aren&apos;t hiring.
                 </p>
                 <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
-                  We re-check for it regularly. If you add {company.name} to your list now, your letters start the
+                  We re-check for it regularly. If you add {company.name} to your list now, your alerts start the
                   day we connect it.
                   {company.website && (
                     <>
@@ -365,7 +365,7 @@ export default async function CompanyDetailPage({
                     href={signal.url ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex flex-col gap-1 rounded-[4px] border bg-card p-3.5 transition-[border-color,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:-translate-y-px hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                    className="group flex flex-col gap-1 border bg-card p-3.5 transition-[border-color,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:-translate-y-px hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
                     <p className="text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
                       {signal.title}
@@ -406,7 +406,7 @@ export default async function CompanyDetailPage({
           {board.connected && <HiringPulse points={snapshots} postedLast30={postedLast30} />}
 
           {/* At a glance */}
-          <div className="space-y-3 rounded-[4px] border bg-card p-4">
+          <div className="space-y-3 border bg-card p-4">
             <h2 className="label-caps text-muted-foreground">At a glance</h2>
             <dl className="space-y-2 text-sm">
               {facts.map((f) => (
@@ -439,7 +439,7 @@ export default async function CompanyDetailPage({
           {/* People you know */}
           {networkConnections.length > 0 && (
             <div id="network" className="scroll-mt-20 space-y-2.5">
-              <h2 className="label-caps flex items-center gap-1.5 text-airmail">
+              <h2 className="label-caps flex items-center gap-1.5 text-graphite">
                 <Users className="size-3.5" />
                 {networkConnections.length === 1 ? "You know 1 person here" : `You know ${networkConnections.length} people here`}
               </h2>
@@ -457,12 +457,12 @@ export default async function CompanyDetailPage({
                       href={c.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-col rounded-[4px] border bg-card px-3 py-2 text-sm transition-colors hover:border-airmail focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                      className="flex flex-col border bg-card px-3 py-2 text-sm transition-colors hover:border-graphite focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                     >
                       {inner}
                     </a>
                   ) : (
-                    <div key={i} className="flex flex-col rounded-[4px] border bg-card px-3 py-2 text-sm">
+                    <div key={i} className="flex flex-col border bg-card px-3 py-2 text-sm">
                       {inner}
                     </div>
                   );
@@ -482,7 +482,7 @@ export default async function CompanyDetailPage({
                   <a
                     key={c.slug}
                     href={`/companies/${c.slug}`}
-                    className="flex items-center gap-1.5 rounded-[3px] border bg-card px-2.5 py-1.5 text-xs transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                    className="flex items-center gap-1.5 border bg-card px-2.5 py-1.5 text-xs transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
                     <span className="font-semibold">{c.name}</span>
                     {c.fundingStage && (

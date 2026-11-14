@@ -178,7 +178,7 @@ export default async function PublicWatchlistPage({ params }: Props) {
                   Build your own watchlist
                 </h2>
                 <p className="text-sm leading-relaxed text-ink-band-foreground/70">
-                  Follow the companies you&apos;d actually leave for. Crush writes to you the day your exact role opens. One letter, nothing else.
+                  Follow the companies you&apos;d actually leave for. Crush emails you the day your exact role opens. One email, nothing else.
                 </p>
                 <Link
                   href="/"

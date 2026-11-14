@@ -37,7 +37,7 @@ export default async function CollectionsPage() {
               href={`/collections/${col.slug}`}
               className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             >
-              <div className="flex h-full flex-col gap-4 rounded-[4px] border border-border bg-card p-5 transition-[border-color,box-shadow,transform] duration-200 ease-[var(--ease-settle)] hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-[0_10px_24px_-14px_oklch(0.24_0.06_266/0.35)]">
+              <div className="flex h-full flex-col gap-4 border border-border bg-card p-5 transition-[border-color,box-shadow,transform] duration-200 ease-[var(--ease-settle)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-foreground hover:shadow-[4px_4px_0_-1px_var(--foreground)]">
                 {/* Logo stack */}
                 <div className="flex gap-1.5">
                   {preview.map(({ company }, i) => (
@@ -51,7 +51,7 @@ export default async function CollectionsPage() {
                   ))}
                   {col.companies.length > 5 && (
                     <div
-                      className="size-8 rounded-[3px] bg-muted flex items-center justify-center font-mono text-xs text-muted-foreground font-medium tabular-nums"
+                      className="size-8 bg-muted flex items-center justify-center font-mono text-xs text-muted-foreground font-medium tabular-nums"
                       style={{ zIndex: 0 }}
                     >
                       +{col.companies.length - 5}

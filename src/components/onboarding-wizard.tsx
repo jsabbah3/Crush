@@ -242,7 +242,7 @@ export function OnboardingWizard({ collections }: Props) {
                       }
                       className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
                         already
-                          ? "border-airmail/40 bg-airmail-soft text-airmail"
+                          ? "border-graphite/40 bg-wash text-graphite"
                           : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
                       }`}
                     >
@@ -396,7 +396,7 @@ export function OnboardingWizard({ collections }: Props) {
                 onClick={() => setSelectedCollection(selected ? null : col.slug)}
                 className={`text-left flex flex-col gap-3 rounded-xl border p-4 transition-all ${
                   selected
-                    ? "border-airmail bg-airmail-soft/50 ring-1 ring-airmail"
+                    ? "border-graphite bg-wash/50 ring-1 ring-graphite"
                     : "border-border bg-card hover:border-foreground/20 hover:shadow-sm"
                 }`}
               >
@@ -413,7 +413,7 @@ export function OnboardingWizard({ collections }: Props) {
                     ))}
                   </div>
                   {selected && (
-                    <div className="shrink-0 size-5 rounded-full bg-airmail flex items-center justify-center">
+                    <div className="shrink-0 size-5 rounded-full bg-graphite flex items-center justify-center">
                       <Check className="size-3 text-background" />
                     </div>
                   )}
@@ -627,7 +627,7 @@ export function OnboardingWizard({ collections }: Props) {
             </p>
             <p className="text-sm font-medium">{chosenCollection.name}</p>
             <p className="text-xs text-muted-foreground">
-              We&apos;ll watch {chosenCollection._count.companies} companies and write the day a matching role opens.
+              We&apos;ll watch {chosenCollection._count.companies} companies and email you the day a matching role opens.
             </p>
           </div>
         ) : (

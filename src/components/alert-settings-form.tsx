@@ -52,7 +52,7 @@ export function AlertSettingsForm({ alertMode: initialMode, alertsPaused: initia
           <label
             key={value}
             className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-              mode === value ? "border-airmail bg-airmail-soft/50" : "border-border hover:border-foreground/35"
+              mode === value ? "border-graphite bg-wash/50" : "border-border hover:border-foreground/35"
             }`}
           >
             <input

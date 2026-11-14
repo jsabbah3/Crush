@@ -119,7 +119,7 @@ export function RoleList({ jobs, total }: { jobs: Job[]; total?: number }) {
   return (
     <div className="space-y-3">
       {jobs.length >= FILTER_FROM && (
-        <label className="flex items-center gap-2 rounded-[3px] border border-foreground/25 bg-paper px-3 focus-within:border-airmail focus-within:ring-3 focus-within:ring-airmail/25">
+        <label className="flex items-center gap-2 border border-foreground/25 bg-paper px-3 focus-within:border-graphite focus-within:ring-3 focus-within:ring-graphite/25">
           <Search className="size-3.5 shrink-0 text-muted-foreground" />
           <input
             value={q}
@@ -141,7 +141,7 @@ export function RoleList({ jobs, total }: { jobs: Job[]; total?: number }) {
 
       {filtered.length === 0 ? (
         <p className="border-y border-dashed border-foreground/20 py-8 text-center text-sm text-muted-foreground">
-          Nothing open with that in the title. Clear the filter, or follow the company and we&apos;ll write when one does.
+          Nothing open with that in the title. Clear the filter, or follow the company and we&apos;ll email you when one does.
         </p>
       ) : (
         <ul className="divide-y divide-border border-y border-foreground/20">

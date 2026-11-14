@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-// Fallback inks for a company with no logo: one of the four colours already
-// on an airmail envelope, picked deterministically from the name.
+// Fallback for a company with no logo: its initial, set like a drop cap, on
+// one of three paper tints picked deterministically from the name.
 const INKS = [
-  "bg-note text-note-foreground",
-  "bg-airmail-soft text-airmail",
+  "bg-wash text-foreground",
   "bg-kraft-soft text-clay",
-  "bg-moss-soft text-moss",
+  "bg-note text-note-foreground",
 ];
 
 function inkFor(name: string) {
@@ -38,11 +37,7 @@ function logoUrls(website: string | null): string[] {
   return urls;
 }
 
-/**
- * A company, as a postage stamp. At `md` and `lg` the tile gets perforated
- * edges; at `sm` (and anywhere a caller shrinks it further) perforations would
- * turn to noise, so it's a plain cut square instead.
- */
+/** A company's logo on a white tile — favicons are drawn for white. */
 export function CompanyLogo({
   name,
   website,
@@ -58,52 +53,36 @@ export function CompanyLogo({
   const [srcIndex, setSrcIndex] = useState(0);
   const initial = name.charAt(0).toUpperCase();
   const currentSrc = sources[srcIndex] ?? null;
-
-  const face = currentSrc ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={currentSrc}
-      alt={name}
-      onError={() => setSrcIndex((i) => i + 1)}
-      className="block size-full object-contain"
-    />
-  ) : (
-    <span
-      className={cn(
-        "flex size-full items-center justify-center font-heading font-extrabold leading-none",
-        inkFor(name),
-      )}
-    >
-      {initial}
-    </span>
-  );
-
-  if (size === "sm") {
-    return (
-      <span
-        className={cn(
-          "paper-light inline-block size-8 shrink-0 overflow-hidden rounded-[3px] border border-foreground/15 bg-white text-sm",
-          currentSrc && "p-0.5",
-          className,
-        )}
-      >
-        {face}
-      </span>
-    );
-  }
-
-  const sizeClass = { md: "size-12 text-lg", lg: "size-16 text-2xl" }[size];
-  const perf = { md: "6px", lg: "8px" }[size];
-  const hole = { md: "1.9px", lg: "2.4px" }[size];
+  const sizeClass = { sm: "size-8 text-sm", md: "size-12 text-xl", lg: "size-16 text-3xl" }[size];
+  const pad = { sm: "p-0.5", md: "p-1.5", lg: "p-2" }[size];
 
   return (
-    <span className={cn("stamp-lift inline-block shrink-0", sizeClass, className)}>
-      <span
-        className="stamp paper-light block size-full"
-        style={{ "--perf": perf, "--hole": hole } as CSSProperties}
-      >
-        {face}
-      </span>
+    <span
+      className={cn(
+        "paper-light tile inline-block shrink-0 overflow-hidden",
+        sizeClass,
+        currentSrc && pad,
+        className,
+      )}
+    >
+      {currentSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={currentSrc}
+          alt={name}
+          onError={() => setSrcIndex((i) => i + 1)}
+          className="block size-full object-contain"
+        />
+      ) : (
+        <span
+          className={cn(
+            "flex size-full items-center justify-center font-heading font-bold italic leading-none",
+            inkFor(name),
+          )}
+        >
+          {initial}
+        </span>
+      )}
     </span>
   );
 }

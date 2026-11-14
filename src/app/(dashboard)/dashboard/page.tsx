@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, ArrowRight, CheckCircle2, Circle, Mail } from "lucide-react";
+import { Plus, ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { SuggestedRoles } from "@/components/suggested-roles";
 import { ShareWatchlistButton } from "@/components/share-watchlist-button";
 import { DiscoverySection } from "@/components/discovery-section";
 import { CollapsibleSection } from "@/components/collapsible-section";
-import { PageHeader, Rubber, Seal } from "@/components/brand";
+import { EmptyState, PageHeader, Rank, Tag } from "@/components/brand";
 import { boardStatus } from "@/lib/board-status";
 import { agoShort, getOutlook, OUTLOOK_DAYS } from "@/lib/outlook";
 
@@ -126,12 +126,14 @@ export default async function DashboardPage() {
     <div className="space-y-10">
       <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
       <PageHeader
-        eyebrow="Your desk"
+        eyebrow="Your list"
         title={
           unseenMatches > 0
-            ? "You've got mail."
+            ? unseenMatches === 1
+              ? "Something opened."
+              : `${unseenMatches} things opened.`
             : tracked.length > 0
-              ? "No letters today."
+              ? "Quiet morning."
               : "Let's start your list."
         }
         action={tracked.length > 0 ? <ShareWatchlistButton userId={authUser.id} /> : undefined}
@@ -158,11 +160,11 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 gap-3 stagger-children sm:grid-cols-[1.4fr_1fr_1fr]">
           <Link
             href="/matches"
-            className="animate-rise airmail-frame group col-span-2 rounded-[4px] sm:col-span-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="animate-rise frame group col-span-2 sm:col-span-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="flex h-full items-center justify-between gap-4 px-4 py-3">
               <div>
-                <p className="font-heading text-5xl font-black leading-none tracking-[-0.03em] text-primary">
+                <p className="font-heading text-5xl font-bold leading-none tracking-[-0.04em] text-primary">
                   {totalMatches.toLocaleString()}
                 </p>
                 <p className="label-caps mt-2 text-foreground/70">
@@ -170,13 +172,9 @@ export default async function DashboardPage() {
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                {unseenMatches > 0 ? (
-                  <Rubber tone="red" tilt={-5}>{unseenMatches} new</Rubber>
-                ) : (
-                  <Mail className="size-6 text-foreground/25" />
-                )}
+                {unseenMatches > 0 && <Tag solid>{unseenMatches} new</Tag>}
                 <span className="flex items-center gap-1 text-xs font-semibold group-hover:text-primary">
-                  Open the mail <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+                  See matches <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
             </div>
@@ -185,8 +183,8 @@ export default async function DashboardPage() {
             { label: "On your list", value: tracked.length.toLocaleString() },
             { label: "Open roles across them", value: openRolesCount.toLocaleString() },
           ].map(({ label, value }) => (
-            <div key={label} className="animate-rise flex flex-col justify-center rounded-[4px] border bg-card px-4 py-3">
-              <p className="font-heading text-3xl font-black leading-none tracking-[-0.03em]">{value}</p>
+            <div key={label} className="animate-rise flex flex-col justify-center border-t-[3px] border-foreground px-1 py-3">
+              <p className="font-heading text-3xl font-bold leading-none tracking-[-0.04em]">{value}</p>
               <p className="label-caps mt-2 text-muted-foreground">{label}</p>
             </div>
           ))}
@@ -195,7 +193,7 @@ export default async function DashboardPage() {
 
       {/* Setup checklist — shown until user has both roles and companies */}
       {(trackedRoles.length === 0 || tracked.length === 0) && (
-        <div className="sheet rounded-[4px] p-5 space-y-3">
+        <div className="sheet p-5 space-y-3">
           <p className="font-heading text-lg font-bold tracking-[-0.01em]">Three things and you&apos;re done</p>
           <div className="space-y-2.5">
             <div className="flex items-center gap-3 text-sm">
@@ -232,7 +230,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-3 text-sm">
               <Circle className="size-4 text-muted-foreground/50 shrink-0" />
-              <span className="text-muted-foreground">Get a letter the day your role opens</span>
+              <span className="text-muted-foreground">Get an email the day your role opens</span>
             </div>
           </div>
         </div>
@@ -281,25 +279,23 @@ export default async function DashboardPage() {
 
       {/* Your list — every company with what we can actually see there */}
       {tracked.length === 0 ? (
-        <div className="airmail-frame rounded-[4px]">
-          <div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
-            <Seal className="size-12" />
-            <div className="space-y-1.5">
-              <p className="font-heading text-2xl font-extrabold tracking-[-0.02em]">Who&apos;s first?</p>
-              <p className="mx-auto max-w-sm leading-relaxed text-muted-foreground">
-                Pick the companies you&apos;d actually leave for. We read their job boards every morning and write the day your role opens.
-              </p>
-            </div>
-            <div className="mt-1 flex flex-wrap justify-center gap-2">
+        <EmptyState
+          kicker="Your list is empty"
+          title="Who's first?"
+          action={
+            <>
               <Link href="/companies?view=browse">
                 <Button>Browse companies</Button>
               </Link>
               <Link href="/collections">
                 <Button variant="outline">Start from a collection</Button>
               </Link>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        >
+          Pick the companies you&apos;d actually leave for. We read their job boards every morning and email you the day
+          your role opens.
+        </EmptyState>
       ) : (
         <CollapsibleSection
           title="Your list"
@@ -316,68 +312,72 @@ export default async function DashboardPage() {
         >
           <div className="space-y-3">
             {unconnected > 0 && (
-              <p className="rounded-[4px] border border-dashed border-kraft bg-kraft-soft/60 px-4 py-3 text-sm leading-relaxed">
+              <p className="border-l-[3px] border-clay bg-kraft-soft/60 px-4 py-3 text-sm leading-relaxed">
                 <span className="font-semibold">
                   We can&apos;t see the job board for {unconnected} of your {tracked.length}{" "}
                   {tracked.length === 1 ? "company" : "companies"} yet.
                 </span>{" "}
                 <span className="text-muted-foreground">
-                  No letters can come from those until we connect them — we keep re-checking, and they&apos;re marked below.
+                  No alerts can come from those until we connect them — we keep re-checking, and they&apos;re marked below.
                 </span>
               </p>
             )}
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {tracked.map((tc) => {
+            <ol className="border-t-[3px] border-foreground">
+              {tracked.map((tc, i) => {
                 const visible = canSee(tc);
                 const look = outlook.get(tc.companyId);
                 const open = tc.company._count?.jobs ?? 0;
                 return (
-                  <li key={tc.id}>
+                  <li key={tc.id} className="border-b border-foreground/15">
                     <Link
                       href={`/companies/${tc.company.slug}`}
-                      className="group flex h-full gap-3 rounded-[4px] border bg-card p-3.5 transition-[border-color,transform] duration-200 ease-[var(--ease-settle)] hover:-translate-y-0.5 hover:border-foreground/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="group grid grid-cols-[2.25rem_auto_1fr] items-center gap-x-3 gap-y-1 px-1 py-3 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[2.5rem_auto_1fr_auto]"
                     >
-                      <CompanyLogo name={tc.company.name} website={tc.company.website} size="md" />
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="truncate font-heading text-base font-bold leading-snug tracking-[-0.01em] group-hover:text-primary">
+                      <Rank n={i + 1} className="text-xl text-muted-foreground" />
+                      <CompanyLogo name={tc.company.name} website={tc.company.website} size="sm" />
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-2">
+                          <span className="truncate font-heading text-lg font-semibold leading-snug tracking-[-0.01em] group-hover:text-primary">
                             {tc.company.name}
-                          </p>
+                          </span>
                           {tc._count.matches > 0 && (
-                            <span className="shrink-0 rounded-[2px] bg-note px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-note-foreground">
+                            <Tag className="shrink-0 text-[0.6rem]">
                               {tc._count.matches} {tc._count.matches === 1 ? "match" : "matches"}
-                            </span>
+                            </Tag>
                           )}
-                        </div>
+                        </p>
                         {visible ? (
-                          <>
-                            <p className="font-mono text-xs tabular-nums text-muted-foreground">
-                              <span className="font-semibold text-foreground">{open.toLocaleString()}</span> open now
+                          trackedRoles.length > 0 &&
+                          (look || tc._count.matches === 0) && (
+                            <p className="text-xs leading-snug text-muted-foreground">
+                              {look ? (
+                                <>
+                                  <span className="font-semibold text-foreground">{look.matched} like yours</span> in{" "}
+                                  {OUTLOOK_DAYS} days{look.lastAt ? `, last ${agoShort(look.lastAt)}` : ""}
+                                </>
+                              ) : (
+                                <>None like yours in {OUTLOOK_DAYS} days</>
+                              )}
                             </p>
-                            {trackedRoles.length > 0 && (look || tc._count.matches === 0) && (
-                              <p className="text-xs leading-snug text-muted-foreground">
-                                {look ? (
-                                  <>
-                                    <span className="font-semibold text-moss">
-                                      {look.matched} like yours
-                                    </span>{" "}
-                                    in {OUTLOOK_DAYS} days{look.lastAt ? `, last ${agoShort(look.lastAt)}` : ""}
-                                  </>
-                                ) : (
-                                  <>None like yours in {OUTLOOK_DAYS} days</>
-                                )}
-                              </p>
-                            )}
-                          </>
+                          )
                         ) : (
-                          <p className="label-caps pt-1 text-clay">Board not connected</p>
+                          <p className="label-caps pt-0.5 text-clay">Board not connected</p>
                         )}
                       </div>
+                      <p className="col-start-3 font-mono text-xs tabular-nums text-muted-foreground sm:col-start-auto sm:text-right">
+                        {visible ? (
+                          <>
+                            <span className="font-semibold text-foreground">{open.toLocaleString()}</span> open
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </p>
                     </Link>
                   </li>
                 );
               })}
-            </ul>
+            </ol>
           </div>
         </CollapsibleSection>
       )}
@@ -431,7 +431,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {featuredCollections.map((col) => (
               <Link key={col.id} href={`/collections/${col.slug}`} className="group">
-                <div className="flex h-full flex-col gap-3 rounded-[4px] border bg-card p-4 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/35">
+                <div className="flex h-full flex-col gap-3 border-t border-foreground py-4">
                   <div className="flex gap-1.5">
                     {col.companies.map(({ company }, i) => (
                       <CompanyLogo key={i} name={company.name} website={company.website} size="sm" />

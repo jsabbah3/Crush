@@ -46,7 +46,7 @@ export function SuggestedRoles({ currentTitle }: { currentTitle: string }) {
               disabled={isAdded}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150 ${
                 isAdded
-                  ? "border-airmail/40 bg-airmail-soft text-airmail cursor-default"
+                  ? "border-graphite/40 bg-wash text-graphite cursor-default"
                   : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
               }`}
             >
