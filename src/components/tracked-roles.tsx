@@ -166,9 +166,9 @@ export function TrackedRoles({
     });
   }
 
-  const pillBase = "rounded-full px-3 py-1 text-xs font-medium border transition-colors cursor-pointer";
-  const pillActive = "border-primary bg-primary text-primary-foreground";
-  const pillInactive = "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground";
+  const pillBase = "rounded-[3px] px-2.5 py-1 text-xs font-medium border transition-colors cursor-pointer";
+  const pillActive = "border-foreground bg-foreground text-background";
+  const pillInactive = "border-foreground/20 bg-paper text-muted-foreground hover:border-foreground/45 hover:text-foreground";
 
   return (
     <div className="space-y-6">
@@ -243,12 +243,12 @@ export function TrackedRoles({
             {roles.map((role) => (
               <span
                 key={role.id}
-                className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
+                className="inline-flex items-center gap-1 rounded-[3px] border border-airmail/40 bg-airmail-soft px-2 py-0.5 text-xs font-semibold text-airmail"
               >
                 {role.title}
                 <button
                   onClick={() => handleRemove(role.id)}
-                  className="ml-0.5 rounded-full hover:text-primary/60 transition-colors"
+                  className="ml-0.5 rounded-full hover:text-foreground transition-colors"
                   aria-label={`Remove ${role.title}`}
                 >
                   <X className="size-2.5" />

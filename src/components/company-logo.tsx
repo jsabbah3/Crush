@@ -1,23 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
-// Deterministic warm-toned fallback color from the company name initial.
-// Kept within the Crush palette's temperature — no cool blues/violets/cyans.
-const PALETTE = [
-  "bg-amber-100  text-amber-800  dark:bg-amber-950/50  dark:text-amber-300",
-  "bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300",
-  "bg-stone-200  text-stone-700  dark:bg-stone-800/60  dark:text-stone-300",
-  "bg-red-100    text-red-800    dark:bg-red-950/50    dark:text-red-300",
-  "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-300",
-  "bg-lime-100   text-lime-800   dark:bg-lime-950/50   dark:text-lime-300",
-  "bg-rose-100   text-rose-800   dark:bg-rose-950/50   dark:text-rose-300",
-  "bg-amber-200  text-amber-900  dark:bg-amber-900/50  dark:text-amber-200",
+// Fallback inks for a company with no logo: one of the four colours already
+// on an airmail envelope, picked deterministically from the name.
+const INKS = [
+  "bg-note text-note-foreground",
+  "bg-airmail-soft text-airmail",
+  "bg-kraft-soft text-clay",
+  "bg-moss-soft text-moss",
 ];
 
-function colorFor(name: string) {
-  return PALETTE[name.charCodeAt(0) % PALETTE.length];
+function inkFor(name: string) {
+  return INKS[name.charCodeAt(0) % INKS.length];
 }
 
 function extractDomain(website: string | null): string | null {
@@ -42,6 +38,11 @@ function logoUrls(website: string | null): string[] {
   return urls;
 }
 
+/**
+ * A company, as a postage stamp. At `md` and `lg` the tile gets perforated
+ * edges; at `sm` (and anywhere a caller shrinks it further) perforations would
+ * turn to noise, so it's a plain cut square instead.
+ */
 export function CompanyLogo({
   name,
   website,
@@ -55,43 +56,54 @@ export function CompanyLogo({
 }) {
   const sources = logoUrls(website);
   const [srcIndex, setSrcIndex] = useState(0);
-  const color = colorFor(name);
   const initial = name.charAt(0).toUpperCase();
-
-  const sizeClass = {
-    sm: "size-8 text-sm rounded-lg",
-    md: "size-12 text-base rounded-xl",
-    lg: "size-16 text-xl rounded-2xl",
-  }[size];
-
   const currentSrc = sources[srcIndex] ?? null;
 
-  if (currentSrc) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={currentSrc}
-        alt={name}
-        onError={() => setSrcIndex((i) => i + 1)}
-        className={cn(
-          "object-contain border border-border/50 bg-white p-1",
-          sizeClass,
-          className
-        )}
-      />
-    );
-  }
-
-  return (
-    <div
+  const face = currentSrc ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={currentSrc}
+      alt={name}
+      onError={() => setSrcIndex((i) => i + 1)}
+      className="block size-full object-contain"
+    />
+  ) : (
+    <span
       className={cn(
-        "flex items-center justify-center font-semibold shrink-0",
-        sizeClass,
-        color,
-        className
+        "flex size-full items-center justify-center font-heading font-extrabold leading-none",
+        inkFor(name),
       )}
     >
       {initial}
-    </div>
+    </span>
+  );
+
+  if (size === "sm") {
+    return (
+      <span
+        className={cn(
+          "paper-light inline-block size-8 shrink-0 overflow-hidden rounded-[3px] border border-foreground/15 bg-white text-sm",
+          currentSrc && "p-0.5",
+          className,
+        )}
+      >
+        {face}
+      </span>
+    );
+  }
+
+  const sizeClass = { md: "size-12 text-lg", lg: "size-16 text-2xl" }[size];
+  const perf = { md: "6px", lg: "8px" }[size];
+  const hole = { md: "1.9px", lg: "2.4px" }[size];
+
+  return (
+    <span className={cn("stamp-lift inline-block shrink-0", sizeClass, className)}>
+      <span
+        className="stamp paper-light block size-full"
+        style={{ "--perf": perf, "--hole": hole } as CSSProperties}
+      >
+        {face}
+      </span>
+    </span>
   );
 }

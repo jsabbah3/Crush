@@ -130,7 +130,7 @@ export function OnboardingWizard({ collections }: Props) {
   }
 
   const pillBase = "rounded-full px-4 py-1.5 text-sm font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
-  const pillActive = "border-primary bg-primary text-primary-foreground";
+  const pillActive = "border-foreground bg-foreground text-background";
   const pillInactive = "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground";
 
   // ─── Step 1: LinkedIn ───────────────────────────────────────────────────────
@@ -242,7 +242,7 @@ export function OnboardingWizard({ collections }: Props) {
                       }
                       className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
                         already
-                          ? "border-primary/40 bg-primary/10 text-primary"
+                          ? "border-airmail/40 bg-airmail-soft text-airmail"
                           : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
                       }`}
                     >
@@ -396,7 +396,7 @@ export function OnboardingWizard({ collections }: Props) {
                 onClick={() => setSelectedCollection(selected ? null : col.slug)}
                 className={`text-left flex flex-col gap-3 rounded-xl border p-4 transition-all ${
                   selected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    ? "border-airmail bg-airmail-soft/50 ring-1 ring-airmail"
                     : "border-border bg-card hover:border-foreground/20 hover:shadow-sm"
                 }`}
               >
@@ -413,8 +413,8 @@ export function OnboardingWizard({ collections }: Props) {
                     ))}
                   </div>
                   {selected && (
-                    <div className="shrink-0 size-5 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="size-3 text-primary-foreground" />
+                    <div className="shrink-0 size-5 rounded-full bg-airmail flex items-center justify-center">
+                      <Check className="size-3 text-background" />
                     </div>
                   )}
                 </div>
@@ -500,13 +500,13 @@ export function OnboardingWizard({ collections }: Props) {
 
           {/* Upload area */}
           {importStatus === "done" && importResult ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30 p-5 flex items-start gap-3">
-              <Users className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="rounded-xl border border-moss/30 bg-moss-soft p-5 flex items-start gap-3">
+              <Users className="size-5 text-moss shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                <p className="text-sm font-semibold text-foreground">
                   {importResult.imported.toLocaleString()} connections imported
                 </p>
-                <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
+                <p className="text-xs text-moss mt-0.5">
                   {importResult.matched.toLocaleString()} matched to companies on Crush — you&apos;ll see them on company pages.
                 </p>
               </div>
@@ -627,7 +627,7 @@ export function OnboardingWizard({ collections }: Props) {
             </p>
             <p className="text-sm font-medium">{chosenCollection.name}</p>
             <p className="text-xs text-muted-foreground">
-              We&apos;ll watch {chosenCollection._count.companies} companies and email you the moment a matching role opens.
+              We&apos;ll watch {chosenCollection._count.companies} companies and write the day a matching role opens.
             </p>
           </div>
         ) : (

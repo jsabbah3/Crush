@@ -89,7 +89,7 @@ export function AiMatchScorer({ jobs }: { jobs: JobInput[] }) {
             if (!score) return null;
             const pct = score.score;
             const color =
-              pct >= 80 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-500" : "bg-red-400";
+              pct >= 80 ? "bg-moss" : pct >= 60 ? "bg-kraft" : "bg-clay";
             const isExpanded = expanded.has(job.matchId);
             return (
               <div key={job.matchId} className="rounded-lg border bg-card px-3 py-2">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Briefcase, Bell, Settings, LogOut, Layers, BookOpen } from "lucide-react";
+import { Building2, LayoutGrid, Mail, Settings, LogOut, Layers, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/app/actions/auth";
 import { ThemeToggleButton } from "@/components/theme-toggle";
+import { AirmailRule, Wordmark } from "@/components/brand";
 import { cn } from "@/lib/utils";
 
 type UserProps = {
@@ -23,10 +24,10 @@ type UserProps = {
 };
 
 const navLinks = [
-  { href: "/dashboard",    label: "Dashboard",    icon: Briefcase,    badge: false },
+  { href: "/dashboard",    label: "Dashboard",    icon: LayoutGrid,    badge: false },
   { href: "/companies",    label: "Companies",    icon: Building2,    badge: false },
   { href: "/collections",  label: "Collections",  icon: Layers,       badge: false },
-  { href: "/matches",      label: "Matches",      icon: Bell,         badge: true  },
+  { href: "/matches",      label: "Matches",      icon: Mail,         badge: true  },
   { href: "/blog",         label: "Blog",         icon: BookOpen,     badge: false },
 ];
 
@@ -45,16 +46,21 @@ export function DashboardNav({
 
   return (
     <>
+      <AirmailRule />
       {/* ── Top nav (desktop) ── */}
-      <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
+      <header className="sticky top-0 z-20 border-b border-foreground/10 bg-background/90 backdrop-blur">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-4 sm:px-6 h-14">
           <div className="flex items-center gap-4 sm:gap-6">
-            <Link href="/dashboard" className="font-heading font-bold text-base tracking-tight">
-              Crush
+            <Link
+              href="/dashboard"
+              aria-label="Crush — dashboard"
+              className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            >
+              <Wordmark />
             </Link>
             {/* Desktop nav — hidden on mobile */}
-            <nav className="hidden sm:flex items-center">
-              {navLinks.map(({ href, label, icon: Icon, badge }) => {
+            <nav className="hidden sm:flex items-center gap-1">
+              {navLinks.map(({ href, label, badge }) => {
                 const active = pathname === href || pathname.startsWith(href + "/");
                 return (
                   <Link
@@ -62,13 +68,12 @@ export function DashboardNav({
                     href={href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset",
+                      "relative flex items-center gap-1.5 px-2.5 h-14 text-sm font-medium transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset",
                       active
-                        ? "text-foreground font-semibold"
+                        ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <Icon className="size-3.5" />
                     {label}
                     {badge && unreadMatches > 0 && (
                       <span className="h-4 min-w-4 rounded-full bg-primary text-primary-foreground font-mono text-[10px] font-semibold leading-none flex items-center justify-center px-1 tabular-nums">
@@ -76,7 +81,7 @@ export function DashboardNav({
                       </span>
                     )}
                     {active && (
-                      <span className="absolute bottom-0 left-3 right-3 h-[3px] rounded-full bg-primary" />
+                      <span className="absolute bottom-0 left-2.5 right-2.5 h-[3px] bg-primary" />
                     )}
                   </Link>
                 );
@@ -136,7 +141,7 @@ export function DashboardNav({
       </header>
 
       {/* ── Bottom nav (mobile only) ── */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur border-t">
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20 border-t border-foreground/15 bg-paper/95 backdrop-blur">
         <div className="flex items-center justify-around h-16 px-2">
           {bottomNavLinks.map(({ href, label, icon: Icon, badge }) => {
             const active = pathname === href || pathname.startsWith(href + "/");

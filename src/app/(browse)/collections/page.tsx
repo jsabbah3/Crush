@@ -22,9 +22,9 @@ export default async function CollectionsPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">Collections</h1>
+        <h1 className="font-heading text-[2rem] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[2.5rem]">Collections</h1>
         <p className="text-sm text-muted-foreground">
-          Curated company lists to help you discover where to apply.
+          Hand-picked bundles of companies. Follow a whole one in a click, then cross off the ones you wouldn&apos;t really leave for.
         </p>
       </div>
 
@@ -37,13 +37,13 @@ export default async function CollectionsPage() {
               href={`/collections/${col.slug}`}
               className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             >
-              <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 h-full transition-[border-color,box-shadow,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:border-border hover:shadow-sm hover:-translate-y-0.5">
+              <div className="flex h-full flex-col gap-4 rounded-[4px] border border-border bg-card p-5 transition-[border-color,box-shadow,transform] duration-200 ease-[var(--ease-settle)] hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-[0_10px_24px_-14px_oklch(0.24_0.06_266/0.35)]">
                 {/* Logo stack */}
-                <div className="flex -space-x-2">
+                <div className="flex gap-1.5">
                   {preview.map(({ company }, i) => (
                     <div
                       key={i}
-                      className="ring-2 ring-card rounded-xl transition-transform duration-[var(--dur-fast)] group-hover:ring-background"
+                      className=""
                       style={{ zIndex: preview.length - i }}
                     >
                       <CompanyLogo name={company.name} website={company.website} size="sm" />
@@ -51,7 +51,7 @@ export default async function CollectionsPage() {
                   ))}
                   {col.companies.length > 5 && (
                     <div
-                      className="ring-2 ring-card size-8 rounded-xl bg-muted flex items-center justify-center font-mono text-xs text-muted-foreground font-medium tabular-nums"
+                      className="size-8 rounded-[3px] bg-muted flex items-center justify-center font-mono text-xs text-muted-foreground font-medium tabular-nums"
                       style={{ zIndex: 0 }}
                     >
                       +{col.companies.length - 5}
@@ -61,7 +61,7 @@ export default async function CollectionsPage() {
 
                 {/* Text */}
                 <div className="flex-1 space-y-1">
-                  <p className="font-semibold text-[15px] leading-snug group-hover:text-primary transition-colors">
+                  <p className="font-heading text-lg font-bold leading-snug tracking-[-0.01em] group-hover:text-primary transition-colors">
                     {col.name}
                   </p>
                   {col.description && (

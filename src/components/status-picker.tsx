@@ -33,7 +33,7 @@ export const STATUS_CONFIG: Record<
   { label: string; dot: string; text: string }
 > = {
   INTERESTED:    { label: "Interested",    dot: "bg-muted-foreground/40", text: "text-muted-foreground" },
-  APPLIED:       { label: "Applied",       dot: "bg-slate-warm",          text: "text-slate-warm" },
+  APPLIED:       { label: "Applied",       dot: "bg-airmail",          text: "text-airmail" },
   INTERVIEWING:  { label: "Interviewing",  dot: "bg-primary",             text: "text-primary" },
   OFFER:         { label: "Offer",         dot: "bg-moss",                text: "text-moss" },
   REJECTED:      { label: "Rejected",      dot: "bg-clay",                text: "text-muted-foreground" },

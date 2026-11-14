@@ -238,7 +238,38 @@ async function sendEmail({
   return !error;
 }
 
-function buildHtml(
+// Job titles and company names come from third-party job boards, and the
+// user's name from their Google profile — none of it is ours, so none of it
+// goes into the HTML unescaped.
+function esc(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// The letter's palette — the site's airmail tokens, as the hex email needs.
+const INK = "#17204A";
+const RED = "#D12A26";
+const BLUE = "#2548B8";
+const PAPER = "#FFFDF8";
+const DESK = "#E9EEF7";
+const MUTE = "#5E6788";
+const RULE = "#D5DCEB";
+const SERIF = "Georgia,'Times New Roman',serif";
+const SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+const MONO = "'SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
+// Airmail chevrons where the client supports gradients; plain red where not.
+const STRIPE = `background-color:${RED};background-image:repeating-linear-gradient(135deg,${RED} 0,${RED} 11px,${PAPER} 11px,${PAPER} 22px,${BLUE} 22px,${BLUE} 33px,${PAPER} 33px,${PAPER} 44px);`;
+
+/**
+ * The alert email. The site promises "one letter", so this is one: a date, a
+ * salutation, the role, and a sign-off — on airmail paper, not a card stack
+ * dressed as a newsletter.
+ */
+export function buildHtml(
   name: string,
   matches: MatchRow[],
   token: string,
@@ -251,118 +282,128 @@ function buildHtml(
   const matchesUrl = emailLink(`${APP_URL}/matches`, userId, emailType);
   const pixelUrl = `${APP_URL}/api/email/pixel?uid=${userId}&type=${emailType}`;
 
-  const jobCards = matches.map((m) => {
-    const loc = m.job.remote ? "Remote" : (m.job.location ?? "On-site");
+  const firstName = esc(name.trim().split(/\s+/)[0] || "there");
+  const single = matches.length === 1;
+  const dateLine = new Date().toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York",
+  });
+
+  const roles = matches.map((m, i) => {
+    const company = esc(m.trackedCompany.company.name);
+    const loc = esc(m.job.remote ? "Remote" : (m.job.location ?? "On-site"));
     const rawUrl = m.job.url ?? `${APP_URL}/matches`;
     const applyUrl = emailLink(rawUrl, userId, emailType);
     const networkCount = networkByCompanyId.get(m.trackedCompany.company.id) ?? 0;
     const networkUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}#network`, userId, emailType);
     const networkLine = networkCount > 0
-      ? `<p style="margin:0 0 10px;font-size:13px;color:#374151;">You know <strong>${networkCount} ${networkCount === 1 ? "person" : "people"}</strong> here — <a href="${networkUrl}" style="color:#111111;font-weight:600;">see who →</a></p>`
+      ? `<p style="margin:10px 0 0;font-family:${SANS};font-size:14px;line-height:1.5;color:${BLUE};">P.S. You know <strong>${networkCount} ${networkCount === 1 ? "person" : "people"}</strong> there. <a href="${networkUrl}" style="color:${BLUE};font-weight:600;">See who &rarr;</a></p>`
       : "";
 
     return `
-    <tr>
-      <td style="padding:0 0 12px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4dc;border-radius:10px;overflow:hidden;">
           <tr>
-            <td style="padding:18px 20px;background:#ffffff;">
-              <!-- Company name -->
-              <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9ca3af;">${m.trackedCompany.company.name}</p>
-              <!-- Job title -->
-              <p style="margin:0 0 10px;font-size:17px;font-weight:600;color:#111111;line-height:1.3;">${m.job.title}</p>
+            <td style="padding:${i === 0 ? "0" : "22px"} 0 ${i === matches.length - 1 ? "0" : "22px"} 0;${i === 0 ? "" : `border-top:1px dashed ${RULE};`}">
+              <p style="margin:0 0 6px;font-family:${SANS};font-size:15px;line-height:1.5;color:${INK};"><strong>${company}</strong> just opened</p>
+              <p style="margin:0 0 8px;font-family:${SERIF};font-size:${single ? "26" : "21"}px;font-weight:700;line-height:1.15;letter-spacing:-0.01em;color:${INK};">${esc(m.job.title)}</p>
+              <p style="margin:0;font-family:${MONO};font-size:12px;line-height:1.5;color:${MUTE};">${loc}</p>
               ${networkLine}
-              <!-- Meta row -->
-              <table cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding-right:8px;">
-                    <span style="display:inline-block;padding:3px 10px;background:#f3f4f6;border-radius:20px;font-size:12px;color:#6b7280;font-weight:500;">${loc}</span>
-                  </td>
-                  <td>
-                    <a href="${applyUrl}" style="display:inline-block;padding:3px 12px;background:#111111;border-radius:20px;font-size:12px;color:#ffffff;font-weight:600;text-decoration:none;">Apply →</a>
-                  </td>
-                </tr>
-              </table>
+              <p style="margin:16px 0 0;">
+                <a href="${applyUrl}" style="display:inline-block;padding:10px 18px;background:${single ? RED : INK};border-radius:3px;font-family:${SANS};font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">See the role &rarr;</a>
+              </p>
             </td>
-          </tr>
-        </table>
-      </td>
-    </tr>`;
+          </tr>`;
   }).join("");
 
-  const greeting = matches.length === 1
-    ? `A role just opened at <strong>${matches[0].trackedCompany.company.name}</strong> that matches your criteria.`
-    : `${matches.length} new roles just opened at companies on your watchlist.`;
+  const opener = single
+    ? ""
+    : `<p style="margin:0 0 22px;font-family:${SANS};font-size:15px;line-height:1.6;color:${INK};">${matches.length} roles opened at companies on your list.</p>`;
+  const closer = single
+    ? "You said you&rsquo;d leave for this one."
+    : "You said you&rsquo;d leave for these.";
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light only" />
 </head>
-<body style="margin:0;padding:0;background:#f7f6f3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f6f3;padding:32px 16px;">
+<body style="margin:0;padding:0;background:${DESK};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${DESK};padding:28px 12px;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${PAPER};border:1px solid ${RULE};">
 
-          <!-- Header -->
-          <tr>
-            <td style="padding:0 0 28px 0;">
-              <a href="${APP_URL}" style="font-size:16px;font-weight:700;color:#111111;text-decoration:none;letter-spacing:-0.01em;">Crush</a>
-            </td>
-          </tr>
+          <!-- Airmail edge -->
+          <tr><td style="height:8px;line-height:8px;font-size:0;${STRIPE}">&nbsp;</td></tr>
 
-          <!-- Greeting -->
           <tr>
-            <td style="padding:0 0 8px 0;">
-              <p style="margin:0;font-size:22px;font-weight:700;color:#111111;line-height:1.3;">Hi ${name}</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:0 0 24px 0;">
-              <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6;">${greeting}</p>
-            </td>
-          </tr>
+            <td style="padding:28px 32px 30px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 
-          <!-- Job cards -->
-          <tr>
-            <td>
-              <table width="100%" cellpadding="0" cellspacing="0">
-                ${jobCards}
+                <!-- Letterhead -->
+                <tr>
+                  <td style="padding:0 0 26px 0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td>
+                          <a href="${APP_URL}" style="font-family:${SERIF};font-size:22px;font-weight:700;font-style:italic;color:${INK};text-decoration:none;letter-spacing:-0.02em;"><span style="color:${RED};font-style:normal;">&hearts;</span> Crush</a>
+                        </td>
+                        <td align="right" style="font-family:${MONO};font-size:11px;color:${MUTE};">${dateLine}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Salutation -->
+                <tr>
+                  <td style="padding:0 0 18px 0;">
+                    <p style="margin:0;font-family:${SERIF};font-size:18px;font-style:italic;line-height:1.4;color:${INK};">Dear ${firstName},</p>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>
+                    ${opener}
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      ${roles}
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Sign-off -->
+                <tr>
+                  <td style="padding:26px 0 0 0;">
+                    <p style="margin:0 0 14px;font-family:${SANS};font-size:15px;line-height:1.6;color:${INK};">${closer}</p>
+                    <p style="margin:0;font-family:${SERIF};font-size:18px;font-style:italic;color:${RED};">&mdash; Crush</p>
+                  </td>
+                </tr>
+
+                ${single ? "" : `<tr>
+                  <td style="padding:22px 0 0 0;">
+                    <a href="${matchesUrl}" style="font-family:${SANS};font-size:14px;font-weight:600;color:${INK};">Open all of them on Crush &rarr;</a>
+                  </td>
+                </tr>`}
+
               </table>
-            </td>
-          </tr>
-
-          <!-- CTA -->
-          <tr>
-            <td style="padding:20px 0 0 0;">
-              <a href="${matchesUrl}" style="display:inline-block;padding:12px 24px;background:#111111;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">View all matches →</a>
-            </td>
-          </tr>
-
-          <!-- Divider -->
-          <tr>
-            <td style="padding:32px 0 24px 0;">
-              <div style="height:1px;background:#e8e4dc;"></div>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td>
-              <p style="margin:0 0 8px;font-size:12px;color:#9ca3af;line-height:1.6;">
-                You're getting this because you follow companies on
-                <a href="${APP_URL}" style="color:#9ca3af;text-decoration:underline;">Crush</a>.
+            <td style="padding:18px 32px 22px;border-top:1px dashed ${RULE};">
+              <p style="margin:0 0 6px;font-family:${SANS};font-size:12px;line-height:1.6;color:${MUTE};">
+                You&rsquo;re getting this because ${single ? "this company is" : "these companies are"} on your list at
+                <a href="${APP_URL}" style="color:${MUTE};text-decoration:underline;">Crush</a>. We only write when a role fits.
               </p>
-              <p style="margin:0;font-size:12px;">
-                <a href="${settingsUrl}" style="color:#6b7280;text-decoration:none;">Alert settings</a>
-                <span style="color:#d1d5db;margin:0 8px;">&middot;</span>
-                <a href="${pauseUrl}" style="color:#6b7280;text-decoration:none;">Unsubscribe</a>
+              <p style="margin:0;font-family:${SANS};font-size:12px;">
+                <a href="${settingsUrl}" style="color:${INK};text-decoration:underline;">Alert settings</a>
+                <span style="color:${RULE};margin:0 8px;">&middot;</span>
+                <a href="${pauseUrl}" style="color:${INK};text-decoration:underline;">Unsubscribe</a>
               </p>
             </td>
           </tr>
 
+          <tr><td style="height:8px;line-height:8px;font-size:0;${STRIPE}">&nbsp;</td></tr>
         </table>
       </td>
     </tr>

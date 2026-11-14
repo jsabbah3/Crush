@@ -1,4 +1,7 @@
-import { ExternalLink } from "lucide-react";
+"use client";
+
+import { useMemo, useState } from "react";
+import { ExternalLink, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Job = {
@@ -21,6 +24,10 @@ const JOB_TYPE_LABEL: Record<string, string> = {
   FREELANCE: "Freelance",
 };
 
+const PAGE = 25;
+// Below this, a filter box is more furniture than the list it filters.
+const FILTER_FROM = 12;
+
 function relativeTime(date: Date): string {
   const diff = Date.now() - new Date(date).getTime();
   const days = Math.floor(diff / 86400000);
@@ -30,6 +37,10 @@ function relativeTime(date: Date): string {
   if (days < 30) return `${Math.floor(days / 7)}w ago`;
   if (days < 365) return `${Math.floor(days / 30)}mo ago`;
   return `${Math.floor(days / 365)}y ago`;
+}
+
+function isFresh(date: Date | null): boolean {
+  return !!date && Date.now() - new Date(date).getTime() < 3 * 86400000;
 }
 
 function RoleRow({ job }: { job: Job }) {
@@ -47,16 +58,16 @@ function RoleRow({ job }: { job: Job }) {
         job.url && "sm:group-hover/role:pl-3.5 sm:group-focus-visible/role:pl-3.5",
       )}
     >
-      {/* amber tick — scales in on hover/focus */}
+      {/* red tick — scales in on hover/focus */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-0 top-1/2 hidden h-[60%] w-0.5 -translate-y-1/2 origin-center scale-y-0 rounded-full bg-primary transition-transform duration-[var(--dur-med)] ease-[var(--ease-settle)] group-hover/role:scale-y-100 group-focus-visible/role:scale-y-100 sm:block"
+        className="pointer-events-none absolute left-0 top-1/2 hidden h-[60%] w-[3px] -translate-y-1/2 origin-center scale-y-0 bg-primary transition-transform duration-[var(--dur-med)] ease-[var(--ease-settle)] group-hover/role:scale-y-100 group-focus-visible/role:scale-y-100 sm:block"
       />
       <div className="min-w-0">
-        <p className="font-medium text-[15px] leading-snug tracking-[-0.008em] text-foreground transition-colors group-hover/role:text-primary group-focus-visible/role:text-primary">
+        <p className="text-[15px] font-semibold leading-snug tracking-[-0.008em] text-foreground transition-colors group-hover/role:text-primary group-focus-visible/role:text-primary">
           {job.title}
           {workMode && (
-            <span className="font-normal italic text-muted-foreground"> · {workMode}</span>
+            <span className="font-normal text-muted-foreground"> · {workMode}</span>
           )}
         </p>
       </div>
@@ -67,7 +78,9 @@ function RoleRow({ job }: { job: Job }) {
         {job.postedAt && (
           <>
             <span aria-hidden>·</span>
-            <span>{relativeTime(job.postedAt)}</span>
+            <span className={cn(isFresh(job.postedAt) && "font-semibold text-primary")}>
+              {relativeTime(job.postedAt)}
+            </span>
           </>
         )}
         {job.url && (
@@ -81,31 +94,92 @@ function RoleRow({ job }: { job: Job }) {
 }
 
 /**
- * "Quiet Paper" open-roles list: set typographic lines rather than cards.
- * Hover/focus indents the row and draws a 2px amber tick, and reveals Apply.
- * The whole row is the apply link when a URL exists.
+ * A company's open roles as set lines of type rather than cards. Hover/focus
+ * indents the row, draws a red tick, and reveals Apply; the whole row is the
+ * apply link when a URL exists.
+ *
+ * Long boards get a title filter and a "show more" — someone landing on a
+ * company with 150 openings is looking for one of them, not a scroll.
  */
-export function RoleList({ jobs }: { jobs: Job[] }) {
+export function RoleList({ jobs, total }: { jobs: Job[]; total?: number }) {
+  const [q, setQ] = useState("");
+  const [shown, setShown] = useState(PAGE);
+
+  const filtered = useMemo(() => {
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (terms.length === 0) return jobs;
+    return jobs.filter((j) => {
+      const hay = `${j.title} ${j.location ?? ""} ${j.remote ? "remote" : ""}`.toLowerCase();
+      return terms.every((t) => hay.includes(t));
+    });
+  }, [jobs, q]);
+
+  const visible = filtered.slice(0, shown);
+
   return (
-    <ul className="divide-y divide-border border-y border-border">
-      {jobs.map((job) => (
-        <li key={job.id}>
-          {job.url ? (
-            <a
-              href={job.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group/role block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset"
-            >
-              <RoleRow job={job} />
-            </a>
-          ) : (
-            <div className="group/role">
-              <RoleRow job={job} />
-            </div>
+    <div className="space-y-3">
+      {jobs.length >= FILTER_FROM && (
+        <label className="flex items-center gap-2 rounded-[3px] border border-foreground/25 bg-paper px-3 focus-within:border-airmail focus-within:ring-3 focus-within:ring-airmail/25">
+          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setShown(PAGE);
+            }}
+            placeholder={`Find your role in ${jobs.length}… try “account executive” or “remote”`}
+            aria-label="Filter open roles"
+            className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+          {q && (
+            <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+              {filtered.length} of {jobs.length}
+            </span>
           )}
-        </li>
-      ))}
-    </ul>
+        </label>
+      )}
+
+      {filtered.length === 0 ? (
+        <p className="border-y border-dashed border-foreground/20 py-8 text-center text-sm text-muted-foreground">
+          Nothing open with that in the title. Clear the filter, or follow the company and we&apos;ll write when one does.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border border-y border-foreground/20">
+          {visible.map((job) => (
+            <li key={job.id}>
+              {job.url ? (
+                <a
+                  href={job.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group/role block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-inset"
+                >
+                  <RoleRow job={job} />
+                </a>
+              ) : (
+                <div className="group/role">
+                  <RoleRow job={job} />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {total !== undefined && total > jobs.length && (
+        <p className="font-mono text-xs text-muted-foreground">
+          Showing the {jobs.length} newest of {total.toLocaleString()} open roles.
+        </p>
+      )}
+
+      {filtered.length > shown && (
+        <button
+          onClick={() => setShown((n) => n + PAGE * 2)}
+          className="cursor-pointer text-sm font-semibold underline decoration-primary decoration-2 underline-offset-4 hover:text-primary"
+        >
+          Show more — {filtered.length - shown} to go
+        </button>
+      )}
+    </div>
   );
 }

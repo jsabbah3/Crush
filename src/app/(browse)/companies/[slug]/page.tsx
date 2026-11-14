@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ExternalLink, Users, Rss, BookOpen, Check } from "lucide-react";
+import { ExternalLink, Users, Rss, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { CompanyLogo } from "@/components/company-logo";
@@ -10,6 +10,20 @@ import { RoleList } from "@/components/role-list";
 import { MarkdownBody } from "@/components/markdown-body";
 import { JobPostingJsonLd } from "@/components/job-posting-jsonld";
 import { isCompanyPublic } from "@/lib/company-relevance";
+import { boardStatus } from "@/lib/board-status";
+import { HiringPulse } from "@/components/hiring-pulse";
+import { Rubber } from "@/components/brand";
+
+// How many open roles to send to the page. Enough for the biggest boards we
+// track; the list filters and paginates client-side.
+const MAX_ROLES = 400;
+// JobPosting structured data is only emitted for the newest few.
+const JSONLD_ROLES = 20;
+const DAY = 86400000;
+
+function daysAgo(n: number): Date {
+  return new Date(Date.now() - n * DAY);
+}
 
 export async function generateMetadata({
   params,
@@ -56,7 +70,7 @@ export async function generateMetadata({
     : `${company.name} — Jobs & Hiring | Crush`;
   const description = company.description
     ? `${company.description.slice(0, 140)} — Track ${company.name} on Crush to get alerted when they hire.`
-    : `Track ${company.name} on Crush. Get one alert the moment a role opens that matches your criteria.`;
+    : `Track ${company.name} on Crush. Get one email the day a role opens that matches what you're looking for.`;
 
   return {
     title,
@@ -84,7 +98,7 @@ export default async function CompanyDetailPage({
         jobs: {
           where: { status: "ACTIVE" },
           orderBy: { postedAt: "desc" },
-          take: 20,
+          take: MAX_ROLES,
         },
         signals: {
           where: { type: "blog_post" },
@@ -140,69 +154,117 @@ export default async function CompanyDetailPage({
       })
     : [];
 
+  // Hiring pulse: daily open-role counts. The first days after a board is
+  // connected are a bulk-import spike rather than hiring, so the window never
+  // starts earlier than three days after tracking began.
+  const since = daysAgo(90);
+  const trackedFrom = company.trackingStartedAt
+    ? new Date(new Date(company.trackingStartedAt).getTime() + 3 * DAY)
+    : since;
+  const [snapshots, postedLast30, openRoleTotal] = await Promise.all([
+    prisma.companyRoleSnapshot.findMany({
+      where: { companyId: company.id, capturedOn: { gte: trackedFrom > since ? trackedFrom : since } },
+      orderBy: { capturedOn: "asc" },
+      select: { capturedOn: true, openRolesTotal: true },
+    }),
+    prisma.job.count({ where: { companyId: company.id, postedAt: { gte: daysAgo(30) } } }),
+    prisma.job.count({ where: { companyId: company.id, status: "ACTIVE" } }),
+  ]);
+
+  const board = boardStatus(company);
+  const stage = company.fundingStage?.replace(/_/g, " ") ?? null;
+  const eyebrow = [company.industry, stage, company.headquarters].filter(Boolean) as string[];
+
   const facts = [
     company.industry && { label: "Industry", value: company.industry },
-    company.fundingStage && { label: "Stage", value: company.fundingStage.replace(/_/g, " ") },
+    stage && { label: "Stage", value: stage },
     company.size && { label: "Size", value: company.size },
     company.headquarters && { label: "HQ", value: company.headquarters },
+    { label: "Job board", value: board.connected ? board.board : openRoleTotal > 0 ? "On file" : "Not connected" },
   ].filter(Boolean) as { label: string; value: string }[];
 
+  // Only what the role list renders — job descriptions stay on the server.
+  const roles = company.jobs.map((j) => ({
+    id: j.id, title: j.title, type: j.type, location: j.location, remote: j.remote,
+    salaryMin: j.salaryMin, salaryMax: j.salaryMax, url: j.url, postedAt: j.postedAt,
+  }));
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <JobPostingJsonLd
-        jobs={company.jobs}
+        jobs={company.jobs.slice(0, JSONLD_ROLES)}
         companyName={company.name}
         companyWebsite={company.website}
       />
 
-      {/* Company header — full width */}
-      <div className="flex items-start gap-4">
-        <CompanyLogo name={company.name} website={company.website} size="lg" className="shrink-0" />
-        <div className="flex-1 min-w-0 space-y-2">
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">{company.name}</h1>
+      {/* Company header */}
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
+        <CompanyLogo name={company.name} website={company.website} size="lg" className="size-20 shrink-0 text-3xl" />
+        <div className="min-w-0 flex-1 space-y-3">
+          {eyebrow.length > 0 && (
+            <p className="label-caps flex flex-wrap gap-x-2 gap-y-1 text-airmail">
+              {eyebrow.map((e, i) => (
+                <span key={e} className="flex items-center gap-2">
+                  {i > 0 && <span className="text-foreground/25">/</span>}
+                  {e}
+                </span>
+              ))}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <h1 className="font-heading text-4xl font-black leading-[1.02] tracking-[-0.03em] sm:text-5xl">
+              {company.name}
+            </h1>
+            {tracked && <Rubber tone="green" tilt={-4}>On your list</Rubber>}
+          </div>
+          {company.description && (
+            <p className="max-w-[65ch] leading-relaxed text-muted-foreground">{company.description}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
             <FollowButton
               company={{ id: company.id, name: company.name }}
               tracked={tracked}
               userId={authUser?.id ?? null}
+              size="default"
             />
-          </div>
-          {company.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-[65ch]">{company.description}</p>
-          )}
-          {tracked && (
-            <p className="inline-flex items-center gap-1.5 text-sm text-moss">
-              <Check className="size-3.5" />
-              <span className="text-muted-foreground">
-                Watching — new roles are matched against your{" "}
-                <a href="/dashboard" className="text-foreground underline underline-offset-2 hover:text-primary transition-colors">
-                  saved roles
-                </a>.
-              </span>
+            <p className="text-sm text-muted-foreground">
+              {tracked ? (
+                <>
+                  New roles are read against your{" "}
+                  <a href="/dashboard" className="font-medium text-foreground underline decoration-primary decoration-2 underline-offset-2 hover:text-primary">
+                    saved roles
+                  </a>
+                  .
+                </>
+              ) : board.connected ? (
+                <>One email, the day your role opens here. Nothing else.</>
+              ) : (
+                <>Add it to your list — we&apos;ll start writing once their board is connected.</>
+              )}
             </p>
-          )}
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Two-column: content + sticky rail (never strands the width) */}
-      <div className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
+      <div className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
         {/* Main column */}
-        <div className="min-w-0 space-y-8 lg:order-1">
+        <div className="min-w-0 space-y-10 lg:order-1">
           {/* Insider guides */}
           {company.insights.length > 0 && (
-            <section className="space-y-4">
+            <section className="space-y-3">
               {company.insights.map((insight) => (
-                <details key={insight.id} className="group rounded-xl border bg-card">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 [&::-webkit-details-marker]:hidden">
-                    <div className="flex items-center gap-2 min-w-0">
+                <details key={insight.id} className="sheet group rounded-[4px]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-[4px] px-5 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 [&::-webkit-details-marker]:hidden">
+                    <div className="flex min-w-0 items-center gap-2.5">
                       <BookOpen className="size-4 shrink-0 text-primary" />
-                      <span className="font-semibold text-sm truncate">{insight.title}</span>
+                      <span className="truncate font-heading text-base font-bold tracking-[-0.01em]">{insight.title}</span>
                       {insight.author && (
-                        <span className="text-xs text-muted-foreground hidden sm:inline shrink-0">— {insight.author}</span>
+                        <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">— {insight.author}</span>
                       )}
                     </div>
                     <svg
-                      className="size-4 text-muted-foreground transition-transform duration-[var(--dur-med)] ease-[var(--ease-settle)] group-open:rotate-180 shrink-0"
+                      className="size-4 shrink-0 text-muted-foreground transition-transform duration-[var(--dur-med)] ease-[var(--ease-settle)] group-open:rotate-180"
                       xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                       fill="none" stroke="currentColor" strokeWidth="2"
                       strokeLinecap="round" strokeLinejoin="round"
@@ -210,7 +272,7 @@ export default async function CompanyDetailPage({
                       <path d="m6 9 6 6 6-6" />
                     </svg>
                   </summary>
-                  <div className="border-t px-5 py-5">
+                  <div className="border-t border-dashed border-foreground/20 px-5 py-5">
                     <MarkdownBody markdown={insight.body} />
                   </div>
                 </details>
@@ -221,9 +283,9 @@ export default async function CompanyDetailPage({
           {/* Your matches */}
           {userMatches.length > 0 && (
             <section className="space-y-3">
-              <h2 className="font-heading text-lg font-bold tracking-tight">
+              <h2 className="flex items-baseline gap-2 font-heading text-2xl font-extrabold tracking-[-0.02em]">
                 Your matches
-                <span className="ml-2 font-mono text-sm font-normal text-muted-foreground tabular-nums">
+                <span className="font-mono text-sm font-normal tabular-nums text-muted-foreground">
                   {userMatches.length}
                 </span>
               </h2>
@@ -241,35 +303,61 @@ export default async function CompanyDetailPage({
             </section>
           )}
 
-          {/* Open roles — Quiet Paper list */}
-          <section className="space-y-3">
-            <h2 className="font-heading text-lg font-bold tracking-tight">
+          {/* Open roles */}
+          <section className="space-y-4">
+            <h2 className="flex items-baseline gap-2 font-heading text-2xl font-extrabold tracking-[-0.02em]">
               Open roles
-              <span className="ml-2 font-mono text-sm font-normal text-muted-foreground tabular-nums">
-                {company.jobs.length}
+              <span className="font-mono text-sm font-normal tabular-nums text-muted-foreground">
+                {openRoleTotal.toLocaleString()}
               </span>
             </h2>
-            {company.jobs.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border bg-card/40 py-10 px-6 text-center">
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                  No open roles right now. Crush checks {company.name}&apos;s careers page daily.{" "}
+            {roles.length > 0 ? (
+              <RoleList jobs={roles} total={openRoleTotal} />
+            ) : board.connected ? (
+              <div className="rounded-[4px] border border-dashed border-foreground/25 px-6 py-10 text-center">
+                <p className="mx-auto max-w-sm leading-relaxed text-muted-foreground">
+                  Nothing open right now. We read {company.name}&apos;s {board.board} board every morning.{" "}
                   {tracked
-                    ? "We'll email you the moment something matching your criteria is posted."
-                    : "Follow this company to get alerted the moment they post a role."}
+                    ? "The day something fits what you asked for, you'll get a letter."
+                    : "Add them to your list and we'll write the day your role goes up."}
                 </p>
               </div>
             ) : (
-              <RoleList jobs={company.jobs} />
+              <div className="rounded-[4px] border border-dashed border-kraft bg-kraft-soft/60 px-6 py-8">
+                <p className="label-caps text-clay">Board not connected</p>
+                <p className="mt-2 max-w-[60ch] leading-relaxed">
+                  We haven&apos;t found {company.name}&apos;s job board yet, so we can&apos;t see what they have open —
+                  an empty list here doesn&apos;t mean they aren&apos;t hiring.
+                </p>
+                <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
+                  We re-check for it regularly. If you add {company.name} to your list now, your letters start the
+                  day we connect it.
+                  {company.website && (
+                    <>
+                      {" "}Meanwhile, their{" "}
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-foreground underline decoration-primary decoration-2 underline-offset-2 hover:text-primary"
+                      >
+                        own site
+                      </a>{" "}
+                      is the place to look.
+                    </>
+                  )}
+                </p>
+              </div>
             )}
           </section>
 
           {/* Engineering blog signals */}
           {company.signals.length > 0 && (
             <section className="space-y-3">
-              <div className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 font-heading text-xl font-extrabold tracking-[-0.02em]">
                 <Rss className="size-4 text-muted-foreground" />
-                <h2 className="font-heading text-sm font-semibold">From the engineering blog</h2>
-              </div>
+                From their blog
+              </h2>
               <div className="space-y-2">
                 {company.signals.map((signal) => (
                   <a
@@ -277,18 +365,18 @@ export default async function CompanyDetailPage({
                     href={signal.url ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex flex-col gap-1 rounded-lg border bg-card p-3.5 transition-[border-color,box-shadow,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:border-border hover:shadow-sm hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                    className="group flex flex-col gap-1 rounded-[4px] border bg-card p-3.5 transition-[border-color,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:-translate-y-px hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
-                    <p className="text-sm font-medium leading-snug group-hover:text-primary transition-colors">
+                    <p className="text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
                       {signal.title}
                     </p>
                     {signal.summary && (
-                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                         {signal.summary}
                       </p>
                     )}
                     {signal.publishedAt && (
-                      <p className="font-mono text-[11px] text-muted-foreground/70 mt-0.5 tabular-nums">
+                      <p className="mt-0.5 font-mono text-[11px] tabular-nums text-muted-foreground/70">
                         {new Date(signal.publishedAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -303,7 +391,7 @@ export default async function CompanyDetailPage({
                     href={company.website ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2 pl-0.5"
+                    className="pl-0.5 text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
                   >
                     View all posts →
                   </a>
@@ -314,55 +402,53 @@ export default async function CompanyDetailPage({
         </div>
 
         {/* Sticky rail — always populated */}
-        <aside className="space-y-6 lg:order-2 lg:sticky lg:top-20 lg:self-start">
+        <aside className="space-y-6 lg:sticky lg:top-20 lg:order-2 lg:self-start">
+          {board.connected && <HiringPulse points={snapshots} postedLast30={postedLast30} />}
+
           {/* At a glance */}
-          {(facts.length > 0 || company.website || company._count.trackedBy > 0) && (
-            <div className="rounded-xl border bg-card p-4 space-y-3">
-              <h2 className="font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                At a glance
-              </h2>
-              <dl className="space-y-2 text-sm">
-                {facts.map((f) => (
-                  <div key={f.label} className="flex items-baseline justify-between gap-3">
-                    <dt className="text-muted-foreground shrink-0">{f.label}</dt>
-                    <dd className="text-right capitalize font-medium">{f.value}</dd>
-                  </div>
-                ))}
-                {company._count.trackedBy > 0 && (
-                  <div className="flex items-baseline justify-between gap-3">
-                    <dt className="text-muted-foreground shrink-0">Following</dt>
-                    <dd className="text-right font-mono font-medium tabular-nums">
-                      {company._count.trackedBy.toLocaleString()}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-              {company.website && (
-                <a
-                  href={company.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                >
-                  Visit website <ExternalLink className="size-3" />
-                </a>
+          <div className="space-y-3 rounded-[4px] border bg-card p-4">
+            <h2 className="label-caps text-muted-foreground">At a glance</h2>
+            <dl className="space-y-2 text-sm">
+              {facts.map((f) => (
+                <div key={f.label} className="flex items-baseline justify-between gap-3">
+                  <dt className="shrink-0 text-muted-foreground">{f.label}</dt>
+                  <dd className="text-right font-medium capitalize">{f.value}</dd>
+                </div>
+              ))}
+              {company._count.trackedBy > 0 && (
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="shrink-0 text-muted-foreground">On lists</dt>
+                  <dd className="text-right font-mono font-medium tabular-nums">
+                    {company._count.trackedBy.toLocaleString()}
+                  </dd>
+                </div>
               )}
-            </div>
-          )}
+            </dl>
+            {company.website && (
+              <a
+                href={company.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded text-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              >
+                Visit website <ExternalLink className="size-3" />
+              </a>
+            )}
+          </div>
 
           {/* People you know */}
           {networkConnections.length > 0 && (
-            <div id="network" className="space-y-2.5 scroll-mt-20">
-              <h2 className="flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            <div id="network" className="scroll-mt-20 space-y-2.5">
+              <h2 className="label-caps flex items-center gap-1.5 text-airmail">
                 <Users className="size-3.5" />
-                {networkConnections.length === 1 ? "1 connection here" : `${networkConnections.length} connections here`}
+                {networkConnections.length === 1 ? "You know 1 person here" : `You know ${networkConnections.length} people here`}
               </h2>
               <div className="space-y-1.5">
                 {networkConnections.map((c, i) => {
                   const inner = (
                     <>
-                      <span className="font-medium truncate">{c.firstName} {c.lastName}</span>
-                      {c.title && <span className="text-xs text-muted-foreground truncate">{c.title}</span>}
+                      <span className="truncate font-medium">{c.firstName} {c.lastName}</span>
+                      {c.title && <span className="truncate text-xs text-muted-foreground">{c.title}</span>}
                     </>
                   );
                   return c.linkedinUrl ? (
@@ -371,12 +457,12 @@ export default async function CompanyDetailPage({
                       href={c.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-col rounded-lg border bg-card px-3 py-2 text-sm transition-[border-color,box-shadow] duration-[var(--dur-fast)] hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                      className="flex flex-col rounded-[4px] border bg-card px-3 py-2 text-sm transition-colors hover:border-airmail focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                     >
                       {inner}
                     </a>
                   ) : (
-                    <div key={i} className="flex flex-col rounded-lg border bg-card px-3 py-2 text-sm">
+                    <div key={i} className="flex flex-col rounded-[4px] border bg-card px-3 py-2 text-sm">
                       {inner}
                     </div>
                   );
@@ -388,19 +474,19 @@ export default async function CompanyDetailPage({
           {/* Related companies */}
           {relatedCompanies.length > 0 && (
             <div className="space-y-2.5">
-              <h2 className="font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                More {company.industry} on Crush
+              <h2 className="label-caps text-muted-foreground">
+                More in {company.industry}
               </h2>
               <div className="flex flex-wrap gap-1.5">
                 {relatedCompanies.map((c) => (
                   <a
                     key={c.slug}
                     href={`/companies/${c.slug}`}
-                    className="flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1.5 text-xs transition-[border-color,box-shadow] duration-[var(--dur-fast)] hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                    className="flex items-center gap-1.5 rounded-[3px] border bg-card px-2.5 py-1.5 text-xs transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
-                    <span className="font-medium">{c.name}</span>
+                    <span className="font-semibold">{c.name}</span>
                     {c.fundingStage && (
-                      <span className="text-muted-foreground capitalize">{c.fundingStage.replace(/_/g, " ")}</span>
+                      <span className="capitalize text-muted-foreground">{c.fundingStage.replace(/_/g, " ")}</span>
                     )}
                   </a>
                 ))}

@@ -191,7 +191,7 @@ export function ResumeUpload({
                     className={[
                       "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
                       isTracked
-                        ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400 cursor-default"
+                        ? "border-moss/30 bg-moss-soft text-moss cursor-default"
                         : "border-border bg-background hover:border-foreground/40 hover:bg-muted cursor-pointer",
                     ].join(" ")}
                   >

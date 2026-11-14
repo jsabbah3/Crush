@@ -15,13 +15,13 @@ type Props = {
 const MODES: { value: AlertMode; label: string; description: string }[] = [
   {
     value: AlertMode.instant,
-    label: "Instant",
-    description: "Batched into a single email, sent within 15 minutes of a new match",
+    label: "As soon as we see it",
+    description: "One email on the mornings there's something new, sent right after we read the boards",
   },
   {
     value: AlertMode.daily,
     label: "Daily digest",
-    description: "One email per day covering all new matches from the last 24 hours",
+    description: "One round-up a day covering everything new, sent a little later in the morning",
   },
 ];
 
@@ -52,7 +52,7 @@ export function AlertSettingsForm({ alertMode: initialMode, alertsPaused: initia
           <label
             key={value}
             className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-              mode === value ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/40"
+              mode === value ? "border-airmail bg-airmail-soft/50" : "border-border hover:border-foreground/35"
             }`}
           >
             <input
@@ -90,8 +90,8 @@ export function AlertSettingsForm({ alertMode: initialMode, alertsPaused: initia
       </div>
 
       {paused && (
-        <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-3">
-          <p className="text-xs text-amber-800">
+        <div className="flex items-center justify-between rounded-lg border border-kraft/50 bg-kraft-soft p-3">
+          <p className="text-xs text-foreground">
             All email alerts are paused. You&apos;ll still see matches in your dashboard.
           </p>
           <Button

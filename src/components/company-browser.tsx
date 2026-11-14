@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Users, Briefcase, ChevronDown, Loader2 } from "lucide-react";
+import { Search, Users, Heart, ChevronDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
@@ -76,11 +76,11 @@ function FilterPill({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "cursor-pointer rounded-full px-3 py-1 text-xs font-medium border transition-colors duration-150",
+        "cursor-pointer rounded-[3px] px-2.5 py-1 text-xs font-medium border transition-colors duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
         active
           ? "border-foreground bg-foreground text-background"
-          : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground hover:bg-accent",
+          : "border-foreground/20 bg-paper text-muted-foreground hover:border-foreground/45 hover:text-foreground",
       )}
     >
       {children}
@@ -185,7 +185,7 @@ export function CompanyBrowser({
           <div
             role="radiogroup"
             aria-label="Sort companies"
-            className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5"
+            className="flex items-center rounded-[3px] border border-foreground/25 bg-paper p-0.5"
           >
             {SORT_OPTIONS.map((opt) => (
               <button
@@ -197,10 +197,10 @@ export function CompanyBrowser({
                   navigate(q, industry, vc, opt.value);
                 }}
                 className={cn(
-                  "cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150",
+                  "cursor-pointer rounded-[2px] px-3 py-1.5 text-xs font-semibold transition-colors duration-150",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   sort === opt.value
-                    ? "bg-background text-foreground shadow-sm border border-border/60"
+                    ? "bg-foreground text-background"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -213,7 +213,7 @@ export function CompanyBrowser({
         {/* VC filter pills */}
         {vcs.length > 0 && (
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:gap-3">
-            <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider sm:w-16 shrink-0 sm:pt-1.5">
+            <p className="label-caps text-muted-foreground sm:w-16 shrink-0 sm:pt-2 leading-tight">
               Backed by
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -236,7 +236,7 @@ export function CompanyBrowser({
         {/* Industry pills — top 12 by company count, rest behind "More" */}
         {industries.length > 0 && (
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:gap-3">
-            <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider sm:w-16 shrink-0 sm:pt-1.5">
+            <p className="label-caps text-muted-foreground sm:w-16 shrink-0 sm:pt-2 leading-tight">
               Industry
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -270,11 +270,11 @@ export function CompanyBrowser({
       </div>
 
       {companies.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center rounded-xl border border-dashed border-border">
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center rounded-[4px] border border-dashed border-foreground/25">
           <Search className="size-5 text-muted-foreground/50" />
           <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">No companies match</p>
-            <p className="text-xs text-muted-foreground">Try a different search or clear a filter.</p>
+            <p className="font-heading text-lg font-bold text-foreground">Nobody by that name on file</p>
+            <p className="text-sm text-muted-foreground">Try a different search or clear a filter. Signed in, you can add any company by name.</p>
           </div>
           {(q || industry || vc) && (
             <button
@@ -316,7 +316,7 @@ export function CompanyBrowser({
             <div className="flex flex-col items-center gap-2 pt-4">
               <button
                 onClick={() => setVisibleCount((c) => c + REVEAL_STEP)}
-                className="cursor-pointer rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                className="cursor-pointer rounded-[3px] border border-foreground/25 bg-paper px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-foreground/45 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               >
                 Show more companies
               </button>
@@ -354,7 +354,7 @@ function CompanyCard({
   const recentlyFunded = isRecentlyFunded(company.recentlyFundedAt);
 
   return (
-    <div className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-4 transition-all duration-150 hover:border-border hover:shadow-sm">
+    <div className="group relative flex flex-col gap-3 rounded-[4px] border border-border bg-card p-4 transition-[border-color,transform,box-shadow] duration-200 ease-[var(--ease-settle)] hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-[0_10px_24px_-14px_oklch(0.24_0.06_266/0.35)]">
       <div className="flex items-start gap-3">
         <CompanyLogo
           name={company.name}
@@ -366,14 +366,13 @@ function CompanyCard({
           <div className="flex items-start gap-2 flex-wrap">
             <a
               href={`/companies/${company.slug}`}
-              className="font-semibold text-[15px] leading-snug hover:underline underline-offset-2"
+              className="font-heading text-[1.05rem] font-bold leading-snug tracking-[-0.01em] after:absolute after:inset-0 hover:text-primary"
             >
               {company.name}
             </a>
             {recentlyFunded && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-moss-soft border border-moss/25 px-1.5 py-0.5 text-[10px] font-medium text-moss leading-none shrink-0 mt-0.5">
-                <span className="h-1 w-1 rounded-full bg-moss" />
-                {fundingLabel ?? "Recently funded"}
+              <span className="rubber mt-0.5 shrink-0 text-[0.6rem] text-moss" style={{ "--tilt": "-2deg" } as React.CSSProperties}>
+                {fundingLabel ?? "Just funded"}
               </span>
             )}
           </div>
@@ -395,31 +394,32 @@ function CompanyCard({
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {company.activeJobs > 0 && (
             <span className="flex items-center gap-1 font-medium text-foreground/80">
-              <Briefcase className="size-3" />
-              <span className="font-mono tabular-nums">{company.activeJobs}</span> open {company.activeJobs === 1 ? "role" : "roles"}
+              <span className="font-mono font-semibold tabular-nums text-foreground">{company.activeJobs.toLocaleString()}</span> open {company.activeJobs === 1 ? "role" : "roles"}
               {lastActive && <span className="font-normal text-muted-foreground">· {lastActive}</span>}
             </span>
           )}
           {company._count.trackedBy > 0 && (
-            <span className="flex items-center gap-1 font-mono tabular-nums">
-              <Users className="size-3" />
+            <span className="flex items-center gap-1 font-mono tabular-nums" title="People with this company on their list">
+              <Heart className="size-3" />
               {company._count.trackedBy.toLocaleString()}
             </span>
           )}
           {connectionCount > 0 && (
-            <span className="flex items-center gap-1 font-medium text-slate-warm">
+            <span className="flex items-center gap-1 font-medium text-airmail">
               <Users className="size-3" />
               {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
             </span>
           )}
         </div>
-        <FollowButton
-          company={{ id: company.id, name: company.name }}
-          tracked={tracked}
-          userId={userId}
-          size="sm"
-          tone="quiet"
-        />
+        <span className="relative z-10">
+          <FollowButton
+            company={{ id: company.id, name: company.name }}
+            tracked={tracked}
+            userId={userId}
+            size="sm"
+            tone="quiet"
+          />
+        </span>
       </div>
     </div>
   );

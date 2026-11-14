@@ -8,6 +8,7 @@ import { CompanyBrowser } from "@/components/company-browser";
 import { FollowingList } from "@/components/following-list";
 import { CompanySearch } from "@/components/company-search";
 import { AddCompanyModal } from "@/components/add-company-modal";
+import { PageHeader } from "@/components/brand";
 
 export const metadata = {
   title: "Companies — Crush",
@@ -263,18 +264,18 @@ export default async function CompaniesPage({
         </div>
       ) : (
         /* Logged out — proper page header instead of an orphaned tab */
-        <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
-          <div className="space-y-1">
-            <h1 className="font-heading text-2xl font-bold tracking-tight">Companies</h1>
-            <p className="text-sm text-muted-foreground">
-              Follow the ones you&apos;d actually leave for. One alert when your exact role opens.
-            </p>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground shrink-0 pb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Updated weekly with newly funded companies
-          </div>
-        </div>
+        <PageHeader
+          eyebrow="The files"
+          title="Who would you leave for?"
+          action={
+            <span className="label-caps hidden items-center gap-1.5 text-muted-foreground sm:flex">
+              <span className="size-1.5 rounded-full bg-moss" />
+              Boards read every morning
+            </span>
+          }
+        >
+          Add the handful you mean it about. We write once, the day your exact role opens.
+        </PageHeader>
       )}
 
       <CompanyBrowser

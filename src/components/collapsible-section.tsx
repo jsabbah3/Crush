@@ -66,7 +66,7 @@ export function CollapsibleSection({
           <ChevronDown
             className={`size-4 text-muted-foreground transition-transform duration-[var(--dur-med)] ease-[var(--ease-settle)] ${open ? "" : "-rotate-90"}`}
           />
-          <h2 className="font-heading text-lg font-bold tracking-tight group-hover:text-foreground/80 transition-colors">
+          <h2 className="font-heading text-xl font-extrabold tracking-[-0.02em] group-hover:text-primary transition-colors">
             {title}
           </h2>
         </button>

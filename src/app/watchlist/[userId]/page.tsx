@@ -86,7 +86,7 @@ export default async function PublicWatchlistPage({ params }: Props) {
         {companies.length === 0 ? (
           <div className="space-y-2">
             <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Crush watchlist</p>
-            <h1 className="font-heading text-3xl font-bold tracking-tight">{name}&apos;s companies</h1>
+            <h1 className="font-heading text-[2rem] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[2.5rem]">{name}&apos;s companies</h1>
             <p className="text-sm text-muted-foreground">No companies on this watchlist yet.</p>
           </div>
         ) : (
@@ -128,7 +128,7 @@ export default async function PublicWatchlistPage({ params }: Props) {
               <dl className="flex flex-wrap gap-x-10 gap-y-4 border-t border-border pt-5">
                 {stats.map((s) => (
                   <div key={s.label} className="space-y-0.5">
-                    <dd className="font-heading text-2xl font-bold tracking-tight tabular-nums">{s.value}</dd>
+                    <dd className="font-heading text-2xl font-bold tracking-tight">{s.value}</dd>
                     <dt className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{s.label}</dt>
                   </div>
                 ))}
@@ -178,7 +178,7 @@ export default async function PublicWatchlistPage({ params }: Props) {
                   Build your own watchlist
                 </h2>
                 <p className="text-sm leading-relaxed text-ink-band-foreground/70">
-                  Follow the companies you&apos;d actually leave for. Crush sends one alert the moment your exact role opens — no noise, no job boards.
+                  Follow the companies you&apos;d actually leave for. Crush writes to you the day your exact role opens. One letter, nothing else.
                 </p>
                 <Link
                   href="/"

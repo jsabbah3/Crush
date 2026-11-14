@@ -3,6 +3,7 @@
 import { Clock } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
+import { boardStatus } from "@/lib/board-status";
 
 type TrackedWithCompany = {
   id: string;
@@ -14,6 +15,8 @@ type TrackedWithCompany = {
     description: string | null;
     website: string | null;
     industry: string | null;
+    sourceType: string;
+    sourceId: string | null;
     _count: { trackedBy: number };
     jobs: { postedAt: Date | null }[];
   };
@@ -44,10 +47,10 @@ export function FollowingList({
 }) {
   if (tracked.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-        <p className="font-medium">No companies followed yet</p>
-        <p className="text-sm text-muted-foreground">
-          Click &ldquo;Discover companies&rdquo; to find companies you&apos;d want to work at.
+      <div className="flex flex-col items-center justify-center gap-2 rounded-[4px] border border-dashed border-foreground/25 py-20 text-center">
+        <p className="font-heading text-xl font-extrabold tracking-[-0.02em]">Your list is empty</p>
+        <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+          Search above for a company you&apos;d actually leave for, or open Discover to browse.
         </p>
       </div>
     );
@@ -61,7 +64,7 @@ export function FollowingList({
         return (
           <div
             key={trackedId}
-            className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 transition-[border-color,box-shadow,transform] duration-[var(--dur-fast)] ease-[var(--ease-settle)] hover:border-border hover:shadow-sm hover:-translate-y-0.5"
+            className="group relative flex flex-col gap-3 rounded-[4px] border border-border bg-card p-4 transition-[border-color,box-shadow,transform] duration-200 ease-[var(--ease-settle)] hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-[0_10px_24px_-14px_oklch(0.24_0.06_266/0.35)]"
           >
             <div className="flex items-start gap-3">
               <CompanyLogo
@@ -73,7 +76,7 @@ export function FollowingList({
               <div className="flex-1 min-w-0 space-y-0.5">
                 <a
                   href={`/companies/${company.slug}`}
-                  className="font-semibold text-sm leading-snug hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="font-heading text-[1.05rem] font-bold leading-snug tracking-[-0.01em] hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   {company.name}
                 </a>
@@ -82,7 +85,7 @@ export function FollowingList({
                 )}
               </div>
               {_count.matches > 0 && (
-                <span className="shrink-0 rounded-full bg-amber text-amber-foreground font-mono text-xs font-semibold px-2 py-0.5 tabular-nums">
+                <span className="shrink-0 rounded-[2px] bg-note text-note-foreground font-mono text-xs font-semibold px-1.5 py-0.5 tabular-nums">
                   {_count.matches} new
                 </span>
               )}
@@ -96,16 +99,21 @@ export function FollowingList({
 
             <div className="flex items-center justify-between mt-auto pt-1">
               <div className="flex items-center gap-3">
-                {lastActive ? (
+                {!boardStatus(company).connected && company.jobs.length === 0 ? (
+                  // "No open roles" would be a guess — we can't see their board.
+                  <span className="label-caps text-clay" title="We haven't found this company's job board yet, so we can't see its openings. We keep re-checking.">
+                    Board not connected
+                  </span>
+                ) : lastActive ? (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="size-3" />
                     {lastActive}
                   </span>
                 ) : (
-                  <span className="text-xs text-muted-foreground">No open roles</span>
+                  <span className="text-xs text-muted-foreground">No open roles right now</span>
                 )}
                 {connections > 0 && (
-                  <span className="flex items-center gap-1 font-mono text-xs font-medium text-slate-warm tabular-nums">
+                  <span className="flex items-center gap-1 font-mono text-xs font-medium text-airmail tabular-nums">
                     <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                       <circle cx="9" cy="7" r="4" />

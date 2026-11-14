@@ -64,7 +64,7 @@ export default async function CollectionDetailPage({
 
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1.5">
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-balance">{collection.name}</h1>
+          <h1 className="font-heading text-[2rem] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[2.5rem] text-balance">{collection.name}</h1>
           {collection.description && (
             <p className="text-sm text-muted-foreground max-w-[62ch] leading-relaxed">
               {collection.description}

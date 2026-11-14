@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Plus } from "lucide-react";
+import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { followCompany, untrackCompany } from "@/app/actions/tracking";
@@ -21,9 +21,9 @@ export function FollowButton({
   userId: string | null;
   size?: "sm" | "default";
   /**
-   * "solid": amber-filled — for the one focused follow action on a page
+   * "solid": red-filled — for the one focused follow action on a page
    *   (company hero, collection). "quiet": outline until followed — for dense
-   *   lists (browse grid) so amber stays a signal, not wallpaper.
+   *   lists (browse grid) so red stays a signal, not wallpaper.
    */
   tone?: "solid" | "quiet";
 }) {
@@ -65,8 +65,8 @@ export function FollowButton({
       }
 
       if (next) {
-        toast.success(`Watching ${company.name}`, {
-          description: "We'll email you the moment a matching role opens.",
+        toast.success(`${company.name} is on your list`, {
+          description: "We'll write the day a role that fits you opens there.",
         });
       }
       router.refresh();
@@ -87,8 +87,8 @@ export function FollowButton({
       disabled={isPending}
       aria-pressed={following}
       className={
-        // Quiet follow buttons pick up amber intent on hover so the action is
-        // still discoverable without a wall of filled amber across the grid.
+        // Quiet follow buttons pick up red intent on hover so the action is
+        // still discoverable without a wall of filled red across the grid.
         tone === "quiet" && !following
           ? "shrink-0 hover:border-primary/40 hover:text-primary"
           : "shrink-0"
@@ -96,13 +96,13 @@ export function FollowButton({
     >
       {following ? (
         <>
-          <Check className="size-3.5" />
-          Getting alerts
+          <Heart key="on" className="size-3.5 animate-thunk fill-primary text-primary [--tilt:0deg]" />
+          On your list
         </>
       ) : (
         <>
-          <Plus className="size-3.5" />
-          Get alerts
+          <Heart className="size-3.5" />
+          Add to list
         </>
       )}
     </Button>

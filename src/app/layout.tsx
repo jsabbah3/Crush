@@ -1,20 +1,38 @@
 import type { Metadata } from "next";
-import { DM_Sans, Geist_Mono } from "next/font/google";
+import { Archivo, Besley, IBM_Plex_Mono, Reenie_Beanie } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "@/components/posthog-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+// Besley: a Clarendon — the face of stamps, wanted posters, and letterheads.
+const besley = Besley({
+  variable: "--font-besley",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Archivo carries the interface; its width axis doubles as the narrow caps of
+// a sorting label (.label-caps, .rubber).
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["wdth"],
+});
+
+// Typewritten: addresses, dates, counts.
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+// Ballpoint in the margin. Used sparingly.
+const reenie = Reenie_Beanie({
+  variable: "--font-reenie",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 const SITE_JSON_LD = {
@@ -38,21 +56,21 @@ const SITE_JSON_LD = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://crushco.app"),
-  title: "Crush — Your company crushes, now hiring",
+  title: "Crush — The companies you'd actually leave for",
   description:
-    "Crush is your built-in VC best friend — a curated watchlist of dream companies that alerts you the moment your exact role opens. No job boards, no noise. Just the companies you'd actually leave for.",
+    "Tell Crush which companies you'd actually leave for. We watch their job boards every morning and write to you the day your exact role opens. One letter, nothing else.",
   keywords: ["startup jobs", "tech job alerts", "dream company hiring", "job tracker", "startup hiring", "tech jobs", "job alerts"],
   openGraph: {
-    title: "Crush — Your company crushes, now hiring",
-    description: "A curated watchlist of dream companies. Get alerted the moment your exact role opens — before it hits LinkedIn.",
+    title: "Crush — The companies you'd actually leave for",
+    description: "Name the companies you'd actually leave for. We watch their job boards and write the day your exact role opens. One letter, nothing else.",
     url: "https://crushco.app",
     siteName: "Crush",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Crush — Your company crushes, now hiring",
-    description: "A curated watchlist of dream companies. Get alerted the moment your exact role opens — before it hits LinkedIn.",
+    title: "Crush — The companies you'd actually leave for",
+    description: "Name the companies you'd actually leave for. We watch their job boards and write the day your exact role opens. One letter, nothing else.",
   },
 };
 
@@ -64,7 +82,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${besley.variable} ${archivo.variable} ${plexMono.variable} ${reenie.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

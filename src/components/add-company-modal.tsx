@@ -119,7 +119,7 @@ export function AddCompanyModal() {
               <div className={`flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm ${
                 result.type === "error"
                   ? "bg-destructive/10 text-destructive"
-                  : "bg-green-500/10 text-green-700 dark:text-green-400"
+                  : "bg-moss-soft text-moss"
               }`}>
                 {result.type === "error"
                   ? <AlertCircle className="size-4 shrink-0 mt-0.5" />

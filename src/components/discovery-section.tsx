@@ -62,7 +62,7 @@ export function DiscoverySection() {
         <button onClick={toggle} className="flex items-start gap-2 group text-left" aria-expanded={open}>
           <ChevronDown className={`size-4 mt-1 text-muted-foreground transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
           <div>
-            <h2 className="font-heading text-lg font-bold tracking-tight group-hover:text-foreground/80 transition-colors">Also open right now</h2>
+            <h2 className="font-heading text-xl font-extrabold tracking-[-0.02em] group-hover:text-foreground/80 transition-colors">Also open right now</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
               Roles matching yours at companies you haven&apos;t followed yet.
             </p>
@@ -107,7 +107,7 @@ export function DiscoverySection() {
                 </Link>
                 <p className="font-semibold text-[15px] leading-snug text-foreground mt-0.5">{job.title}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${job.remote ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${job.remote ? "bg-moss-soft text-moss" : "bg-muted text-muted-foreground"}`}>
                     {job.remote ? "Remote" : (job.location ?? "On-site")}
                   </span>
                   {job.url && (

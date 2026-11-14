@@ -150,9 +150,9 @@ export function CompanySearch({
                   )}
                 >
                   {isTracked ? (
-                    <><Check className="size-3" /> Getting alerts</>
+                    <><Check className="size-3" /> On your list</>
                   ) : (
-                    <><Plus className="size-3" /> Get alerts</>
+                    <><Plus className="size-3" /> Add to list</>
                   )}
                 </button>
               </div>

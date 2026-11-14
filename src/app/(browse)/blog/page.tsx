@@ -12,7 +12,7 @@ export default function BlogIndexPage() {
   return (
     <div className="max-w-2xl mx-auto py-12">
       <div className="mb-12 space-y-2">
-        <h1 className="font-heading text-3xl font-bold tracking-tight text-balance">From the Crush team</h1>
+        <h1 className="font-heading text-[2rem] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[2.5rem] text-balance">From the Crush team</h1>
         <p className="text-muted-foreground text-base max-w-[60ch]">
           Insights on AI careers, hiring trends, and the companies worth watching.
         </p>

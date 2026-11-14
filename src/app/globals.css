@@ -7,16 +7,21 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-dm-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-dm-sans);
-  --color-amber: var(--amber);
-  --color-amber-foreground: var(--amber-foreground);
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-besley);
+  --font-hand: var(--font-reenie);
+  --color-paper: var(--paper);
+  --color-airmail: var(--airmail);
+  --color-airmail-soft: var(--airmail-soft);
+  --color-note: var(--note);
+  --color-note-foreground: var(--note-foreground);
+  --color-kraft: var(--kraft);
+  --color-kraft-soft: var(--kraft-soft);
   --color-moss: var(--moss);
   --color-moss-soft: var(--moss-soft);
   --color-clay: var(--clay);
   --color-clay-soft: var(--clay-soft);
-  --color-slate-warm: var(--slate-warm);
   --color-ink-band: var(--ink-band);
   --color-ink-band-foreground: var(--ink-band-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -44,6 +49,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -56,186 +62,337 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --ease-settle: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-thunk: cubic-bezier(0.2, 1.6, 0.4, 1);
   --animate-rise: rise var(--dur-med) var(--ease-settle) both;
   --animate-shimmer: shimmer 1.3s linear infinite;
+  --animate-thunk: thunk 380ms var(--ease-thunk) both;
 }
 
-/* ── Crush "Warm Signal": warm paper, warm ink, amber reserved for signal ──
-   Amber appears only when something matters: a match, a new alert, the one
-   primary action per screen. Everything else is ink, hairlines, and calm.  */
-:root {
-  /* Canvas */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.012 73);     /* #37352f — warm ink */
+/* ── Crush "Par Avion" ────────────────────────────────────────────────────
+   The product is a letter: you tell us who you have a crush on, and we write
+   the moment they're ready for you. So the interface is correspondence —
+   airmail-blue paper, fountain-pen ink, postal red, stamps and postmarks.
 
-  /* Cards */
-  --card: oklch(0.972 0.004 73);           /* #f7f6f3 — warm off-white */
-  --card-foreground: oklch(0.235 0.012 73);
+   Red is the letter arriving. It marks a match, a new alert, and the one
+   primary action on a screen — never decoration. Blue is structure.
 
-  /* Popover */
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.012 73);
+   .paper-light re-declares the daylight inks on any element: a stamp or a
+   letter is white paper whatever the theme, so its contents keep dark ink
+   in Night post instead of inheriting pale text onto a white sheet.        */
+:root,
+.paper-light {
+  /* Canvas: pale airmail paper. Cards are the warmer white of an envelope. */
+  --background: oklch(0.972 0.008 255);
+  --foreground: oklch(0.24 0.06 266);        /* fountain-pen blue-black */
+  --paper: oklch(0.995 0.004 95);
 
-  /* Primary = burnished amber. Signal only: follow/alerts CTAs, match moments. */
-  --primary: oklch(0.58 0.155 54);
-  --primary-foreground: oklch(1 0 0);
+  --card: var(--paper);
+  --card-foreground: var(--foreground);
+  --popover: var(--paper);
+  --popover-foreground: var(--foreground);
 
-  /* Secondary surface */
-  --secondary: oklch(0.972 0.004 73);
-  --secondary-foreground: oklch(0.235 0.012 73);
+  /* Postal red — signal only. */
+  --primary: oklch(0.565 0.215 27);
+  --primary-deep: oklch(0.46 0.185 27);
+  --primary-foreground: oklch(0.995 0.004 95);
 
-  /* Muted */
-  --muted: oklch(0.972 0.004 73);
-  --muted-foreground: oklch(0.52 0.007 73); /* #787774 */
+  /* Airmail blue — structure, links-at-rest, "applied", your network. */
+  --airmail: oklch(0.45 0.165 262);
+  --airmail-soft: oklch(0.935 0.028 258);
 
-  /* Accent — subtle hover */
-  --accent: oklch(0.945 0.003 73);          /* #f1f1ef */
-  --accent-foreground: oklch(0.235 0.012 73);
+  --secondary: oklch(0.945 0.016 257);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.945 0.016 257);
+  --muted-foreground: oklch(0.49 0.045 264);
+  --accent: oklch(0.925 0.024 257);
+  --accent-foreground: var(--foreground);
 
-  /* Destructive */
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(0.52 0.2 22);
 
-  /* Borders */
-  --border: oklch(0.915 0.004 73);          /* #e9e9e7 */
-  --input: oklch(0.915 0.004 73);
+  --border: oklch(0.875 0.024 260);
+  --input: oklch(0.875 0.024 260);
+  --ring: var(--airmail);
 
-  /* Ring — amber focus */
-  --ring: oklch(0.58 0.155 54);
+  --chart-1: var(--foreground);
+  --chart-2: var(--airmail);
+  --chart-3: var(--primary);
+  --chart-4: oklch(0.72 0.05 260);
+  --chart-5: oklch(0.88 0.024 260);
 
-  /* Charts */
-  --chart-1: oklch(0.235 0.012 73);
-  --chart-2: oklch(0.45 0.008 73);
-  --chart-3: oklch(0.60 0.006 73);
-  --chart-4: oklch(0.75 0.004 73);
-  --chart-5: oklch(0.90 0.003 73);
+  /* A red-pencil note in the margin: "3 new". */
+  --note: oklch(0.94 0.04 25);
+  --note-foreground: oklch(0.46 0.185 27);
 
-  /* Amber surface — match badges, notification pills */
-  --amber: oklch(0.88 0.10 70);
-  --amber-foreground: oklch(0.40 0.10 55);
+  /* Kraft — parcels, tags, the manila of an office envelope. */
+  --kraft: oklch(0.74 0.075 72);
+  --kraft-soft: oklch(0.93 0.035 80);
 
-  /* Warm-calibrated status hues (replace raw emerald/blue/green/red) */
-  --moss: oklch(0.54 0.09 140);             /* success / hiring-active */
-  --moss-soft: oklch(0.95 0.025 140);
-  --clay: oklch(0.55 0.13 35);              /* rejected / danger-soft */
-  --clay-soft: oklch(0.95 0.02 35);
-  --slate-warm: oklch(0.55 0.045 250);      /* "applied" — the one cool tone */
+  /* Status inks */
+  --moss: oklch(0.5 0.115 155);              /* hiring / approved */
+  --moss-soft: oklch(0.94 0.035 155);
+  --clay: oklch(0.5 0.07 55);                /* returned to sender */
+  --clay-soft: oklch(0.935 0.025 70);
 
-  /* Contrast band (landing positioning section) — dramatic dark ink */
-  --ink-band: oklch(0.235 0.012 73);
-  --ink-band-foreground: oklch(0.96 0.005 80);
+  /* Full-bleed contrast band */
+  --ink-band: oklch(0.32 0.13 264);
+  --ink-band-foreground: oklch(0.97 0.01 255);
 
-  /* Radius */
-  --radius: 0.4rem;
+  /* Paper is cut, not moulded. */
+  --radius: 0.25rem;
 
-  /* Motion */
   --dur-fast: 140ms;
   --dur-med: 240ms;
 
-  /* Sidebar */
-  --sidebar: oklch(0.972 0.004 73);
-  --sidebar-foreground: oklch(0.235 0.012 73);
-  --sidebar-primary: oklch(0.58 0.155 54);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.945 0.003 73);
-  --sidebar-accent-foreground: oklch(0.235 0.012 73);
-  --sidebar-border: oklch(0.915 0.004 73);
-  --sidebar-ring: oklch(0.58 0.155 54);
+  /* The airmail edge: red and blue chevrons on paper. */
+  --stripe: repeating-linear-gradient(
+    135deg,
+    var(--primary) 0 11px,
+    transparent 11px 22px,
+    var(--airmail) 22px 33px,
+    transparent 33px 44px
+  );
+
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
-/* Warm near-black — never neutral gray. Amber brightens and flips to dark text. */
+/* Night post: the sorting office after dark. Navy, never grey. */
 .dark {
-  --background: oklch(0.205 0.008 73);      /* ~#191715 */
-  --foreground: oklch(0.93 0.006 80);       /* ~#edeae4 */
+  --background: oklch(0.185 0.045 266);
+  --foreground: oklch(0.94 0.014 255);
+  --paper: oklch(0.235 0.052 266);
 
-  --card: oklch(0.235 0.008 73);            /* ~#211e1b */
-  --card-foreground: oklch(0.93 0.006 80);
+  --primary: oklch(0.66 0.2 27);
+  --primary-deep: oklch(0.52 0.19 27);
+  --primary-foreground: oklch(0.17 0.04 266);
 
-  --popover: oklch(0.25 0.008 73);
-  --popover-foreground: oklch(0.93 0.006 80);
+  --airmail: oklch(0.74 0.115 258);
+  --airmail-soft: oklch(0.3 0.075 264);
 
-  --primary: oklch(0.75 0.135 65);          /* ~#e8a33d — dark text on top */
-  --primary-foreground: oklch(0.205 0.008 73);
+  --secondary: oklch(0.275 0.055 266);
+  --muted: oklch(0.265 0.052 266);
+  --muted-foreground: oklch(0.73 0.04 260);
+  --accent: oklch(0.3 0.06 266);
 
-  --secondary: oklch(0.27 0.008 73);
-  --secondary-foreground: oklch(0.93 0.006 80);
+  --destructive: oklch(0.68 0.19 25);
 
-  --muted: oklch(0.26 0.008 73);
-  --muted-foreground: oklch(0.68 0.01 75);
+  --border: oklch(0.335 0.058 266);
+  --input: oklch(0.335 0.058 266);
 
-  --accent: oklch(0.28 0.008 73);
-  --accent-foreground: oklch(0.93 0.006 80);
+  --chart-4: oklch(0.5 0.06 262);
+  --chart-5: oklch(0.36 0.058 266);
 
-  --destructive: oklch(0.66 0.19 29);
+  --note: oklch(0.33 0.09 27);
+  --note-foreground: oklch(0.82 0.11 30);
 
-  --border: oklch(0.30 0.008 73);
-  --input: oklch(0.30 0.008 73);
+  --kraft: oklch(0.66 0.07 72);
+  --kraft-soft: oklch(0.31 0.04 75);
 
-  --ring: oklch(0.75 0.135 65);
+  --moss: oklch(0.74 0.12 155);
+  --moss-soft: oklch(0.29 0.05 158);
+  --clay: oklch(0.74 0.07 60);
+  --clay-soft: oklch(0.3 0.035 65);
 
-  --chart-1: oklch(0.93 0.006 80);
-  --chart-2: oklch(0.75 0.008 76);
-  --chart-3: oklch(0.60 0.008 74);
-  --chart-4: oklch(0.45 0.008 73);
-  --chart-5: oklch(0.32 0.008 73);
-
-  --amber: oklch(0.32 0.055 60);
-  --amber-foreground: oklch(0.80 0.12 70);
-
-  --moss: oklch(0.68 0.09 140);
-  --moss-soft: oklch(0.28 0.03 140);
-  --clay: oklch(0.68 0.11 35);
-  --clay-soft: oklch(0.28 0.025 35);
-  --slate-warm: oklch(0.70 0.05 250);
-
-  /* Dark theme: elevated warm panel, not a jarring light block */
-  --ink-band: oklch(0.27 0.01 73);
-  --ink-band-foreground: oklch(0.93 0.006 80);
-
-  --sidebar: oklch(0.235 0.008 73);
-  --sidebar-foreground: oklch(0.93 0.006 80);
-  --sidebar-primary: oklch(0.75 0.135 65);
-  --sidebar-primary-foreground: oklch(0.205 0.008 73);
-  --sidebar-accent: oklch(0.28 0.008 73);
-  --sidebar-accent-foreground: oklch(0.93 0.006 80);
-  --sidebar-border: oklch(0.30 0.008 73);
-  --sidebar-ring: oklch(0.75 0.135 65);
+  --ink-band: oklch(0.255 0.075 266);
+  --ink-band-foreground: oklch(0.94 0.014 255);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
   }
-  /* Smooth color transitions on interactive elements */
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* Paper tooth. Fixed, inert, and faint enough to feel rather than see. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.055;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .dark body::after {
+    mix-blend-mode: soft-light;
+    opacity: 0.09;
+  }
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
   a, button {
     @apply transition-colors duration-150;
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
   }
 }
 
 @layer utilities {
-  /* Entrance: fade + 4px rise. Pair with .stagger-children on the parent. */
+  /* ── Type voices ─────────────────────────────────────────────────────── */
+
+  /* Rubber-stamp / sorting-label caps: Archivo squeezed to its narrow width. */
+  .label-caps {
+    font-family: var(--font-archivo);
+    font-stretch: 72%;
+    font-weight: 650;
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+  /* Ballpoint in the margin. Sized up — the face runs small. */
+  .hand {
+    font-family: var(--font-reenie);
+    font-size: 1.5em;
+    line-height: 0.95;
+    letter-spacing: 0.005em;
+  }
+
+  /* ── Airmail edge ────────────────────────────────────────────────────── */
+  .airmail-rule {
+    height: 6px;
+    background: var(--stripe);
+  }
+  /* A chevron border that still respects border-radius. */
+  .airmail-frame {
+    border: 9px solid transparent;
+    background:
+      linear-gradient(var(--paper), var(--paper)) padding-box,
+      var(--stripe) border-box,
+      linear-gradient(var(--paper), var(--paper)) border-box;
+  }
+
+  /* ── Postage stamp ───────────────────────────────────────────────────────
+     Perforations are bitten out of the edge with a mask: a solid centre plus
+     a grid of holes whose centres sit exactly on the border. Size the element
+     in multiples of --perf so the holes meet cleanly at the corners.       */
+  .stamp {
+    --perf: 8px;
+    --hole: 2.4px;
+    background: var(--paper);
+    color: var(--foreground);
+    padding: calc(var(--perf) * 0.75);
+    -webkit-mask:
+      linear-gradient(#000 0 0) center / calc(100% - var(--perf)) calc(100% - var(--perf)) no-repeat,
+      radial-gradient(circle at center, #0000 var(--hole), #000 calc(var(--hole) + 0.6px))
+        calc(var(--perf) / -2) calc(var(--perf) / -2) / var(--perf) var(--perf) round;
+    mask:
+      linear-gradient(#000 0 0) center / calc(100% - var(--perf)) calc(100% - var(--perf)) no-repeat,
+      radial-gradient(circle at center, #0000 var(--hole), #000 calc(var(--hole) + 0.6px))
+        calc(var(--perf) / -2) calc(var(--perf) / -2) / var(--perf) var(--perf) round;
+  }
+  /* The mask clips box-shadow, so depth comes from a filter on the parent. */
+  .stamp-lift {
+    filter: drop-shadow(0 1px 0.5px oklch(0.24 0.06 266 / 0.22))
+      drop-shadow(0 3px 6px oklch(0.24 0.06 266 / 0.1));
+  }
+  .dark .stamp-lift {
+    filter: drop-shadow(0 2px 4px oklch(0 0 0 / 0.45));
+  }
+
+  /* ── Rubber stamp ────────────────────────────────────────────────────── */
+  .rubber {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.32em 0.55em 0.28em;
+    border: 1.5px solid currentColor;
+    border-radius: 2px;
+    font-family: var(--font-archivo);
+    font-stretch: 72%;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: rotate(var(--tilt, -3deg));
+    /* An unevenly inked pad. */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.55'/%3E%3C/filter%3E%3Crect width='120' height='60' filter='url(%23r)'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.55'/%3E%3C/filter%3E%3Crect width='120' height='60' filter='url(%23r)'/%3E%3C/svg%3E");
+  }
+
+  /* ── Paper surfaces ──────────────────────────────────────────────────── */
+  .sheet {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    box-shadow:
+      0 1px 0 oklch(0.24 0.06 266 / 0.04),
+      0 8px 24px -12px oklch(0.24 0.06 266 / 0.18);
+  }
+  .dark .sheet {
+    box-shadow: 0 10px 30px -14px oklch(0 0 0 / 0.6);
+  }
+  /* Ruled writing paper: a feint line every 1.75rem, like a letter pad. */
+  .ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(1.75rem - 1px),
+      color-mix(in oklab, var(--airmail) 16%, transparent) calc(1.75rem - 1px) 1.75rem
+    );
+  }
+  /* Tear-off perforation between sections of a form. */
+  .tear {
+    border-top: 2px dashed color-mix(in oklab, var(--foreground) 22%, transparent);
+  }
+
+  /* ── Motion ──────────────────────────────────────────────────────────── */
   @keyframes rise {
-    from { opacity: 0; transform: translateY(4px); }
+    from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
   }
   .animate-rise {
     animation: rise var(--dur-med) var(--ease-settle) both;
   }
   .stagger-children > :nth-child(1) { animation-delay: 0ms; }
-  .stagger-children > :nth-child(2) { animation-delay: 25ms; }
-  .stagger-children > :nth-child(3) { animation-delay: 50ms; }
-  .stagger-children > :nth-child(4) { animation-delay: 75ms; }
-  .stagger-children > :nth-child(5) { animation-delay: 100ms; }
-  .stagger-children > :nth-child(6) { animation-delay: 125ms; }
-  .stagger-children > :nth-child(7) { animation-delay: 150ms; }
-  .stagger-children > :nth-child(8) { animation-delay: 175ms; }
+  .stagger-children > :nth-child(2) { animation-delay: 30ms; }
+  .stagger-children > :nth-child(3) { animation-delay: 60ms; }
+  .stagger-children > :nth-child(4) { animation-delay: 90ms; }
+  .stagger-children > :nth-child(5) { animation-delay: 120ms; }
+  .stagger-children > :nth-child(6) { animation-delay: 150ms; }
+  .stagger-children > :nth-child(7) { animation-delay: 180ms; }
+  .stagger-children > :nth-child(8) { animation-delay: 210ms; }
 
-  /* Skeleton shimmer — always mirror the final layout so nothing shifts. */
+  /* A stamp coming down on the pad: arrives big and skewed, lands with a bounce. */
+  @keyframes thunk {
+    0% { opacity: 0; transform: scale(1.9) rotate(calc(var(--tilt, -3deg) - 9deg)); }
+    55% { opacity: 1; }
+    100% { opacity: 1; transform: scale(1) rotate(var(--tilt, -3deg)); }
+  }
+  .animate-thunk {
+    animation: thunk 380ms var(--ease-thunk) both;
+  }
+
+  /* The letter coming out of its envelope. */
+  @keyframes letter-out {
+    from { transform: translateY(46%) rotate(var(--tilt, 0deg)); }
+    to { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  }
+  @keyframes drop-in {
+    from { opacity: 0; transform: translateY(-28px) rotate(calc(var(--tilt, 0deg) + 5deg)); }
+    to { opacity: 1; transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  }
+  @keyframes draw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+    50% { transform: translateY(-7px) rotate(calc(var(--tilt, 0deg) + 0.6deg)); }
+  }
+
   @keyframes shimmer {
     to { background-position: -200% 0; }
   }

@@ -10,6 +10,7 @@ type Company = { name: string; slug: string; website?: string | null };
 type Match = {
   id: string;
   applicationStatus: string | null;
+  seenAt?: Date | null;
   job: {
     id: string;
     title: string;
@@ -65,10 +66,10 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
           <button
             onClick={() => setActiveCompany(null)}
             aria-pressed={activeCompany === null}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
+            className={`cursor-pointer rounded-[3px] px-2.5 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
               activeCompany === null
                 ? "bg-foreground text-background border-foreground"
-                : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                : "bg-paper text-muted-foreground border-foreground/20 hover:border-foreground/45 hover:text-foreground"
             }`}
           >
             All
@@ -78,10 +79,10 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
               key={company.slug}
               onClick={() => setActiveCompany(activeCompany === company.name ? null : company.name)}
               aria-pressed={activeCompany === company.name}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
+              className={`flex items-center gap-1.5 cursor-pointer rounded-[3px] px-2.5 py-1 text-xs font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 ${
                 activeCompany === company.name
                   ? "bg-foreground text-background border-foreground"
-                  : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                  : "bg-paper text-muted-foreground border-foreground/20 hover:border-foreground/45 hover:text-foreground"
               }`}
             >
               {company.website && (
@@ -104,11 +105,11 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
               <section key={companyName} className="space-y-2 animate-rise">
                 <div className="flex items-center gap-2">
                   {company.website && (
-                    <CompanyLogo name={company.name} website={company.website} size="sm" className="size-5 rounded-md" />
+                    <CompanyLogo name={company.name} website={company.website} size="sm" className="size-6" />
                   )}
                   <Link
                     href={`/companies/${company.slug}`}
-                    className="text-sm font-semibold hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                    className="font-heading text-lg font-extrabold tracking-[-0.015em] hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
                     {companyName}
                   </Link>
@@ -118,9 +119,9 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
                   {(networkBySlug[company.slug] ?? 0) > 0 && (
                     <Link
                       href={`/companies/${company.slug}#network`}
-                      className="text-xs font-medium text-primary hover:underline underline-offset-2"
+                      className="text-xs font-semibold text-airmail hover:underline underline-offset-2"
                     >
-                      · {networkBySlug[company.slug]} in your network
+                      · you know {networkBySlug[company.slug]} here
                     </Link>
                   )}
                 </div>
@@ -130,6 +131,7 @@ export function MatchesList({ matches, networkBySlug = {} }: Props) {
                     job={match.job}
                     matchId={match.id}
                     applicationStatus={match.applicationStatus ?? "INTERESTED"}
+                    isNew={match.seenAt === null}
                   />
                 ))}
               </section>

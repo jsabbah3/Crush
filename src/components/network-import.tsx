@@ -46,13 +46,13 @@ export function NetworkImport({ existingCount }: { existingCount: number }) {
       )}
 
       {status === "done" && result && (
-        <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30 p-3">
-          <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2 rounded-lg border border-moss/30 bg-moss-soft p-3">
+          <CheckCircle2 className="size-4 text-moss mt-0.5 shrink-0" />
           <div className="text-sm">
-            <p className="font-medium text-emerald-800 dark:text-emerald-300">
+            <p className="font-medium text-foreground">
               {result.imported.toLocaleString()} connections imported
             </p>
-            <p className="text-emerald-700 dark:text-emerald-400 text-xs mt-0.5">
+            <p className="text-moss text-xs mt-0.5">
               {result.matched.toLocaleString()} matched to companies on Crush
             </p>
           </div>

@@ -18,7 +18,7 @@ export function ShareWatchlistButton({ userId }: { userId: string }) {
     <Button variant="outline" size="sm" onClick={copy} className="gap-1.5 text-xs border-border/60">
       {copied ? (
         <>
-          <Check className="size-3 text-emerald-500" />
+          <Check className="size-3 text-moss" />
           Copied
         </>
       ) : (

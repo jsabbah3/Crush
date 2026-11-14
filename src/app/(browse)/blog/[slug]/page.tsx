@@ -71,11 +71,11 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Inline CTA — blog is a top-of-funnel SEO surface */}
       <aside className="mt-16 rounded-xl border bg-card p-6 sm:p-7">
-        <p className="font-heading text-lg font-bold tracking-tight">
+        <p className="font-heading text-xl font-extrabold tracking-[-0.02em]">
           Track the companies you&apos;d actually leave for
         </p>
         <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
-          Crush watches your shortlist and sends one alert the moment your exact role opens. No job boards, no noise.
+          Crush watches your shortlist and writes to you the day your exact role opens. One letter, nothing else.
         </p>
         <Link
           href="/companies"
