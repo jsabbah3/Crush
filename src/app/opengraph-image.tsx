@@ -4,7 +4,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Crush — The companies you'd actually leave for.";
 
-const RED = "#D12A26";
+const RED = "#E0491F";
 const BLUE = "#2548B8";
 const INK = "#17204A";
 const PAPER = "#FFFDF8";
@@ -22,7 +22,7 @@ export default function OpengraphImage() {
           height: "100%",
           display: "flex",
           padding: 26,
-          backgroundImage: `repeating-linear-gradient(135deg, ${RED} 0 32px, ${PAPER} 32px 64px, ${BLUE} 64px 96px, ${PAPER} 96px 128px)`,
+          backgroundColor: INK,
         }}
       >
         <div
@@ -41,7 +41,7 @@ export default function OpengraphImage() {
             <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
               <svg width="72" height="72" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="48" fill={RED} />
-                <circle cx="50" cy="50" r="37" fill="none" stroke="#9E1B1C" strokeWidth="3" />
+                <circle cx="50" cy="50" r="37" fill="none" stroke="#B23714" strokeWidth="3" />
                 <path d={HEART} fill={PAPER} />
               </svg>
               <div style={{ display: "flex", fontSize: 60, fontWeight: 900, fontStyle: "italic", letterSpacing: "-0.02em" }}>

@@ -12,8 +12,8 @@ export default function Icon() {
     (
       <div style={{ width: 64, height: 64, display: "flex" }}>
         <svg width="64" height="64" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="48" fill="#D12A26" />
-          <circle cx="50" cy="50" r="37" fill="none" stroke="#9E1B1C" strokeWidth="3" />
+          <circle cx="50" cy="50" r="48" fill="#E0491F" />
+          <circle cx="50" cy="50" r="37" fill="none" stroke="#B23714" strokeWidth="3" />
           <path d={HEART} fill="#FFFDF8" />
         </svg>
       </div>

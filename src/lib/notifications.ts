@@ -252,7 +252,7 @@ function esc(value: string): string {
 
 // The letter's palette — the site's airmail tokens, as the hex email needs.
 const INK = "#17204A";
-const RED = "#D12A26";
+const RED = "#E0491F";
 const BLUE = "#2548B8";
 const PAPER = "#FFFDF8";
 const DESK = "#E9EEF7";
@@ -261,8 +261,8 @@ const RULE = "#D5DCEB";
 const SERIF = "Georgia,'Times New Roman',serif";
 const SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 const MONO = "'SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
-// Airmail chevrons where the client supports gradients; plain red where not.
-const STRIPE = `background-color:${RED};background-image:repeating-linear-gradient(135deg,${RED} 0,${RED} 11px,${PAPER} 11px,${PAPER} 22px,${BLUE} 22px,${BLUE} 33px,${PAPER} 33px,${PAPER} 44px);`;
+// Top edge: a plain ink rule.
+const STRIPE = `background-color:${INK};`;
 
 /**
  * The alert email. The site promises "one letter", so this is one: a date, a
@@ -334,7 +334,7 @@ export function buildHtml(
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${PAPER};border:1px solid ${RULE};">
 
           <!-- Airmail edge -->
-          <tr><td style="height:8px;line-height:8px;font-size:0;${STRIPE}">&nbsp;</td></tr>
+          <tr><td style="height:3px;line-height:3px;font-size:0;${STRIPE}">&nbsp;</td></tr>
 
           <tr>
             <td style="padding:28px 32px 30px;">
@@ -403,7 +403,7 @@ export function buildHtml(
             </td>
           </tr>
 
-          <tr><td style="height:8px;line-height:8px;font-size:0;${STRIPE}">&nbsp;</td></tr>
+          <tr><td style="height:3px;line-height:3px;font-size:0;${STRIPE}">&nbsp;</td></tr>
         </table>
       </td>
     </tr>

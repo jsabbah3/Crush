@@ -92,8 +92,8 @@
   --popover-foreground: var(--foreground);
 
   /* Postal red — signal only. */
-  --primary: oklch(0.565 0.215 27);
-  --primary-deep: oklch(0.46 0.185 27);
+  --primary: oklch(0.62 0.2 38);
+  --primary-deep: oklch(0.52 0.18 36);
   --primary-foreground: oklch(0.995 0.004 95);
 
   /* Airmail blue — structure, links-at-rest, "applied", your network. */
@@ -120,16 +120,16 @@
   --chart-5: oklch(0.88 0.024 260);
 
   /* A red-pencil note in the margin: "3 new". */
-  --note: oklch(0.94 0.04 25);
-  --note-foreground: oklch(0.46 0.185 27);
+  --note: oklch(0.95 0.035 45);
+  --note-foreground: oklch(0.5 0.17 38);
 
   /* Kraft — parcels, tags, the manila of an office envelope. */
   --kraft: oklch(0.74 0.075 72);
   --kraft-soft: oklch(0.93 0.035 80);
 
   /* Status inks */
-  --moss: oklch(0.5 0.115 155);              /* hiring / approved */
-  --moss-soft: oklch(0.94 0.035 155);
+  --moss: oklch(0.36 0.03 264);              /* hiring / approved */
+  --moss-soft: oklch(0.94 0.012 257);
   --clay: oklch(0.5 0.07 55);                /* returned to sender */
   --clay-soft: oklch(0.935 0.025 70);
 
@@ -143,14 +143,8 @@
   --dur-fast: 140ms;
   --dur-med: 240ms;
 
-  /* The airmail edge: red and blue chevrons on paper. */
-  --stripe: repeating-linear-gradient(
-    135deg,
-    var(--primary) 0 11px,
-    transparent 11px 22px,
-    var(--airmail) 22px 33px,
-    transparent 33px 44px
-  );
+  /* Edge rule: plain ink. */
+  --stripe: linear-gradient(var(--foreground), var(--foreground));
 
   --sidebar: var(--paper);
   --sidebar-foreground: var(--foreground);
@@ -168,8 +162,8 @@
   --foreground: oklch(0.94 0.014 255);
   --paper: oklch(0.235 0.052 266);
 
-  --primary: oklch(0.66 0.2 27);
-  --primary-deep: oklch(0.52 0.19 27);
+  --primary: oklch(0.71 0.17 45);
+  --primary-deep: oklch(0.58 0.17 40);
   --primary-foreground: oklch(0.17 0.04 266);
 
   --airmail: oklch(0.74 0.115 258);
@@ -188,14 +182,14 @@
   --chart-4: oklch(0.5 0.06 262);
   --chart-5: oklch(0.36 0.058 266);
 
-  --note: oklch(0.33 0.09 27);
-  --note-foreground: oklch(0.82 0.11 30);
+  --note: oklch(0.33 0.08 42);
+  --note-foreground: oklch(0.84 0.1 50);
 
   --kraft: oklch(0.66 0.07 72);
   --kraft-soft: oklch(0.31 0.04 75);
 
-  --moss: oklch(0.74 0.12 155);
-  --moss-soft: oklch(0.29 0.05 158);
+  --moss: oklch(0.86 0.02 255);
+  --moss-soft: oklch(0.29 0.04 266);
   --clay: oklch(0.74 0.07 60);
   --clay-soft: oklch(0.3 0.035 65);
 
@@ -263,12 +257,12 @@
 
   /* ── Airmail edge ────────────────────────────────────────────────────── */
   .airmail-rule {
-    height: 6px;
+    height: 2px;
     background: var(--stripe);
   }
   /* A chevron border that still respects border-radius. */
   .airmail-frame {
-    border: 9px solid transparent;
+    border: 2px solid transparent;
     background:
       linear-gradient(var(--paper), var(--paper)) padding-box,
       var(--stripe) border-box,
