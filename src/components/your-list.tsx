@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/company-logo";
 import { CompanySearch } from "@/components/company-search";
 import { AddCompanyModal } from "@/components/add-company-modal";
+import { RemovableRow } from "@/components/removable-row";
 import { EmptyState, Rank, Tag } from "@/components/brand";
 import { boardStatus } from "@/lib/board-status";
 import { agoShort, getOutlook, OUTLOOK_DAYS } from "@/lib/outlook";
@@ -120,10 +121,10 @@ export async function YourList({ userId }: { userId: string }) {
               const look = outlook.get(tc.companyId);
               const open = tc.company._count?.jobs ?? 0;
               return (
-                <li key={tc.id} className="border-b border-foreground/15">
+                <RemovableRow key={tc.id} trackedId={tc.id} name={tc.company.name}>
                   <Link
                     href={`/companies/${tc.company.slug}`}
-                    className="group grid grid-cols-[2.25rem_auto_1fr] items-center gap-x-3 gap-y-1 px-1 py-3 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[2.5rem_auto_1fr_auto]"
+                    className="group grid grid-cols-[2.25rem_auto_1fr] items-center gap-x-3 gap-y-1 py-3 pl-1 pr-10 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[2.5rem_auto_1fr_auto]"
                   >
                     <Rank n={i + 1} className="text-xl text-muted-foreground" />
                     <CompanyLogo name={tc.company.name} website={tc.company.website} size="sm" />
@@ -139,7 +140,9 @@ export async function YourList({ userId }: { userId: string }) {
                         )}
                       </p>
                       {visible ? (
-                        trackedRoles.length > 0 && (
+                        // "None like yours" only when there's truly nothing: a
+                        // company can have matches on postings older than 90 days.
+                        trackedRoles.length > 0 && (look || tc._count.matches === 0) && (
                           <p className="text-xs leading-snug text-muted-foreground">
                             {look ? (
                               <>
@@ -165,7 +168,7 @@ export async function YourList({ userId }: { userId: string }) {
                       )}
                     </p>
                   </Link>
-                </li>
+                </RemovableRow>
               );
             })}
           </ol>
