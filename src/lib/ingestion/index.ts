@@ -23,6 +23,13 @@ export type IngestionResult = {
 
 // ── shared: persist new jobs + create matches ─────────────────────────────────
 
+// A reopened or renamed posting is news again only if it was (re)published
+// recently — otherwise it lands in the inbox quietly, without an email.
+const FRESH_MS = 3 * 86_400_000;
+function isFresh(postedAt: Date | null): boolean {
+  return !!postedAt && Date.now() - postedAt.getTime() < FRESH_MS;
+}
+
 async function persistJobs(
   companyId: string,
   companySlug: string,
@@ -30,17 +37,14 @@ async function persistJobs(
 ): Promise<{ newJobs: number; newMatches: number }> {
   if (fetched.length === 0) return { newJobs: 0, newMatches: 0 };
 
-  const existingIds = await prisma.job.findMany({
+  const existing = await prisma.job.findMany({
     where: {
       companyId,
       externalJobId: { in: fetched.map((j) => j.externalJobId) },
     },
-    select: { externalJobId: true },
+    select: { id: true, externalJobId: true, status: true, title: true, location: true, remote: true, url: true },
   });
-  const existingSet = new Set(existingIds.map((j) => j.externalJobId));
-
-  const incoming = fetched.filter((j) => !existingSet.has(j.externalJobId));
-  if (incoming.length === 0) return { newJobs: 0, newMatches: 0 };
+  const existingById = new Map(existing.map((j) => [j.externalJobId, j]));
 
   // First-ever ingest of this company (it had no jobs at all before now):
   // its current roles are backfill, not "just opened". Without this, sourcing
@@ -48,31 +52,77 @@ async function persistJobs(
   // or ingest-on-follow) would blast every tracker a "just opened" alert for
   // long-standing roles. Established companies keep alerting on genuinely new
   // postings.
-  const companyHadJobs = (await prisma.job.count({ where: { companyId } })) > 0;
+  const companyHadJobs = existing.length > 0 || (await prisma.job.count({ where: { companyId } })) > 0;
 
-  const created = await prisma.job.createManyAndReturn({
-    data: incoming.map((job) => ({
-      title: job.title.trim(),
-      slug: buildSlug(companySlug, job.externalJobId),
-      description: job.description,
-      type: job.type,
-      location: job.location?.trim() || null,
-      remote: job.remote,
-      url: job.url,
-      postedAt: job.postedAt,
-      externalJobId: job.externalJobId,
-      companyId,
-      salaryMin: job.salaryMin ?? null,
-      salaryMax: job.salaryMax ?? null,
-      currency: job.currency ?? "USD",
-    })),
-    skipDuplicates: true,
-  });
+  // Postings we already hold. Boards reuse a posting's id when a role is
+  // reopened or renamed ("Customer Growth Manager" → "Account Manager,
+  // Renewals & Expansion"), so a known id can come back after we closed it,
+  // or under a new title. Reopen it and refresh what it says — and if it now
+  // reads as a different role, run it past the matcher again.
+  const reconsider: string[] = [];
+  const updates: Promise<unknown>[] = [];
+  for (const job of fetched) {
+    const prev = existingById.get(job.externalJobId);
+    if (!prev) continue;
+    const title = job.title.trim();
+    const location = job.location?.trim() || null;
+    const reopened = prev.status === "CLOSED";
+    const retitled = prev.title.trim() !== title;
+    const moved = prev.location !== location || prev.remote !== job.remote || prev.url !== job.url;
+    if (!reopened && !retitled && !moved) continue;
+    if (reopened || retitled) reconsider.push(prev.id);
+    updates.push(
+      prisma.job.update({
+        where: { id: prev.id },
+        data: {
+          status: "ACTIVE",
+          title,
+          description: job.description,
+          type: job.type,
+          location,
+          remote: job.remote,
+          url: job.url,
+          postedAt: job.postedAt,
+          salaryMin: job.salaryMin ?? null,
+          salaryMax: job.salaryMax ?? null,
+          currency: job.currency ?? "USD",
+        },
+      }),
+    );
+  }
+  for (let i = 0; i < updates.length; i += 25) await Promise.all(updates.slice(i, i + 25));
+
+  const incoming = fetched.filter((j) => !existingById.has(j.externalJobId));
+  const created = incoming.length
+    ? await prisma.job.createManyAndReturn({
+        data: incoming.map((job) => ({
+          title: job.title.trim(),
+          slug: buildSlug(companySlug, job.externalJobId),
+          description: job.description,
+          type: job.type,
+          location: job.location?.trim() || null,
+          remote: job.remote,
+          url: job.url,
+          postedAt: job.postedAt,
+          externalJobId: job.externalJobId,
+          companyId,
+          salaryMin: job.salaryMin ?? null,
+          salaryMax: job.salaryMax ?? null,
+          currency: job.currency ?? "USD",
+        })),
+        skipDuplicates: true,
+      })
+    : [];
+  const revisited = reconsider.length
+    ? await prisma.job.findMany({ where: { id: { in: reconsider } } })
+    : [];
+  if (created.length === 0 && revisited.length === 0) return { newJobs: 0, newMatches: 0 };
 
   const tracked = await prisma.trackedCompany.findMany({
     where: { companyId, emailAlerts: true },
     include: { user: { select: { defaultCriteria: true } } },
   });
+  if (tracked.length === 0) return { newJobs: created.length, newMatches: 0 };
 
   const userIds = [...new Set(tracked.map((tc) => tc.userId))];
   const roleRows = await prisma.trackedRole.findMany({
@@ -85,8 +135,15 @@ async function persistJobs(
     rolesByUserId.get(r.userId)!.push(r.title);
   }
 
+  // `notified: true` means "don't email this one": backfill on a company's
+  // first ingest, and reopened/renamed postings that aren't recent.
+  const candidates = [
+    ...created.map((job) => ({ job, silent: !companyHadJobs })),
+    ...revisited.map((job) => ({ job, silent: !isFresh(job.postedAt) })),
+  ];
+
   let newMatches = 0;
-  for (const job of created) {
+  for (const { job, silent } of candidates) {
     for (const tc of tracked) {
       const prefs = tc.user.defaultCriteria as UserPrefs | null;
       const userRoles = rolesByUserId.get(tc.userId) ?? [];
@@ -101,7 +158,7 @@ async function persistJobs(
       ) {
         try {
           await prisma.match.create({
-            data: { trackedCompanyId: tc.id, jobId: job.id, notified: !companyHadJobs },
+            data: { trackedCompanyId: tc.id, jobId: job.id, notified: silent },
           });
           newMatches++;
         } catch {
