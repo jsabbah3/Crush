@@ -12,6 +12,8 @@ import { HotList } from "@/components/hot-list";
 import { ListBuilder, type Pick } from "@/components/list-builder";
 import { Rank, Rule, Tag, Wordmark } from "@/components/brand";
 import { signInWithGoogle } from "@/app/actions/auth";
+import { getFreshness } from "@/lib/freshness";
+import { agoShort } from "@/lib/outlook";
 
 const STEPS = [
   {
@@ -60,14 +62,6 @@ const FAQ = [
   },
 ];
 
-function fundingLabel(stage: string | null): string {
-  const map: Record<string, string> = {
-    pre_seed: "Pre-seed", seed: "Seed", series_a: "Series A", series_b: "Series B",
-    series_c: "Series C", growth: "Growth", public: "Public",
-  };
-  return stage ? (map[stage] ?? stage) : "Funded";
-}
-
 function roundDown(n: number, to: number): string {
   return `${(Math.floor(n / to) * to).toLocaleString("en-US")}+`;
 }
@@ -91,13 +85,7 @@ const activeJobs = { select: { jobs: { where: { status: "ACTIVE" as const } } } 
  */
 const getLandingData = unstable_cache(
   async () => {
-    const [recentlyFunded, companyCount, openRoleCount, popularRows, collections] = await Promise.all([
-      prisma.company.findMany({
-        where: { recentlyFundedAt: { not: null } },
-        orderBy: { recentlyFundedAt: "desc" },
-        take: 6,
-        select: { name: true, website: true, slug: true, fundingStage: true, _count: activeJobs },
-      }).catch(() => []),
+    const [companyCount, openRoleCount, popularRows, collections] = await Promise.all([
       prisma.company.count().catch(() => 0),
       prisma.job.count({ where: { status: "ACTIVE" } }).catch(() => 0),
       // Starter picks for the list builder: what people already follow, then
@@ -124,7 +112,7 @@ const getLandingData = unstable_cache(
         },
       }).catch(() => []),
     ]);
-    return { recentlyFunded, companyCount, openRoleCount, popularRows, collections };
+    return { companyCount, openRoleCount, popularRows, collections };
   },
   ["landing-data-v1"],
   { revalidate: 3600 },
@@ -142,7 +130,10 @@ export default async function HomePage({
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (authUser) redirect("/dashboard");
 
-  const { recentlyFunded, companyCount, openRoleCount, popularRows, collections } = await getLandingData();
+  const [{ companyCount, openRoleCount, popularRows, collections }, fresh] = await Promise.all([
+    getLandingData(),
+    getFreshness().catch(() => ({ raised: [], fresh: [], newThisMonth: 0, raisedThisMonth: 0 })),
+  ]);
 
   const popular: Pick[] = popularRows.map((c) => ({
     id: c.id, name: c.name, slug: c.slug, website: c.website, openRoles: c._count.jobs,
@@ -162,7 +153,9 @@ export default async function HomePage({
             {companyCount >= 100 ? `${roundDown(companyCount, 100)} companies on file` : "Not a job board"} · Boards checked
             every morning
           </span>
-          <span>Free while we&apos;re early</span>
+          <span>
+            {fresh.newThisMonth > 0 ? `${fresh.newThisMonth} new companies this month` : "Free while we're early"}
+          </span>
         </div>
       </div>
 
@@ -192,44 +185,71 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ── Just funded ──────────────────────────────────────────────────── */}
-      {recentlyFunded.length > 0 && (
+      {/* ── Fresh on Crush ───────────────────────────────────────────────── */}
+      {(fresh.raised.length > 0 || fresh.fresh.length > 0) && (
         <section className="border-y border-foreground bg-paper">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-            <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="space-y-2">
-                <p className="kicker">Fresh money</p>
-                <h2 className="font-heading text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Just funded, about to hire.</h2>
+                <p className="kicker">Fresh on Crush</p>
+                <h2 className="font-heading text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
+                  Just raised. <span className="font-medium italic">Just listed.</span>
+                </h2>
               </div>
-              <p className="max-w-xs text-sm leading-snug text-muted-foreground">
-                A new round usually means a hiring plan. These raised most recently.
+              <p className="max-w-sm text-sm leading-snug text-muted-foreground">
+                Found every morning in Y Combinator&apos;s newest batches and the week&apos;s funding announcements —
+                listed only once we can read their job board.
               </p>
             </div>
 
-            <ol className="mt-9 grid grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
-              {recentlyFunded.map((c, i) => (
-                <li key={c.slug} className="border-t border-foreground/80">
-                  <Link
-                    href={`/companies/${c.slug}`}
-                    className="group flex items-center gap-4 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <Rank n={i + 1} className="w-7 shrink-0 text-xl text-muted-foreground" />
-                    <CompanyLogo name={c.name} website={c.website} size="md" className="size-11" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-heading text-lg font-semibold leading-tight tracking-[-0.01em] group-hover:text-primary">
-                        {c.name}
-                      </span>
-                      <span className="mt-1 flex items-center gap-2">
-                        <Tag tone="graphite" className="text-[0.6rem]">{fundingLabel(c.fundingStage)}</Tag>
-                        <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                          {c._count.jobs > 0 ? `${c._count.jobs} open` : "watching"}
-                        </span>
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
+            <div className="mt-9 grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-2">
+              {[
+                {
+                  title: "Just raised",
+                  note: fresh.raisedThisMonth > 0 ? `${fresh.raisedThisMonth} this month` : null,
+                  rows: fresh.raised.map((c) => ({ ...c, tag: c.label })),
+                },
+                {
+                  title: "New on Crush",
+                  note: fresh.newThisMonth > 0 ? `${fresh.newThisMonth} this month` : null,
+                  rows: fresh.fresh.map((c) => ({ ...c, tag: c.via })),
+                },
+              ]
+                .filter((col) => col.rows.length > 0)
+                .map((col) => (
+                  <div key={col.title}>
+                    <h3 className="flex items-baseline justify-between border-b-[3px] border-foreground pb-2">
+                      <span className="label-caps text-foreground">{col.title}</span>
+                      {col.note && <span className="font-mono text-xs text-muted-foreground">{col.note}</span>}
+                    </h3>
+                    <ol>
+                      {col.rows.map((c, i) => (
+                        <li key={c.slug} className="border-b border-foreground/15">
+                          <Link
+                            href={`/companies/${c.slug}`}
+                            className="group flex items-center gap-3 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <Rank n={i + 1} className="w-7 shrink-0 text-lg text-muted-foreground" />
+                            <CompanyLogo name={c.name} website={c.website} size="sm" />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-heading text-lg font-semibold leading-tight tracking-[-0.01em] group-hover:text-primary">
+                                {c.name}
+                              </span>
+                              <span className="mt-0.5 flex items-center gap-2">
+                                {c.tag && <Tag tone={col.title === "Just raised" ? "red" : "graphite"} className="text-[0.6rem]">{c.tag}</Tag>}
+                                <span className="font-mono text-xs text-muted-foreground">{agoShort(c.at)}</span>
+                              </span>
+                            </span>
+                            <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+                              <span className="font-semibold text-foreground">{c.openRoles}</span> open
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+            </div>
           </div>
         </section>
       )}

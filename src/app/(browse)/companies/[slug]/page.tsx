@@ -9,10 +9,11 @@ import { JobCard } from "@/components/job-card";
 import { RoleList } from "@/components/role-list";
 import { MarkdownBody } from "@/components/markdown-body";
 import { JobPostingJsonLd } from "@/components/job-posting-jsonld";
-import { isCompanyPublic } from "@/lib/company-relevance";
+import { isCompanyPublic, relevantCompanyWhere } from "@/lib/company-relevance";
 import { boardStatus } from "@/lib/board-status";
 import { HiringPulse } from "@/components/hiring-pulse";
 import { Tag } from "@/components/brand";
+import { isJustRaised, isNewOnCrush, latestRaises, raiseLabel } from "@/lib/freshness";
 
 // How many open roles to send to the page. Enough for the biggest boards we
 // track; the list filters and paginates client-side.
@@ -128,12 +129,27 @@ export default async function CompanyDetailPage({
   // (see the outdoor-brand incident) never becomes a stranger-visible page.
   if (!isCompanyPublic(company) && !tracked) notFound();
 
-  const relatedCompanies = await prisma.company.findMany({
-    where: { industry: company.industry ?? undefined, slug: { not: slug } },
-    select: { name: true, slug: true, fundingStage: true },
-    orderBy: { updatedAt: "desc" },
-    take: 6,
-  });
+  // Freshness: "New on Crush" and the latest raise we've seen in the news.
+  const raise = isJustRaised(company.recentlyFundedAt)
+    ? (await latestRaises([company.id])).get(company.id)
+    : undefined;
+  const isNew = isNewOnCrush(company.listedAt);
+
+  // Same industry, public, hiring. (With no industry there's nothing to
+  // relate on — an undefined filter used to list arbitrary recent rows.)
+  const relatedCompanies = company.industry
+    ? await prisma.company.findMany({
+        where: {
+          AND: [
+            relevantCompanyWhere,
+            { industry: company.industry, slug: { not: slug }, jobs: { some: { status: "ACTIVE" } } },
+          ],
+        },
+        select: { name: true, slug: true, fundingStage: true },
+        orderBy: { updatedAt: "desc" },
+        take: 6,
+      })
+    : [];
 
   // Fetch LinkedIn connections at this company
   const networkConnections = authUser
@@ -216,6 +232,20 @@ export default async function CompanyDetailPage({
               {company.name}
             </h1>
             {tracked && <Tag tone="ink">On your list</Tag>}
+            {isJustRaised(company.recentlyFundedAt) && (
+              raise ? (
+                <a href={raise.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-80" title="Read the announcement">
+                  <Tag>Raised {raiseLabel(raise)} · {raise.at.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</Tag>
+                </a>
+              ) : (
+                <Tag>Just raised</Tag>
+              )
+            )}
+            {isNew && company.listedAt && (
+              <Tag tone="graphite">
+                New on Crush · {company.listedAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              </Tag>
+            )}
           </div>
           {company.description && (
             <p className="max-w-[65ch] leading-relaxed text-muted-foreground">{company.description}</p>

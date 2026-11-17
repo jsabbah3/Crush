@@ -58,6 +58,12 @@ model Company {
   tags         String[]      @default([])
   blogRssUrl       String?       @map("blog_rss_url")
   recentlyFundedAt DateTime?     @map("recently_funded_at")
+  /// Where we first found this company: "YC Fall 2026", "Funding news: Series B $40M", "VC portfolio: a16z", "User added".
+  discoveredVia    String?       @map("discovered_via")
+  /// When it first had open roles we could read — the "New on Crush" date.
+  listedAt         DateTime?     @map("listed_at")
+  /// Last time we looked for its job board (so daily discovery doesn't re-probe the same companies).
+  atsCheckedAt     DateTime?     @map("ats_checked_at")
   // Earliest date this company's job data is reliable (first ingestion).
   // Trend windows must never reach before this date (+ a read-side buffer
   // to skip the initial bulk-import spike).
@@ -73,6 +79,8 @@ model Company {
   linkedInConnections LinkedInConnection[]
   roleSnapshots       CompanyRoleSnapshot[]
 
+  @@index([listedAt])
+  @@index([recentlyFundedAt])
   @@map("companies")
 }
 

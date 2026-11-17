@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, Users, Heart, ChevronDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { isJustRaised, isNewOnCrush } from "@/lib/freshness-dates";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
 import type { Sort } from "@/app/(browse)/companies/page";
@@ -20,6 +21,7 @@ type Company = {
   size: string | null;
   fundingStage: string | null;
   recentlyFundedAt: Date | null;
+  listedAt: Date | null;
   activeJobs: number;
   _count: { trackedBy: number };
   jobs: { postedAt: Date | null }[];
@@ -29,6 +31,8 @@ const SORT_OPTIONS: { value: Sort; label: string }[] = [
   { value: "active", label: "Most active" },
   { value: "az", label: "A–Z" },
   { value: "followed", label: "Most followed" },
+  { value: "new", label: "New" },
+  { value: "raised", label: "Just raised" },
 ];
 
 const VISIBLE_INDUSTRIES = 12;
@@ -331,13 +335,6 @@ export function CompanyBrowser({
   );
 }
 
-const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
-
-function isRecentlyFunded(date: Date | null): boolean {
-  if (!date) return false;
-  return Date.now() - new Date(date).getTime() < NINETY_DAYS_MS;
-}
-
 function CompanyCard({
   company,
   tracked,
@@ -351,7 +348,8 @@ function CompanyCard({
 }) {
   const lastActive = formatLastActive(company.jobs[0]?.postedAt);
   const fundingLabel = formatFundingStage(company.fundingStage);
-  const recentlyFunded = isRecentlyFunded(company.recentlyFundedAt);
+  const recentlyFunded = isJustRaised(company.recentlyFundedAt);
+  const isNew = isNewOnCrush(company.listedAt);
 
   return (
     <div className="group relative flex flex-col gap-3 border border-border bg-card p-4 transition-[border-color,transform,box-shadow] duration-200 ease-[var(--ease-settle)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-foreground hover:shadow-[4px_4px_0_-1px_var(--foreground)]">
@@ -372,8 +370,11 @@ function CompanyCard({
             </a>
             {recentlyFunded && (
               <span className="tag mt-0.5 shrink-0 text-[0.6rem] text-primary">
-                {fundingLabel ?? "Just funded"}
+                {fundingLabel ? `Raised ${fundingLabel}` : "Just raised"}
               </span>
+            )}
+            {isNew && (
+              <span className="tag mt-0.5 shrink-0 text-[0.6rem] text-graphite">New on Crush</span>
             )}
           </div>
           <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">

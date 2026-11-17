@@ -35,7 +35,7 @@ const EUROPE =
 const NON_US =
   /\b(?:canada|toronto|vancouver|montreal|mexico|brazil|argentina|colombia|india|bangalore|bengaluru|singapore|japan|tokyo|china|australia|sydney|melbourne|israel|tel aviv|korea|seoul|philippines|uae|dubai|south africa)\b/i;
 
-function isUS(loc: string): boolean {
+export function isUS(loc: string): boolean {
   if (EUROPE.test(loc) || NON_US.test(loc)) {
     // Multi-location strings ("London or New York") still count if a US place is named.
     // (No two-letter state check here: "Toronto, CA" is Canada.)

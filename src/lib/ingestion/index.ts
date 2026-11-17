@@ -113,6 +113,11 @@ async function persistJobs(
         skipDuplicates: true,
       })
     : [];
+  // First roles we've ever held for this company: that's when it's "listed".
+  if (created.length > 0 || reconsider.length > 0) {
+    await prisma.company.updateMany({ where: { id: companyId, listedAt: null }, data: { listedAt: new Date() } });
+  }
+
   const revisited = reconsider.length
     ? await prisma.job.findMany({ where: { id: { in: reconsider } } })
     : [];

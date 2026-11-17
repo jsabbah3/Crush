@@ -8,13 +8,14 @@ import { CompanyBrowser } from "@/components/company-browser";
 import { YourList } from "@/components/your-list";
 import { ShareWatchlistButton } from "@/components/share-watchlist-button";
 import { PageHeader } from "@/components/brand";
+import { NEW_DAYS, RAISED_DAYS } from "@/lib/freshness-dates";
 
 export const metadata = {
   title: "Companies — Crush",
   description: "Browse companies and follow the ones you want to work for.",
 };
 
-export type Sort = "active" | "az" | "followed";
+export type Sort = "active" | "az" | "followed" | "new" | "raised";
 
 /** Signed-in header: one Companies page, two views — your list and everything. */
 function CompaniesHeader({ active, userId, listCount }: { active: "list" | "browse"; userId: string; listCount: number }) {
@@ -46,7 +47,7 @@ function CompaniesHeader({ active, userId, listCount }: { active: "list" | "brow
     </div>
   );
 }
-const VALID_SORTS: Sort[] = ["active", "az", "followed"];
+const VALID_SORTS: Sort[] = ["active", "az", "followed", "new", "raised"];
 
 const FEATURED_VCS = [
   "a16z", "Sequoia", "YC", "Greylock", "Founders Fund",
@@ -66,6 +67,7 @@ type BrowseCompany = {
   size: string | null;
   fundingStage: string | null;
   recentlyFundedAt: Date | null;
+  listedAt: Date | null;
   activeJobs: number;
   _count: { trackedBy: number };
   jobs: { postedAt: Date | null }[];
@@ -82,6 +84,7 @@ type ActiveRow = {
   size: string | null;
   funding_stage: string | null;
   recently_funded_at: Date | null;
+  listed_at: Date | null;
   tracked_by_count: bigint | number;
   active_jobs: bigint | number;
   last_posted_at: Date | null;
@@ -107,6 +110,7 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
       c.size::text AS size,
       c.funding_stage::text AS funding_stage,
       c.recently_funded_at,
+      c.listed_at,
       COUNT(DISTINCT tc.id)::int AS tracked_by_count,
       COUNT(DISTINCT CASE WHEN j.status = 'ACTIVE'::job_status THEN j.id END)::int AS active_jobs,
       MAX(CASE WHEN j.status = 'ACTIVE'::job_status THEN j.posted_at END) AS last_posted_at
@@ -127,13 +131,15 @@ async function fetchByActive(q: string, industry: string, vc: string): Promise<B
     website: r.website, industry: r.industry, headquarters: r.headquarters,
     size: r.size, fundingStage: r.funding_stage,
     recentlyFundedAt: r.recently_funded_at ? new Date(r.recently_funded_at) : null,
+    listedAt: r.listed_at ? new Date(r.listed_at) : null,
     activeJobs: Number(r.active_jobs),
     _count: { trackedBy: Number(r.tracked_by_count) },
     jobs: r.last_posted_at ? [{ postedAt: new Date(r.last_posted_at) }] : [],
   }));
 }
 
-async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | "followed"): Promise<BrowseCompany[]> {
+async function fetchByOrm(q: string, industry: string, vc: string, sort: Exclude<Sort, "active">): Promise<BrowseCompany[]> {
+  const now = Date.now();
   const rows = await prisma.company.findMany({
     where: {
       AND: [
@@ -142,14 +148,20 @@ async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | 
         ...(industry ? [{ industry: { equals: industry, mode: "insensitive" as const } }] : []),
         ...(vc ? [{ tags: { has: vc } }] : []),
         // When filtering by VC or industry, only show actively hiring companies
-        ...((vc || industry) ? [{ jobs: { some: { status: "ACTIVE" as const } } }] : []),
+        ...((vc || industry || sort === "new" || sort === "raised") ? [{ jobs: { some: { status: "ACTIVE" as const } } }] : []),
+        ...(sort === "new" ? [{ listedAt: { gte: new Date(now - NEW_DAYS * 86_400_000) } }] : []),
+        ...(sort === "raised" ? [{ recentlyFundedAt: { gte: new Date(now - RAISED_DAYS * 86_400_000) } }] : []),
       ],
     },
     include: {
       _count: { select: { trackedBy: true, jobs: { where: { status: "ACTIVE" } } } },
       jobs: { where: { status: "ACTIVE" }, orderBy: { postedAt: "desc" }, take: 1, select: { postedAt: true } },
     },
-    orderBy: sort === "followed" ? { trackedBy: { _count: "desc" } } : { name: "asc" },
+    orderBy:
+      sort === "followed" ? { trackedBy: { _count: "desc" } }
+      : sort === "new" ? { listedAt: "desc" }
+      : sort === "raised" ? { recentlyFundedAt: "desc" }
+      : { name: "asc" },
     take: 100,
   });
 
@@ -158,6 +170,7 @@ async function fetchByOrm(q: string, industry: string, vc: string, sort: "az" | 
     website: r.website, industry: r.industry, headquarters: r.headquarters,
     size: r.size, fundingStage: r.fundingStage,
     recentlyFundedAt: r.recentlyFundedAt,
+    listedAt: r.listedAt,
     activeJobs: r._count.jobs,
     _count: { trackedBy: r._count.trackedBy },
     jobs: r.jobs,
