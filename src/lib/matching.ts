@@ -1,4 +1,5 @@
 import type { Job } from "@/generated/prisma/client";
+import { locationOk } from "@/lib/location";
 
 // ── Role vocabulary ────────────────────────────────────────────────────────
 //
@@ -43,6 +44,7 @@ const FAMILIES: Record<string, string[]> = {
   "sales": ["account executive", "sales development representative", "account manager"],
   "customer success": ["customer success manager"],
   "marketing": ["product marketing", "growth marketing", "demand generation", "content marketing"],
+  "partnerships": ["partner manager", "partner development manager", "partner development", "channel partner manager", "channel manager", "alliances manager", "alliance manager", "strategic alliances"],
 };
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
@@ -57,12 +59,16 @@ function expandRole(role: string): string[] {
   const r = norm(role);
   const out = new Set<string>(synonymsOf(r));
   // A broad role also covers its specific members (and their synonyms).
-  for (const member of FAMILIES[r] ?? []) for (const s of synonymsOf(member)) out.add(s);
-  // "Enterprise account executive" still counts as an account executive
-  // posting — a role that CONTAINS a known phrase inherits its synonyms.
+  const family = FAMILIES[r] ?? FAMILIES[`${r}s`] ?? FAMILIES[r.replace(/s$/, "")] ?? [];
+  for (const member of family) for (const s of synonymsOf(member)) out.add(s);
+  // A role that contains a known phrase gets that phrase swapped for each of
+  // its synonyms, in place: "Enterprise AE" ⇄ "Enterprise Account Executive".
+  // (Not widened to the bare synonym — "Enterprise AE" must not match every AE.)
   for (const group of SYNONYMS) {
     for (const t of group) {
-      if (t.length > 3 && r !== t && hasPhrase(r, t)) group.forEach((g) => out.add(g));
+      if (r === t) continue;
+      const re = new RegExp(`(?<![a-z0-9])${escapeRe(t)}(?![a-z0-9])`, "i");
+      if (re.test(r)) for (const g of group) if (g !== t) out.add(r.replace(re, g));
     }
   }
   return [...out];
@@ -118,13 +124,6 @@ function managesTheRole(title: string, phrase: string): boolean {
   return new RegExp(`\\b(?:manager|director|head|lead)(?:,|\\s+of)\\s+(?:[a-z&-]+\\s+){0,2}${stem}s\\b`, "i").test(title);
 }
 
-// "Partner Manager" is a partnerships job: a core word that is the root of a
-// one-word role counts ("partner" → "partnerships"). Only that direction —
-// "product" must not reach "production".
-function rootInCore(core: string, phrase: string): boolean {
-  return core.split(/[^a-z0-9&]+/).some((w) => w.length >= 5 && w !== phrase && phrase.startsWith(w));
-}
-
 const MANAGER_ROLE = /\b(?:manager|director|head|lead|vp|chief)\b/;
 
 /** Does this job title count as one of the user's roles? */
@@ -140,7 +139,7 @@ export function titleMatchesRoles(title: string, roleTitles: string[]): boolean 
       // Multi-word phrases are specific enough to count anywhere in the
       // title; single words ("Product", "Startup", "iOS") only in its core.
       const where = phrase.includes(" ") ? title : core;
-      if (!hasPhrase(where, phrase) && !(phrase.includes(" ") ? false : rootInCore(core, phrase))) continue;
+      if (!hasPhrase(where, phrase)) continue;
       if (!wantsManager && managesTheRole(title, phrase)) continue;
       return true;
     }
@@ -232,14 +231,39 @@ const TITLE_ONLY_KEYWORDS = new Set([
   "digital success",
 ]);
 
+// Descriptions are prose: "reports to our Chief Financial Officer", "work
+// with senior leaders", "internal tools". Only a few phrases there are
+// unambiguous about the role's own level.
+const DESCRIPTION_LEVELS: [RegExp, string][] = [
+  [/\b(?:entry[- ]level|new grad(?:uate)?s?|early[- ]career)\b/, "junior"],
+  [/\bthis (?:is an? )?internship\b/, "intern"],
+];
+
 export function detectSeniority(title: string, description?: string): string | null {
-  const titleLower = title.toLowerCase();
-  const text = titleLower + " " + (description ?? "").toLowerCase().slice(0, 500);
+  const t = ` ${title.toLowerCase()} `;
   for (const [keyword, level] of Object.entries(SENIORITY_KEYWORDS)) {
-    const haystack = TITLE_ONLY_KEYWORDS.has(keyword) ? titleLower : text;
-    if (haystack.includes(keyword)) return level;
+    // Whole words only: "intern" is not "internal", "cto" is not "director".
+    const k = keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const tail = keyword.endsWith(" ") || keyword.endsWith(",") ? "" : "(?![a-z0-9])";
+    if (new RegExp(`(?<![a-z0-9])${k}${tail}`).test(t)) return level;
   }
+  const d = (description ?? "").toLowerCase().slice(0, 1500);
+  for (const [re, level] of DESCRIPTION_LEVELS) if (re.test(d)) return level;
   return null;
+}
+
+// Neighbouring senior levels overlap in practice: a "Partnerships Lead" is
+// usually a senior IC, and companies use Staff/Lead/Senior interchangeably.
+// Junior and mid stay strict — that's the line people filter on.
+const ADJACENT: Record<string, string[]> = {
+  senior: ["lead"],
+  lead: ["senior", "staff"],
+  staff: ["lead", "principal"],
+  principal: ["staff"],
+};
+
+function levelFits(level: string, wanted: string[]): boolean {
+  return wanted.includes(level) || wanted.some((w) => ADJACENT[w]?.includes(level));
 }
 
 export function doesJobMatch(
@@ -252,13 +276,7 @@ export function doesJobMatch(
   // Hard filters
   if (remoteOnly === true && !job.remote) return false;
   if (remoteOnly === false && job.remote) return false;
-  if (locationFilter) {
-    const loc = (job.location ?? "").toLowerCase();
-    const filter = locationFilter.toLowerCase();
-    // For remote jobs: only filter if a location is specified on the job
-    // (blank location on a remote job = "anywhere" — don't exclude it)
-    if (loc && !loc.includes(filter)) return false;
-  }
+  if (locationFilter && !locationOk(job, locationFilter, remoteOnly)) return false; // job carries its title: territory roles
 
   // No role titles → no matches. A watchlist with no target role would
   // otherwise alert on every job at every tracked company — the exact
@@ -272,7 +290,7 @@ export function doesJobMatch(
   if (seniority.length > 0) {
     const detectedLevel = detectSeniority(job.title, job.description);
     if (detectedLevel) {
-      if (!seniority.includes(detectedLevel)) return false;
+      if (!levelFits(detectedLevel, seniority)) return false;
     } else {
       // No seniority detected — benefit of the doubt for most roles,
       // but senior+ users should not see roles that are clearly scoped

@@ -55,6 +55,9 @@ const GEO_PRESETS = [
 ];
 
 type Role = { id: string; title: string };
+type RolePreview = { title?: string; count: number; examples: string[]; scope: "list" | "all" | "none"; companies?: number };
+
+const BROAD = 60;
 
 export function TrackedRoles({
   initialRoles,
@@ -86,6 +89,7 @@ export function TrackedRoles({
   }, []);
 
   const [input, setInput] = useState("");
+  const [preview, setPreview] = useState<RolePreview | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(0);
   const inputWrapRef = useRef<HTMLDivElement>(null);
@@ -118,6 +122,28 @@ export function TrackedRoles({
         (s) => s.toLowerCase().includes(query) && !addedLower.has(s.toLowerCase())
       ).slice(0, 6)
     : [];
+
+  // Live preview: what would this title have matched in the last 90 days?
+  useEffect(() => {
+    const title = input.trim();
+    if (title.length < 2) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/roles/preview?title=${encodeURIComponent(title)}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as RolePreview;
+        if (!cancelled) setPreview({ ...data, title });
+      } catch {
+        // preview is a nicety — ignore network errors
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [input]);
+  const livePreview = preview && preview.title === input.trim() ? preview : null;
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -237,6 +263,25 @@ export function TrackedRoles({
             Add
           </Button>
         </div>
+
+        {livePreview && livePreview.scope !== "none" && (
+          <div className="border-l-[3px] border-foreground/30 py-1 pl-3 text-xs leading-relaxed text-muted-foreground" aria-live="polite">
+            <p>
+              <span className={livePreview.count > BROAD ? "font-semibold text-primary" : "font-semibold text-foreground"}>
+                {livePreview.count === 0 ? "No" : livePreview.count.toLocaleString()} {livePreview.count === 1 ? "role" : "roles"}
+              </span>{" "}
+              like &ldquo;{livePreview.title}&rdquo; in the last 90 days
+              {livePreview.scope === "list" ? ` at your ${livePreview.companies} companies` : " across Crush"}
+              {livePreview.examples.length > 0 && <>, e.g. {livePreview.examples.slice(0, 3).join(" · ")}</>}.
+            </p>
+            {livePreview.count > BROAD && (
+              <p className="mt-0.5 text-primary">That&apos;s broad — a more specific title means fewer, better matches.</p>
+            )}
+            {livePreview.count === 0 && (
+              <p className="mt-0.5">Check the wording — or it&apos;s just rare at these companies, which is fine.</p>
+            )}
+          </div>
+        )}
 
         {roles.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">

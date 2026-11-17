@@ -235,7 +235,7 @@ async function runAtsIngestion(): Promise<IngestionResult> {
   return { companiesProcessed: companies.length, newJobs, newMatches, errors };
 }
 
-function fetchAtsJobs(sourceType: string, sourceId: string): Promise<IngestedJob[]> {
+export function fetchAtsJobs(sourceType: string, sourceId: string): Promise<IngestedJob[]> {
   switch (sourceType) {
     case "greenhouse": return fetchGreenhouseJobs(sourceId);
     case "lever":      return fetchLeverJobs(sourceId);

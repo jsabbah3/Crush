@@ -76,6 +76,23 @@ model Company {
   @@map("companies")
 }
 
+// One row per nightly coverage check: a sample of job boards compared live
+// against what we hold. "Coverage" = share of live roles we have as ACTIVE.
+// A drop means ingestion is missing roles — the failure users can't see.
+model CoverageCheck {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ranAt       DateTime @default(now()) @map("ran_at")
+  companies   Int
+  liveRoles   Int      @map("live_roles")
+  present     Int
+  staleActive Int      @map("stale_active")
+  titleDrift  Int      @map("title_drift")
+  /// Worst companies: [{ name, slug, live, missing, stale, drift }]
+  details     Json
+
+  @@map("coverage_checks")
+}
+
 // One row per company per day: how many roles were open when the daily
 // snapshot cron ran. This is the time-series behind hiring-momentum
 // (consumer) and trend analytics (B2B). Append-only via idempotent upsert.
