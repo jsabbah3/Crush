@@ -1,23 +1,24 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, ArrowRight, CheckCircle2, Circle } from "lucide-react";
+import { ExternalLink, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import { JobCard } from "@/components/job-card";
-import type { AppStatus } from "@/components/status-picker";
 import { PageView } from "@/components/page-analytics";
 import { CompanyLogo } from "@/components/company-logo";
-import { CompanySearch } from "@/components/company-search";
-import { TrackedRoles } from "@/components/tracked-roles";
 import { RefreshMatchesButton } from "@/components/refresh-matches-button";
 import { SuggestedRoles } from "@/components/suggested-roles";
-import { ShareWatchlistButton } from "@/components/share-watchlist-button";
-import { DiscoverySection } from "@/components/discovery-section";
-import { CollapsibleSection } from "@/components/collapsible-section";
-import { EmptyState, PageHeader, Rank, Tag } from "@/components/brand";
-import { boardStatus } from "@/lib/board-status";
+import { TrackedRoles } from "@/components/tracked-roles";
+import { StatusPicker, type AppStatus } from "@/components/status-picker";
+import { Inbox } from "@/components/inbox";
+import { WatchBrief } from "@/components/watch-brief";
+import { EmptyState, PageHeader, Rank } from "@/components/brand";
 import { agoShort, getOutlook, OUTLOOK_DAYS } from "@/lib/outlook";
+import { cn } from "@/lib/utils";
+import { roleKey } from "@/lib/role-key";
+import { ApplicationStatus } from "@/generated/prisma/enums";
+
+export const metadata = { title: "Today — Crush" };
 
 type UserPrefs = {
   seniority?: string[];
@@ -25,39 +26,61 @@ type UserPrefs = {
   locationFilter?: string | null;
 };
 
-export default async function DashboardPage() {
+const APPLIED_STATUSES: ApplicationStatus[] = [
+  ApplicationStatus.APPLIED,
+  ApplicationStatus.INTERVIEWING,
+  ApplicationStatus.OFFER,
+  ApplicationStatus.REJECTED,
+];
+
+const TZ = "America/New_York";
+
+function todayLine(): string {
+  return new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: TZ });
+}
+
+function renderedAt(): number {
+  return Date.now();
+}
+
+/** When the boards were last read, in words: "this morning", "yesterday", "Nov 14". */
+function checkedLabel(capturedOn: Date | null | undefined): string | null {
+  if (!capturedOn) return null;
+  const day = capturedOn.toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+  const yesterday = new Date(Date.now() - 86_400_000).toLocaleDateString("en-CA", { timeZone: TZ });
+  if (day === today) return "this morning";
+  if (day === yesterday) return "yesterday";
+  return capturedOn.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+const jobSelect = {
+  id: true, title: true, type: true, location: true, remote: true,
+  salaryMin: true, salaryMax: true, currency: true, url: true,
+  postedAt: true, companyId: true,
+  company: { select: { name: true, slug: true, website: true } },
+} as const;
+
+/**
+ * Today: the inbox. What opened at the companies on your list, and nothing
+ * else — setup lives in onboarding, the list lives on /list.
+ */
+export default async function TodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) redirect("/login");
 
-  const [tracked, recentMatches, featuredCollections, trackedRoles, dbUser, totalMatches] = await Promise.all([
+  const { tab } = await searchParams;
+  const showApplied = tab === "applied";
+
+  const [tracked, trackedRoles, dbUser] = await Promise.all([
     prisma.trackedCompany.findMany({
       where: { userId: authUser.id },
-      include: {
-        company: {
-          include: { _count: { select: { jobs: { where: { status: "ACTIVE" } } } } },
-        },
-        _count: { select: { matches: { where: { dismissed: false } } } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.match.findMany({
-      where: { trackedCompany: { userId: authUser.id }, dismissed: false },
-      include: { job: { include: { company: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    }),
-    prisma.collection.findMany({
-      take: 3,
-      orderBy: { createdAt: "asc" },
-      include: {
-        companies: {
-          include: { company: { select: { name: true, website: true } } },
-          orderBy: { displayOrder: "asc" },
-          take: 4,
-        },
-        _count: { select: { companies: true } },
-      },
+      select: { id: true, companyId: true },
     }),
     prisma.trackedRole.findMany({
       where: { userId: authUser.id },
@@ -68,392 +91,278 @@ export default async function DashboardPage() {
       where: { id: authUser.id },
       select: { defaultCriteria: true, currentTitle: true },
     }),
-    prisma.match.count({ where: { trackedCompany: { userId: authUser.id } } }),
   ]);
 
-  const unseenMatches = await prisma.match.count({
-    where: { trackedCompany: { userId: authUser.id }, dismissed: false, seenAt: null },
-  });
+  const raw = (dbUser?.defaultCriteria ?? {}) as UserPrefs;
+  const prefs = {
+    seniority: raw.seniority ?? [],
+    remoteOnly: raw.remoteOnly ?? null,
+    locationFilter: raw.locationFilter ?? null,
+  };
 
-  // First-degree LinkedIn connections at the recent-match companies,
-  // so each match card can show "who you know here".
-  const recentMatchCompanyIds = [...new Set(recentMatches.map((m) => m.job.companyId))];
-  const connectionGroups = recentMatchCompanyIds.length > 0
-    ? await prisma.linkedInConnection.groupBy({
-        by: ["companyId"],
-        where: { userId: authUser.id, companyId: { in: recentMatchCompanyIds } },
-        _count: { _all: true },
-      })
-    : [];
-  const networkByCompanyId = new Map(
-    connectionGroups.map((g) => [g.companyId, g._count._all]),
-  );
+  // ── Not set up yet: one job on this page — finish setup. ────────────────
+  if (trackedRoles.length === 0 || tracked.length === 0) {
+    return (
+      <div className="space-y-8">
+        <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length, state: "setup" }} />
+        <PageHeader eyebrow={todayLine()} title="Two things, then we start watching.">
+          Crush only emails when a role you want opens at a company you named. It needs both.
+        </PageHeader>
 
-  const prefs = dbUser?.defaultCriteria as UserPrefs | null;
-  const showCollections = tracked.length < 5;
-  const openRolesCount = tracked.reduce((sum, tc) => sum + (tc.company._count?.jobs ?? 0), 0);
-
-  const trackedCompanyIds = tracked.map((tc) => tc.companyId);
-
-  // Per-company history: how many roles like this user's each one has posted
-  // lately. Turns "nothing yet" into something you can plan around.
-  const outlook = await getOutlook(trackedCompanyIds, trackedRoles.map((r) => r.title), prefs);
-  // "Can't see" means no readable board AND nothing on file — a company whose
-  // roles reach us some other way is visible, whatever its source says.
-  const canSee = (tc: (typeof tracked)[number]) =>
-    boardStatus(tc.company).connected || (tc.company._count?.jobs ?? 0) > 0;
-  const unconnected = tracked.filter((tc) => !canSee(tc)).length;
-
-  // Build location filter: respect remoteOnly + locationFilter prefs
-  const locationWhere: Record<string, unknown>[] = [];
-  if (prefs?.remoteOnly === true) {
-    locationWhere.push({ remote: true });
-  } else if (prefs?.remoteOnly === false) {
-    locationWhere.push({ remote: false });
+        <ol className="border-t-[3px] border-foreground">
+          <li className="grid grid-cols-[2.5rem_1fr] gap-x-3 border-b border-foreground/15 py-6">
+            <Rank n={1} className={cn("text-3xl", trackedRoles.length > 0 ? "text-muted-foreground" : "text-primary")} />
+            <div className="space-y-3">
+              <h2 className="font-heading text-2xl font-bold tracking-[-0.02em]">
+                {trackedRoles.length > 0 ? "Your role — done" : "The role you want"}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                A title or two. Broad (&ldquo;account executive&rdquo;) or narrow (&ldquo;enterprise AE&rdquo;) both work.
+              </p>
+              <TrackedRoles
+                initialRoles={trackedRoles}
+                trackedCount={tracked.length}
+                initialSeniority={prefs.seniority}
+                initialRemoteOnly={prefs.remoteOnly}
+                initialLocationFilter={prefs.locationFilter}
+                showFilters={false}
+              />
+              {trackedRoles.length === 0 && dbUser?.currentTitle && <SuggestedRoles currentTitle={dbUser.currentTitle} />}
+            </div>
+          </li>
+          <li className="grid grid-cols-[2.5rem_1fr] gap-x-3 border-b border-foreground/15 py-6">
+            <Rank n={2} className={cn("text-3xl", tracked.length > 0 ? "text-muted-foreground" : "text-primary")} />
+            <div className="space-y-3">
+              <h2 className="font-heading text-2xl font-bold tracking-[-0.02em]">
+                {tracked.length > 0
+                  ? `Your list — ${tracked.length} ${tracked.length === 1 ? "company" : "companies"}`
+                  : "The companies you'd leave for"}
+              </h2>
+              <p className="text-sm text-muted-foreground">Name them, or start from a ready-made list.</p>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/list">
+                  <Button variant={tracked.length > 0 ? "outline" : "default"}>
+                    {tracked.length > 0 ? "Edit your list" : "Build your list"}
+                  </Button>
+                </Link>
+                <Link href="/collections">
+                  <Button variant="outline">Borrow a list</Button>
+                </Link>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+    );
   }
-  if (prefs?.locationFilter) {
-    const loc = prefs.locationFilter;
-    locationWhere.push({
-      OR: [
-        { remote: true, location: null },          // remote with no location = anywhere
-        { location: { contains: loc, mode: "insensitive" as const } },
-      ],
+
+  const trackedIds = tracked.map((t) => t.id);
+  const companyIds = tracked.map((t) => t.companyId);
+
+  const [inbox, appliedCount, applied, lastSnapshot, connectionCount] = await Promise.all([
+    prisma.match.findMany({
+      where: { trackedCompanyId: { in: trackedIds }, dismissed: false, applicationStatus: ApplicationStatus.INTERESTED },
+      select: { id: true, createdAt: true, seenAt: true, applicationStatus: true, job: { select: jobSelect } },
+      orderBy: { createdAt: "desc" },
+      take: 400,
+    }),
+    prisma.match.count({
+      where: { trackedCompanyId: { in: trackedIds }, applicationStatus: { in: APPLIED_STATUSES } },
+    }),
+    showApplied
+      ? prisma.match.findMany({
+          where: { trackedCompanyId: { in: trackedIds }, applicationStatus: { in: APPLIED_STATUSES } },
+          select: {
+            id: true, applicationStatus: true, applicationNote: true, appliedAt: true,
+            job: { select: jobSelect },
+          },
+          orderBy: [{ appliedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
+        })
+      : Promise.resolve([]),
+    prisma.companyRoleSnapshot.aggregate({
+      where: { companyId: { in: companyIds } },
+      _max: { capturedOn: true },
+    }),
+    prisma.linkedInConnection.count({ where: { userId: authUser.id } }),
+  ]);
+
+  // Count roles, not postings: one role posted for three cities is one card.
+  const roles = new Map<string, boolean>();
+  for (const m of inbox) {
+    const k = roleKey(m.job.companyId, m.job.title);
+    roles.set(k, (roles.get(k) ?? false) || m.seenAt === null);
+  }
+  const inboxRoles = roles.size;
+  const unseen = [...roles.values()].filter(Boolean).length;
+  const anyUnseen = inbox.some((m) => m.seenAt === null);
+
+  // Mark the inbox seen — after the read above, so this visit still shows
+  // which ones are new.
+  if (!showApplied && anyUnseen) {
+    await prisma.match.updateMany({
+      where: { trackedCompanyId: { in: trackedIds }, seenAt: null },
+      data: { seenAt: new Date() },
     });
   }
 
+  // Who you know at each inbox company (first-degree LinkedIn connections).
+  const inboxCompanyIds = [...new Set(inbox.map((m) => m.job.companyId))];
+  const groups = inboxCompanyIds.length > 0 && connectionCount > 0
+    ? await prisma.linkedInConnection.groupBy({
+        by: ["companyId"],
+        where: { userId: authUser.id, companyId: { in: inboxCompanyIds } },
+        _count: { _all: true },
+      })
+    : [];
+  const networkByCompanyId: Record<string, number> = {};
+  for (const g of groups) if (g.companyId) networkByCompanyId[g.companyId] = g._count._all;
+
+  // Quiet inbox: show which companies are likeliest to open something next.
+  let likely: { name: string; slug: string; website: string | null; matched: number; lastAt: Date | null }[] = [];
+  if (!showApplied && inbox.length === 0) {
+    const outlook = await getOutlook(companyIds, trackedRoles.map((r) => r.title), raw);
+    const top = [...outlook.entries()].sort((a, b) => b[1].matched - a[1].matched).slice(0, 5);
+    const companies = await prisma.company.findMany({
+      where: { id: { in: top.map(([id]) => id) } },
+      select: { id: true, name: true, slug: true, website: true },
+    });
+    const byId = new Map(companies.map((c) => [c.id, c]));
+    likely = top.flatMap(([id, o]) => {
+      const c = byId.get(id);
+      return c ? [{ ...c, matched: o.matched, lastAt: o.lastAt }] : [];
+    });
+  }
+
+  const title = showApplied
+    ? "Where you've applied."
+    : unseen === 1
+      ? "Something opened."
+      : unseen > 1
+        ? `${unseen} roles opened.`
+        : inbox.length > 0
+          ? "Nothing new since last time."
+          : "Nothing new today.";
 
   return (
-    <div className="space-y-10">
-      <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length }} />
-      <PageHeader
-        eyebrow="Your list"
-        title={
-          unseenMatches > 0
-            ? unseenMatches === 1
-              ? "Something opened."
-              : `${unseenMatches} things opened.`
-            : tracked.length > 0
-              ? "Quiet morning."
-              : "Let's start your list."
-        }
-        action={tracked.length > 0 ? <ShareWatchlistButton userId={authUser.id} /> : undefined}
-      >
-        {unseenMatches > 0 ? (
-          <>
-            <span className="font-semibold text-foreground">
-              {unseenMatches} new {unseenMatches === 1 ? "match" : "matches"}
-            </span>{" "}
-            since your last visit.
-          </>
-        ) : tracked.length > 0 ? (
-          <>
-            We&apos;re watching {tracked.length} {tracked.length === 1 ? "company" : "companies"} for you and read
-            their boards every morning. The day a role fits, it shows up here and in your inbox.
-          </>
-        ) : (
-          <>Name the companies you&apos;d actually leave for. We&apos;ll take it from there.</>
-        )}
-      </PageHeader>
+    <div className="space-y-6">
+      <PageView event="dashboard_viewed" properties={{ tracked_count: tracked.length, inbox: inboxRoles, unseen }} />
+      <PageHeader eyebrow={todayLine()} title={title} action={<RefreshMatchesButton />} />
 
-      {/* Stats strip — matches gets top billing, it's the reason this tool exists */}
-      {tracked.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 stagger-children sm:grid-cols-[1.4fr_1fr_1fr]">
+      <WatchBrief
+        roles={trackedRoles}
+        prefs={prefs}
+        companyCount={tracked.length}
+        checked={checkedLabel(lastSnapshot._max.capturedOn)}
+      />
+
+      {/* Tabs */}
+      <nav className="flex gap-6 border-b border-foreground/15" aria-label="Matches">
+        {[
+          { href: "/dashboard", label: "Inbox", count: inboxRoles, active: !showApplied },
+          { href: "/dashboard?tab=applied", label: "Applied", count: appliedCount, active: showApplied },
+        ].map((t) => (
           <Link
-            href="/matches"
-            className="animate-rise frame group col-span-2 sm:col-span-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <div className="flex h-full items-center justify-between gap-4 px-4 py-3">
-              <div>
-                <p className="font-heading text-5xl font-bold leading-none tracking-[-0.04em] text-primary">
-                  {totalMatches.toLocaleString()}
-                </p>
-                <p className="label-caps mt-2 text-foreground/70">
-                  {totalMatches === 1 ? "Match so far" : "Matches so far"}
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                {unseenMatches > 0 && <Tag solid>{unseenMatches} new</Tag>}
-                <span className="flex items-center gap-1 text-xs font-semibold group-hover:text-primary">
-                  See matches <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </div>
-            </div>
-          </Link>
-          {[
-            { label: "On your list", value: tracked.length.toLocaleString() },
-            { label: "Open roles across them", value: openRolesCount.toLocaleString() },
-          ].map(({ label, value }) => (
-            <div key={label} className="animate-rise flex flex-col justify-center border-t-[3px] border-foreground px-1 py-3">
-              <p className="font-heading text-3xl font-bold leading-none tracking-[-0.04em]">{value}</p>
-              <p className="label-caps mt-2 text-muted-foreground">{label}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Setup checklist — shown until user has both roles and companies */}
-      {(trackedRoles.length === 0 || tracked.length === 0) && (
-        <div className="sheet p-5 space-y-3">
-          <p className="font-heading text-lg font-bold tracking-[-0.01em]">Three things and you&apos;re done</p>
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-3 text-sm">
-              <CheckCircle2 className="size-4 text-moss shrink-0" />
-              <span className="text-muted-foreground line-through">Create your account</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              {trackedRoles.length > 0
-                ? <CheckCircle2 className="size-4 text-moss shrink-0" />
-                : <Circle className="size-4 text-muted-foreground/50 shrink-0" />
-              }
-              <span className={trackedRoles.length > 0 ? "text-muted-foreground line-through" : "font-medium"}>
-                Add your target roles
-              </span>
-              {trackedRoles.length === 0 && (
-                <Link href="/settings" className="ml-auto text-xs text-primary underline underline-offset-2 shrink-0">
-                  Go to Settings →
-                </Link>
-              )}
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              {tracked.length > 0
-                ? <CheckCircle2 className="size-4 text-moss shrink-0" />
-                : <Circle className="size-4 text-muted-foreground/50 shrink-0" />
-              }
-              <span className={tracked.length > 0 ? "text-muted-foreground line-through" : "font-medium"}>
-                Name the companies you&apos;d leave for
-              </span>
-              {tracked.length === 0 && (
-                <Link href="/companies" className="ml-auto text-xs text-primary underline underline-offset-2 shrink-0">
-                  Browse companies →
-                </Link>
-              )}
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Circle className="size-4 text-muted-foreground/50 shrink-0" />
-              <span className="text-muted-foreground">Get an email the day your role opens</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* My Roles — collapsed by default once the user has roles set */}
-      <CollapsibleSection
-        title="My roles"
-        storageKey="my-roles"
-        defaultOpen={trackedRoles.length === 0}
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Role titles matched against every company you track. Generic (&ldquo;engineer&rdquo;) or specific (&ldquo;GTM engineer&rdquo;) — both work.
-          </p>
-          <TrackedRoles
-            initialRoles={trackedRoles}
-            trackedCount={tracked.length}
-            initialSeniority={prefs?.seniority ?? []}
-            initialRemoteOnly={prefs?.remoteOnly ?? null}
-            initialLocationFilter={prefs?.locationFilter ?? null}
-            showFilters={false}
-          />
-
-          {trackedRoles.length === 0 && dbUser?.currentTitle && (
-            <SuggestedRoles currentTitle={dbUser.currentTitle} />
-          )}
-        </div>
-      </CollapsibleSection>
-
-      {/* Add companies — collapsed once you have some, open to invite the action for new users */}
-      <CollapsibleSection
-        title="Add companies"
-        storageKey="add-companies"
-        defaultOpen={tracked.length === 0}
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Search for a company to start watching it. We&apos;ll check for a job board automatically.
-          </p>
-          <CompanySearch
-            trackedCompanyIds={trackedCompanyIds}
-          />
-        </div>
-      </CollapsibleSection>
-
-      {/* Your list — every company with what we can actually see there */}
-      {tracked.length === 0 ? (
-        <EmptyState
-          kicker="Your list is empty"
-          title="Who's first?"
-          action={
-            <>
-              <Link href="/companies?view=browse">
-                <Button>Browse companies</Button>
-              </Link>
-              <Link href="/collections">
-                <Button variant="outline">Start from a collection</Button>
-              </Link>
-            </>
-          }
-        >
-          Pick the companies you&apos;d actually leave for. We read their job boards every morning and email you the day
-          your role opens.
-        </EmptyState>
-      ) : (
-        <CollapsibleSection
-          title="Your list"
-          storageKey="watchlist"
-          defaultOpen={recentMatches.length === 0}
-          action={
-            <Link href="/companies">
-              <Button variant="ink" size="sm">
-                <Plus className="size-3.5" />
-                Add company
-              </Button>
-            </Link>
-          }
-        >
-          <div className="space-y-3">
-            {unconnected > 0 && (
-              <p className="border-l-[3px] border-clay bg-kraft-soft/60 px-4 py-3 text-sm leading-relaxed">
-                <span className="font-semibold">
-                  We can&apos;t see the job board for {unconnected} of your {tracked.length}{" "}
-                  {tracked.length === 1 ? "company" : "companies"} yet.
-                </span>{" "}
-                <span className="text-muted-foreground">
-                  No alerts can come from those until we connect them — we keep re-checking, and they&apos;re marked below.
-                </span>
-              </p>
+            key={t.label}
+            href={t.href}
+            aria-current={t.active ? "page" : undefined}
+            className={cn(
+              "-mb-px flex items-baseline gap-2 border-b-[3px] pb-2 text-sm font-semibold",
+              t.active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
             )}
-            <ol className="border-t-[3px] border-foreground">
-              {tracked.map((tc, i) => {
-                const visible = canSee(tc);
-                const look = outlook.get(tc.companyId);
-                const open = tc.company._count?.jobs ?? 0;
-                return (
-                  <li key={tc.id} className="border-b border-foreground/15">
-                    <Link
-                      href={`/companies/${tc.company.slug}`}
-                      className="group grid grid-cols-[2.25rem_auto_1fr] items-center gap-x-3 gap-y-1 px-1 py-3 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[2.5rem_auto_1fr_auto]"
-                    >
-                      <Rank n={i + 1} className="text-xl text-muted-foreground" />
-                      <CompanyLogo name={tc.company.name} website={tc.company.website} size="sm" />
-                      <div className="min-w-0">
-                        <p className="flex items-center gap-2">
-                          <span className="truncate font-heading text-lg font-semibold leading-snug tracking-[-0.01em] group-hover:text-primary">
-                            {tc.company.name}
-                          </span>
-                          {tc._count.matches > 0 && (
-                            <Tag className="shrink-0 text-[0.6rem]">
-                              {tc._count.matches} {tc._count.matches === 1 ? "match" : "matches"}
-                            </Tag>
-                          )}
-                        </p>
-                        {visible ? (
-                          trackedRoles.length > 0 &&
-                          (look || tc._count.matches === 0) && (
-                            <p className="text-xs leading-snug text-muted-foreground">
-                              {look ? (
-                                <>
-                                  <span className="font-semibold text-foreground">{look.matched} like yours</span> in{" "}
-                                  {OUTLOOK_DAYS} days{look.lastAt ? `, last ${agoShort(look.lastAt)}` : ""}
-                                </>
-                              ) : (
-                                <>None like yours in {OUTLOOK_DAYS} days</>
-                              )}
-                            </p>
-                          )
-                        ) : (
-                          <p className="label-caps pt-0.5 text-clay">Board not connected</p>
-                        )}
-                      </div>
-                      <p className="col-start-3 font-mono text-xs tabular-nums text-muted-foreground sm:col-start-auto sm:text-right">
-                        {visible ? (
-                          <>
-                            <span className="font-semibold text-foreground">{open.toLocaleString()}</span> open
-                          </>
-                        ) : (
-                          "—"
-                        )}
-                      </p>
+          >
+            {t.label}
+            <span className="font-mono text-xs font-normal text-muted-foreground">{t.count}</span>
+          </Link>
+        ))}
+      </nav>
+
+      {showApplied ? (
+        applied.length === 0 ? (
+          <EmptyState kicker="Nothing applied yet" title="Your applications will collect here.">
+            When you mark a match as Applied, it moves out of your inbox and into this list, where you can track it
+            through to an offer.
+          </EmptyState>
+        ) : (
+          <ol className="border-t border-foreground">
+            {applied.map((app) => (
+              <li key={app.id} className="flex items-center gap-4 border-b border-foreground/15 px-1 py-3.5">
+                <CompanyLogo name={app.job.company.name} website={app.job.company.website} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-heading text-base font-semibold leading-snug">{app.job.title}</p>
+                  <Link href={`/companies/${app.job.company.slug}`} className="text-xs text-muted-foreground hover:text-primary">
+                    {app.job.company.name}
+                  </Link>
+                  {app.applicationNote && (
+                    <p className="mt-0.5 truncate text-xs italic text-muted-foreground/70">{app.applicationNote}</p>
+                  )}
+                </div>
+                <span className="hidden w-16 shrink-0 text-right font-mono text-xs text-muted-foreground sm:block">
+                  {app.appliedAt
+                    ? app.appliedAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                    : "—"}
+                </span>
+                <div className="flex w-36 shrink-0 justify-end">
+                  <StatusPicker matchId={app.id} initialStatus={app.applicationStatus as AppStatus} />
+                </div>
+                {app.job.url && (
+                  <a
+                    href={app.job.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                    title="Open the posting"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+              </li>
+            ))}
+          </ol>
+        )
+      ) : inbox.length === 0 ? (
+        <div className="space-y-8">
+          <EmptyState kicker="Inbox clear" title="Nothing has opened yet. That's normal.">
+            Most companies post a role like yours every few weeks, not every day. We check every morning; when one
+            fits, it lands here and in your email.
+          </EmptyState>
+          {likely.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="label-caps text-graphite">Likeliest to open something next</h2>
+              <ol className="border-t border-foreground">
+                {likely.map((c, i) => (
+                  <li key={c.slug} className="border-b border-foreground/15">
+                    <Link href={`/companies/${c.slug}`} className="group flex items-baseline gap-3 px-1 py-3">
+                      <Rank n={i + 1} className="w-7 shrink-0 text-lg text-muted-foreground" />
+                      <CompanyLogo name={c.name} website={c.website} size="sm" className="size-6 translate-y-1" />
+                      <span className="truncate font-heading text-lg font-semibold group-hover:text-primary">{c.name}</span>
+                      <span className="leader" />
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {c.matched} like yours in {OUTLOOK_DAYS}d{c.lastAt ? ` · last ${agoShort(c.lastAt)}` : ""}
+                      </span>
                     </Link>
                   </li>
-                );
-              })}
-            </ol>
-          </div>
-        </CollapsibleSection>
+                ))}
+              </ol>
+            </section>
+          )}
+        </div>
+      ) : (
+        <>
+          <Inbox matches={inbox} networkByCompanyId={networkByCompanyId} now={renderedAt()} />
+          {connectionCount === 0 && (
+            <p className="flex items-start gap-3 border-l-[3px] border-foreground bg-wash/60 px-4 py-3 text-sm leading-relaxed">
+              <Users className="mt-0.5 size-4 shrink-0 text-graphite" />
+              <span>
+                You may already know someone at these companies. Import your LinkedIn connections and each match shows
+                who could refer you.{" "}
+                <Link href="/settings" className="font-semibold underline decoration-primary decoration-2 underline-offset-2 hover:text-primary">
+                  Import connections
+                </Link>
+              </span>
+            </p>
+          )}
+        </>
       )}
-
-      {/* Recent matches — open by default; matches matter most */}
-      {recentMatches.length > 0 && (
-        <CollapsibleSection
-          title="Recent matches"
-          storageKey="recent-matches"
-          action={
-            <div className="flex items-center gap-3">
-              <RefreshMatchesButton />
-              <Link href="/matches">
-                <Button variant="ghost" size="sm">View all</Button>
-              </Link>
-            </div>
-          }
-        >
-          <div className="space-y-3">
-            {recentMatches.map((match) => (
-              <JobCard
-                key={match.id}
-                job={match.job}
-                matchId={match.id}
-                applicationStatus={match.applicationStatus as AppStatus}
-                networkCount={networkByCompanyId.get(match.job.companyId)}
-                isNew={match.seenAt === null}
-              />
-            ))}
-          </div>
-        </CollapsibleSection>
-      )}
-
-      {/* Collections discovery */}
-      {showCollections && featuredCollections.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-heading text-lg font-bold tracking-[-0.01em]">Borrow a list</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Hand-picked bundles — follow a whole one in a click
-              </p>
-            </div>
-            <Link href="/collections">
-              <Button variant="ghost" size="sm" className="text-xs gap-1">
-                See all <ArrowRight className="size-3" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {featuredCollections.map((col) => (
-              <Link key={col.id} href={`/collections/${col.slug}`} className="group">
-                <div className="flex h-full flex-col gap-3 border-t border-foreground py-4">
-                  <div className="flex gap-1.5">
-                    {col.companies.map(({ company }, i) => (
-                      <CompanyLogo key={i} name={company.name} website={company.website} size="sm" />
-                    ))}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-heading text-base font-bold leading-snug tracking-[-0.01em] group-hover:text-primary transition-colors">
-                      {col.name}
-                    </p>
-                    <p className="font-mono text-xs text-muted-foreground mt-0.5">
-                      {col._count.companies} companies
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Discovery: role-matching jobs outside followed companies */}
-      {trackedRoles.length > 0 && <DiscoverySection />}
     </div>
   );
 }

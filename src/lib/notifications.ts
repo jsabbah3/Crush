@@ -276,7 +276,7 @@ export function buildHtml(
 ): string {
   const pauseUrl = `${APP_URL}/api/unsubscribe?token=${token}`;
   const settingsUrl = emailLink(`${APP_URL}/settings`, userId, emailType);
-  const matchesUrl = emailLink(`${APP_URL}/matches`, userId, emailType);
+  const matchesUrl = emailLink(`${APP_URL}/dashboard`, userId, emailType);
   const pixelUrl = `${APP_URL}/api/email/pixel?uid=${userId}&type=${emailType}`;
 
   const firstName = esc(name.trim().split(/\s+/)[0] || "you");
@@ -288,7 +288,7 @@ export function buildHtml(
   const roles = matches.map((m, i) => {
     const company = esc(m.trackedCompany.company.name);
     const loc = esc(m.job.remote ? "Remote" : (m.job.location ?? "On-site"));
-    const rawUrl = m.job.url ?? `${APP_URL}/matches`;
+    const rawUrl = m.job.url ?? `${APP_URL}/dashboard`;
     const applyUrl = emailLink(rawUrl, userId, emailType);
     const networkCount = networkByCompanyId.get(m.trackedCompany.company.id) ?? 0;
     const networkUrl = emailLink(`${APP_URL}/companies/${m.trackedCompany.company.slug}#network`, userId, emailType);

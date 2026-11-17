@@ -17,6 +17,7 @@ export async function updateApplicationStatus(
 
   const match = await prisma.match.findFirst({
     where: { id: matchId, trackedCompany: { userId: user.id } },
+    include: { job: { select: { companyId: true, title: true } } },
   });
   if (!match) return { error: "Not found" };
 
@@ -32,8 +33,24 @@ export async function updateApplicationStatus(
     },
   });
 
-  revalidatePath("/matches");
-  revalidatePath("/applications");
+  // The same role is often posted once per location. The inbox shows those as
+  // one card, so once you act on one, the duplicates leave the inbox too.
+  if (status !== ApplicationStatus.INTERESTED) {
+    await prisma.match.updateMany({
+      where: {
+        id: { not: matchId },
+        trackedCompany: { userId: user.id },
+        applicationStatus: ApplicationStatus.INTERESTED,
+        dismissed: false,
+        job: {
+          companyId: match.job.companyId,
+          title: { equals: match.job.title.trim(), mode: "insensitive" },
+        },
+      },
+      data: { dismissed: true },
+    });
+  }
+
   revalidatePath("/dashboard");
   return { success: true };
 }

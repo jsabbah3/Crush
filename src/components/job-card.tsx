@@ -57,6 +57,8 @@ export function JobCard({
   hideCompany = false,
   networkCount,
   isNew = false,
+  siblingIds = [],
+  alsoIn = [],
 }: {
   job: Job;
   matchId?: string;
@@ -68,6 +70,11 @@ export function JobCard({
   networkCount?: number;
   /** Not yet seen by the user — gets the NEW tag. */
   isNew?: boolean;
+  /** Other matches for the same role at the same company (other locations).
+   *  Shown as one card; dismissing it dismisses them all. */
+  siblingIds?: string[];
+  /** Where the sibling postings are, for the "Also in" line. */
+  alsoIn?: string[];
 }) {
   // "leaving" drives the exit animation; "gone" removes from layout after it.
   const [leaving, setLeaving] = useState(false);
@@ -78,15 +85,15 @@ export function JobCard({
     if (!matchId) return;
     setLeaving(true);
     exitTimer.current = setTimeout(() => setGone(true), 240);
-    void setDismissedOnServer(matchId, true);
-    toast("Match dismissed", {
+    for (const id of [matchId, ...siblingIds]) void setDismissedOnServer(id, true);
+    toast("Not for you — removed", {
       action: {
         label: "Undo",
         onClick: () => {
           if (exitTimer.current) clearTimeout(exitTimer.current);
           setGone(false);
           setLeaving(false);
-          void setDismissedOnServer(matchId, false);
+          for (const id of [matchId, ...siblingIds]) void setDismissedOnServer(id, false);
         },
       },
     });
@@ -159,6 +166,12 @@ export function JobCard({
                 {workMode && <> · {workMode}</>}
                 {job.postedAt && <> · {relativeTime(job.postedAt)}</>}
               </p>
+              {alsoIn.length > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Also posted for {alsoIn.slice(0, 3).join(", ")}
+                  {alsoIn.length > 3 && ` +${alsoIn.length - 3} more`}
+                </p>
+              )}
               {(networkCount ?? 0) > 0 && (
                 <Link
                   href={`/companies/${job.company.slug}#network`}
@@ -178,8 +191,8 @@ export function JobCard({
               <button
                 onClick={dismiss}
                 className="shrink-0 -mr-1 -mt-0.5 rounded-md p-1 text-muted-foreground/50 transition-colors hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-                aria-label="Dismiss this match"
-                title="Dismiss"
+                aria-label="Not for me — remove this match"
+                title="Not for me"
               >
                 <X className="size-3.5" />
               </button>

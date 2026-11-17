@@ -227,7 +227,7 @@ function buildHtml(name: string, p: WeeklyPayload): string {
   const settingsUrl = emailLink(`${APP_URL}/settings`, userId, "weekly_summary");
   const companiesUrl = emailLink(`${APP_URL}/companies`, userId, "weekly_summary");
   const collectionsUrl = emailLink(`${APP_URL}/collections`, userId, "weekly_summary");
-  const applicationsUrl = emailLink(`${APP_URL}/applications`, userId, "weekly_summary");
+  const applicationsUrl = emailLink(`${APP_URL}/dashboard?tab=applied`, userId, "weekly_summary");
   const pixelUrl = `${APP_URL}/api/email/pixel?uid=${userId}&type=weekly_summary`;
 
   // Stats pills

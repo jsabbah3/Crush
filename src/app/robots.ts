@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/dashboard", "/settings", "/matches", "/onboarding"],
+      disallow: ["/api/", "/dashboard", "/list", "/settings", "/matches", "/applications", "/onboarding"],
     },
     sitemap: "https://crushco.app/sitemap.xml",
   };

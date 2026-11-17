@@ -652,7 +652,7 @@ export function OnboardingWizard({ collections }: Props) {
           disabled={isPending}
           size="lg"
         >
-          {isPending ? "Setting up…" : "Go to dashboard"}
+          {isPending ? "Setting up…" : "See your inbox"}
           {!isPending && <ArrowRight className="size-4" />}
         </Button>
       </div>

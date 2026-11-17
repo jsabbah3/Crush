@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, CircleDot, LayoutGrid, Settings, LogOut, Layers, BookOpen } from "lucide-react";
+import { Building2, Inbox, ListOrdered, Settings, LogOut, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -24,15 +24,16 @@ type UserProps = {
 };
 
 const navLinks = [
-  { href: "/dashboard",    label: "Dashboard",    icon: LayoutGrid,    badge: false },
-  { href: "/companies",    label: "Companies",    icon: Building2,    badge: false },
-  { href: "/collections",  label: "Collections",  icon: Layers,       badge: false },
-  { href: "/matches",      label: "Matches",      icon: CircleDot,    badge: true  },
-  { href: "/blog",         label: "Blog",         icon: BookOpen,     badge: false },
+  { href: "/dashboard",    label: "Today",        icon: Inbox,         badge: true  },
+  { href: "/list",         label: "Your list",    icon: ListOrdered,   badge: false },
+  { href: "/companies",    label: "Companies",    icon: Building2,     badge: false },
 ];
 
-// Bottom nav shows on mobile only — just the 4 core app links (no Blog)
-const bottomNavLinks = navLinks.filter(l => l.href !== "/blog");
+// Mobile bottom nav adds Settings, which sits in the top bar on desktop.
+const bottomNavLinks = [
+  ...navLinks,
+  { href: "/settings", label: "Settings", icon: Settings, badge: false },
+];
 
 export function DashboardNav({
   user,

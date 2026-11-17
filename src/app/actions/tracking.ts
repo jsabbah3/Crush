@@ -35,8 +35,8 @@ export async function refreshMatches(): Promise<{ created: number }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { created: 0 };
   const created = (await backfillMatches(user.id, null)) ?? 0;
-  revalidatePath("/matches");
   revalidatePath("/dashboard");
+  revalidatePath("/list");
   return { created };
 }
 
@@ -148,6 +148,7 @@ export async function followCompany(
 
   revalidatePath("/companies", "page");
   revalidatePath("/dashboard");
+  revalidatePath("/list");
   return { success: true };
 }
 
@@ -167,6 +168,7 @@ export async function untrackCompany(trackedId: string) {
 
   revalidatePath("/companies", "page");
   revalidatePath("/dashboard");
+  revalidatePath("/list");
   return { success: true };
 }
 
@@ -186,6 +188,8 @@ export async function trackCollection(companyIds: string[]) {
   await backfillMatches(user.id, companyIds);
 
   revalidatePath("/dashboard");
+
+  revalidatePath("/list");
   revalidatePath("/collections");
   revalidatePath("/companies");
   return { success: true };
@@ -203,7 +207,7 @@ export async function dismissMatch(matchId: string) {
 
   await prisma.match.update({ where: { id: matchId }, data: { dismissed: true } });
 
-  revalidatePath("/matches");
   revalidatePath("/dashboard");
+  revalidatePath("/list");
   return { success: true };
 }

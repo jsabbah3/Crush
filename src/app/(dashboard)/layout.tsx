@@ -41,6 +41,10 @@ export default async function DashboardLayout({
   if (!user) {
     redirect("/login");
   }
+  // Setup happens in onboarding, not scattered across the app.
+  if (!user.onboardingComplete) {
+    redirect("/onboarding");
+  }
 
   return (
     <div className="min-h-screen bg-background">
