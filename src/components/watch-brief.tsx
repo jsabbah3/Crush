@@ -40,26 +40,42 @@ export function WatchBrief({
 }) {
   const [editing, setEditing] = useState(false);
   const loc = where(prefs);
+  // Every part of the sentence that comes from your settings opens the editor.
+  const edit = "cursor-pointer underline decoration-foreground/30 underline-offset-4 hover:decoration-primary hover:text-primary";
+  const open = () => setEditing(true);
 
   return (
     <div className="border-y border-foreground/80 py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <p className="max-w-[70ch] leading-relaxed">
           Watching{" "}
-          <Link href="/list" className="font-semibold underline decoration-foreground/30 underline-offset-4 hover:decoration-primary">
+          <Link href="/companies" className="font-semibold underline decoration-foreground/30 underline-offset-4 hover:decoration-primary">
             {companyCount} {companyCount === 1 ? "company" : "companies"}
           </Link>{" "}
           for{" "}
           {roles.map((r, i) => (
             <span key={r.id}>
               {i > 0 && (i === roles.length - 1 ? " or " : ", ")}
-              <span className="font-heading text-[1.08em] font-semibold italic">{r.title}</span>
+              <button
+                type="button"
+                onClick={open}
+                title="Change the roles you're watching for"
+                className={`font-heading text-[1.08em] font-semibold italic ${edit}`}
+              >
+                {r.title}
+              </button>
             </span>
           ))}
-          {prefs.seniority.length > 0 && (
-            <span className="text-muted-foreground"> · {prefs.seniority.map(cap).join(", ")}</span>
-          )}
-          {loc && <span className="text-muted-foreground"> · {loc}</span>}
+          <span className="text-muted-foreground">
+            {" · "}
+            <button type="button" onClick={open} className={edit}>
+              {prefs.seniority.length > 0 ? prefs.seniority.map(cap).join(", ") : "any level"}
+            </button>
+            {" · "}
+            <button type="button" onClick={open} className={edit}>
+              {loc ?? "anywhere"}
+            </button>
+          </span>
         </p>
         <div className="flex shrink-0 items-baseline gap-4">
           {checked && (
@@ -71,7 +87,7 @@ export function WatchBrief({
             aria-expanded={editing}
             className="cursor-pointer text-sm font-semibold underline decoration-primary decoration-2 underline-offset-4 hover:text-primary"
           >
-            {editing ? "Done" : "Edit"}
+            {editing ? "Done" : "Edit roles"}
           </button>
         </div>
       </div>

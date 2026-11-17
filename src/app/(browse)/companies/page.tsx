@@ -5,9 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { relevantCompanyWhere, relevantCompanySql } from "@/lib/company-relevance";
 import { CompanyBrowser } from "@/components/company-browser";
-import { FollowingList } from "@/components/following-list";
-import { CompanySearch } from "@/components/company-search";
-import { AddCompanyModal } from "@/components/add-company-modal";
+import { YourList } from "@/components/your-list";
+import { ShareWatchlistButton } from "@/components/share-watchlist-button";
 import { PageHeader } from "@/components/brand";
 
 export const metadata = {
@@ -16,6 +15,37 @@ export const metadata = {
 };
 
 export type Sort = "active" | "az" | "followed";
+
+/** Signed-in header: one Companies page, two views — your list and everything. */
+function CompaniesHeader({ active, userId, listCount }: { active: "list" | "browse"; userId: string; listCount: number }) {
+  return (
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow={`${listCount} on your list`}
+        title="Companies"
+        action={listCount > 0 ? <ShareWatchlistButton userId={userId} /> : undefined}
+      />
+      <nav className="flex gap-6 border-b border-foreground/15" aria-label="Companies">
+        {[
+          { href: "/companies", label: "Your list", key: "list" },
+          { href: "/companies?view=browse", label: "Browse all", key: "browse" },
+        ].map((t) => (
+          <Link
+            key={t.key}
+            href={t.href}
+            aria-current={active === t.key ? "page" : undefined}
+            className={cn(
+              "-mb-px border-b-[3px] pb-2 text-sm font-semibold",
+              active === t.key ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}
 const VALID_SORTS: Sort[] = ["active", "az", "followed"];
 
 const FEATURED_VCS = [
@@ -149,68 +179,11 @@ export default async function CompaniesPage({
   const isBrowse = !authUser || view === "browse";
 
   if (!isBrowse && authUser) {
-    // Following view: show tracked companies
-    const [tracked, connectionRows] = await Promise.all([
-      prisma.trackedCompany.findMany({
-        where: { userId: authUser.id },
-        include: {
-          company: {
-            include: {
-              jobs: { where: { status: "ACTIVE" }, orderBy: { postedAt: "desc" }, take: 1, select: { postedAt: true } },
-              _count: { select: { trackedBy: true } },
-            },
-          },
-          _count: { select: { matches: { where: { dismissed: false, seenAt: null } } } },
-        },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.linkedInConnection.groupBy({
-        by: ["companyId"],
-        where: { userId: authUser.id, companyId: { not: null } },
-        _count: { companyId: true },
-      }),
-    ]);
-
-    const connectionCounts: Record<string, number> = {};
-    for (const row of connectionRows) {
-      if (row.companyId) connectionCounts[row.companyId] = row._count.companyId;
-    }
-
+    const listCount = await prisma.trackedCompany.count({ where: { userId: authUser.id } });
     return (
-      <div className="space-y-6">
-        {/* Search is the primary action on this page — prominent, left-aligned */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <CompanySearch
-            trackedCompanyIds={tracked.map((t) => t.companyId)}
-            size="lg"
-            className="sm:max-w-xl"
-          />
-          <AddCompanyModal />
-        </div>
-
-        {/* Tab bar */}
-        <div className="flex items-end justify-between gap-4 border-b pb-0">
-          <div className="flex gap-0">
-            <Link href="/companies" className={cn(
-              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-              "border-foreground text-foreground"
-            )}>
-              My Companies
-            </Link>
-            <Link href="/companies?view=browse" className={cn(
-              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-              "border-transparent text-muted-foreground hover:text-foreground"
-            )}>
-              Discover
-            </Link>
-          </div>
-        </div>
-
-        <p className="text-sm text-muted-foreground -mt-2">
-          {tracked.length} {tracked.length === 1 ? "company" : "companies"} followed
-        </p>
-
-        <FollowingList tracked={tracked} userId={authUser.id} connectionCounts={connectionCounts} />
+      <div className="space-y-8">
+        <CompaniesHeader active="list" userId={authUser.id} listCount={listCount} />
+        <YourList userId={authUser.id} />
       </div>
     );
   }
@@ -245,23 +218,7 @@ export default async function CompaniesPage({
   return (
     <div className="space-y-6">
       {authUser ? (
-        /* Tab bar — only when the user actually has two views */
-        <div className="flex items-end border-b pb-0">
-          <div className="flex gap-0">
-            <Link href="/companies" className={cn(
-              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-              "border-transparent text-muted-foreground hover:text-foreground"
-            )}>
-              My Companies
-            </Link>
-            <Link href="/companies?view=browse" className={cn(
-              "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
-              "border-foreground text-foreground"
-            )}>
-              Discover
-            </Link>
-          </div>
-        </div>
+        <CompaniesHeader active="browse" userId={authUser.id} listCount={tracked.length} />
       ) : (
         /* Logged out — proper page header instead of an orphaned tab */
         <PageHeader

@@ -10,7 +10,8 @@ import { RefreshMatchesButton } from "@/components/refresh-matches-button";
 import { SuggestedRoles } from "@/components/suggested-roles";
 import { TrackedRoles } from "@/components/tracked-roles";
 import { StatusPicker, type AppStatus } from "@/components/status-picker";
-import { Inbox } from "@/components/inbox";
+import { CompanyGroups } from "@/components/company-groups";
+import { getAlsoOpen } from "@/lib/also-open";
 import { WatchBrief } from "@/components/watch-brief";
 import { EmptyState, PageHeader, Rank } from "@/components/brand";
 import { agoShort, getOutlook, OUTLOOK_DAYS } from "@/lib/outlook";
@@ -39,10 +40,6 @@ function todayLine(): string {
   return new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: TZ });
 }
 
-function renderedAt(): number {
-  return Date.now();
-}
-
 /** When the boards were last read, in words: "this morning", "yesterday", "Nov 14". */
 function checkedLabel(capturedOn: Date | null | undefined): string | null {
   if (!capturedOn) return null;
@@ -68,14 +65,17 @@ const jobSelect = {
 export default async function TodayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; view?: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) redirect("/login");
 
-  const { tab } = await searchParams;
-  const showApplied = tab === "applied";
+  const { tab, view } = await searchParams;
+  const showAlso = tab === "also";
+  // ?tab=applied is the old link (weekly email); it means Matches → Applied.
+  const showApplied = !showAlso && (view === "applied" || tab === "applied");
+  const showOpen = !showAlso && !showApplied;
 
   const [tracked, trackedRoles, dbUser] = await Promise.all([
     prisma.trackedCompany.findMany({
@@ -140,7 +140,7 @@ export default async function TodayPage({
               </h2>
               <p className="text-sm text-muted-foreground">Name them, or start from a ready-made list.</p>
               <div className="flex flex-wrap gap-2">
-                <Link href="/list">
+                <Link href="/companies">
                   <Button variant={tracked.length > 0 ? "outline" : "default"}>
                     {tracked.length > 0 ? "Edit your list" : "Build your list"}
                   </Button>
@@ -198,7 +198,7 @@ export default async function TodayPage({
 
   // Mark the inbox seen — after the read above, so this visit still shows
   // which ones are new.
-  if (!showApplied && anyUnseen) {
+  if (showOpen && anyUnseen) {
     await prisma.match.updateMany({
       where: { trackedCompanyId: { in: trackedIds }, seenAt: null },
       data: { seenAt: new Date() },
@@ -219,7 +219,7 @@ export default async function TodayPage({
 
   // Quiet inbox: show which companies are likeliest to open something next.
   let likely: { name: string; slug: string; website: string | null; matched: number; lastAt: Date | null }[] = [];
-  if (!showApplied && inbox.length === 0) {
+  if (showOpen && inbox.length === 0) {
     const outlook = await getOutlook(companyIds, trackedRoles.map((r) => r.title), raw);
     const top = [...outlook.entries()].sort((a, b) => b[1].matched - a[1].matched).slice(0, 5);
     const companies = await prisma.company.findMany({
@@ -233,7 +233,11 @@ export default async function TodayPage({
     });
   }
 
-  const title = showApplied
+  const also = showAlso ? await getAlsoOpen(companyIds, trackedRoles.map((r) => r.title), raw) : [];
+
+  const title = showAlso
+    ? "Also open, elsewhere."
+    : showApplied
     ? "Where you've applied."
     : unseen === 1
       ? "Something opened."
@@ -256,10 +260,10 @@ export default async function TodayPage({
       />
 
       {/* Tabs */}
-      <nav className="flex gap-6 border-b border-foreground/15" aria-label="Matches">
+      <nav className="flex gap-6 border-b border-foreground/15" aria-label="Today">
         {[
-          { href: "/dashboard", label: "Inbox", count: inboxRoles, active: !showApplied },
-          { href: "/dashboard?tab=applied", label: "Applied", count: appliedCount, active: showApplied },
+          { href: "/dashboard", label: "Matches", count: inboxRoles as number | null, active: !showAlso },
+          { href: "/dashboard?tab=also", label: "Also open", count: null, active: showAlso },
         ].map((t) => (
           <Link
             key={t.label}
@@ -271,12 +275,49 @@ export default async function TodayPage({
             )}
           >
             {t.label}
-            <span className="font-mono text-xs font-normal text-muted-foreground">{t.count}</span>
+            {t.count !== null && <span className="font-mono text-xs font-normal text-muted-foreground">{t.count}</span>}
           </Link>
         ))}
       </nav>
 
-      {showApplied ? (
+      {/* Matches: open vs applied */}
+      {!showAlso && (
+        <div className="flex gap-2 text-xs font-semibold">
+          {[
+            { href: "/dashboard", label: `Open · ${inboxRoles}`, active: showOpen },
+            { href: "/dashboard?view=applied", label: `Applied · ${appliedCount}`, active: showApplied },
+          ].map((f) => (
+            <Link
+              key={f.href}
+              href={f.href}
+              aria-current={f.active ? "page" : undefined}
+              className={cn(
+                "border px-2.5 py-1",
+                f.active ? "border-foreground bg-foreground text-background" : "border-foreground/25 text-muted-foreground hover:border-foreground hover:text-foreground",
+              )}
+            >
+              {f.label}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {showAlso ? (
+        also.length === 0 ? (
+          <EmptyState kicker="Nothing else open" title="No roles like yours outside your list right now.">
+            We look at every company we track for open roles that fit what you asked for. Check back after the next
+            morning&apos;s check, or broaden your roles above.
+          </EmptyState>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Roles that fit what you asked for, open now at companies that aren&apos;t on your list — companies like
+              yours first. Add one and it&apos;s watched from tomorrow.
+            </p>
+            <CompanyGroups mode="also" userId={authUser.id} items={also.map((a) => ({ job: a.job, at: a.at }))} />
+          </div>
+        )
+      ) : showApplied ? (
         applied.length === 0 ? (
           <EmptyState kicker="Nothing applied yet" title="Your applications will collect here.">
             When you mark a match as Applied, it moves out of your inbox and into this list, where you can track it
@@ -348,7 +389,16 @@ export default async function TodayPage({
         </div>
       ) : (
         <>
-          <Inbox matches={inbox} networkByCompanyId={networkByCompanyId} now={renderedAt()} />
+          <CompanyGroups
+            mode="matches"
+            userId={authUser.id}
+            networkByCompanyId={networkByCompanyId}
+            items={inbox.map((m) => ({
+              job: m.job,
+              at: m.createdAt,
+              match: { id: m.id, applicationStatus: m.applicationStatus, seenAt: m.seenAt },
+            }))}
+          />
           {connectionCount === 0 && (
             <p className="flex items-start gap-3 border-l-[3px] border-foreground bg-wash/60 px-4 py-3 text-sm leading-relaxed">
               <Users className="mt-0.5 size-4 shrink-0 text-graphite" />

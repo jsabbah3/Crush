@@ -1,31 +1,152 @@
 import type { Job } from "@/generated/prisma/client";
 
-// Semantic role clusters — when a user tracks any title in a cluster,
-// jobs matching any other title in that same cluster also qualify.
-const ROLE_CLUSTERS: string[][] = [
-  ["gtm engineer", "revenue engineer", "growth engineer", "sales engineer", "go-to-market engineer"],
-  ["product manager", "product management", "pm ", " pm", "product lead", "program manager"],
-  ["data scientist", "ml engineer", "machine learning engineer", "ai engineer", "data science"],
-  ["data engineer", "analytics engineer", "data platform engineer"],
-  ["frontend engineer", "front-end engineer", "front end engineer", "frontend developer", "ui engineer", "react engineer", "web engineer"],
-  ["backend engineer", "back-end engineer", "back end engineer", "backend developer", "server engineer", "api engineer"],
-  ["fullstack engineer", "full-stack engineer", "full stack engineer", "software engineer", "software developer", "swe"],
-  ["devops engineer", "platform engineer", "infrastructure engineer", "site reliability engineer", "sre", "cloud engineer"],
-  ["security engineer", "appsec engineer", "cybersecurity engineer", "infosec engineer"],
-  ["mobile engineer", "ios engineer", "android engineer", "react native engineer", "flutter engineer"],
-  ["designer", "ux designer", "ui designer", "product designer", "visual designer", "interaction designer"],
-  ["marketing manager", "growth marketer", "demand generation", "demand gen", "performance marketer"],
-  ["content marketer", "content writer", "content strategist", "copywriter"],
-  ["recruiter", "talent acquisition", "technical recruiter", "sourcer"],
-  ["customer success", "customer success manager", "csm", "account manager", "client success"],
-  ["sales development", "sdr", "bdr", "business development representative", "sales development representative"],
-  ["account executive", "ae ", " ae", "enterprise account executive", "commercial account executive"],
-  ["solutions engineer", "solutions architect", "sales engineer", "technical account manager", "tam"],
-  ["finance manager", "financial analyst", "fp&a", "financial planning"],
-  ["operations manager", "biz ops", "business operations", "revenue operations", "revops"],
-  ["chief of staff", "strategy & operations", "strategy and operations"],
-  ["technical writer", "documentation engineer", "developer advocate", "developer relations", "devrel"],
+// ── Role vocabulary ────────────────────────────────────────────────────────
+//
+// SYNONYMS are true equivalents — any one of them stands for the others
+// ("SWE" = "software engineer"). Matching is two-way.
+//
+// FAMILIES are a broad role over its specific ones. Tracking the broad role
+// ("mobile engineer") matches the specific ones (iOS, Android); tracking a
+// specific one ("iOS engineer") does NOT pull in its siblings. The old
+// cluster list was symmetric, so "iOS engineer" matched every Android role
+// and "Product" matched Technical Program Manager.
+const SYNONYMS: string[][] = [
+  ["software engineer", "software developer", "swe"],
+  ["frontend engineer", "front-end engineer", "front end engineer", "frontend developer", "front-end developer"],
+  ["backend engineer", "back-end engineer", "back end engineer", "backend developer", "back-end developer"],
+  ["fullstack engineer", "full-stack engineer", "full stack engineer", "fullstack developer", "full-stack developer"],
+  ["site reliability engineer", "sre"],
+  ["machine learning engineer", "ml engineer"],
+  ["gtm engineer", "go-to-market engineer"],
+  ["product manager", "pm"],
+  ["account executive", "ae"],
+  ["sales development representative", "sales development rep", "sdr", "business development representative", "bdr"],
+  ["customer success manager", "csm"],
+  ["technical account manager", "tam"],
+  ["solutions engineer", "sales engineer", "pre-sales engineer", "presales engineer"],
+  ["revenue operations", "revops", "rev ops"],
+  ["business operations", "bizops", "biz ops"],
+  ["strategy & operations", "strategy and operations", "strategy & ops", "strategy and ops"],
+  ["financial planning & analysis", "fp&a", "financial planning and analysis"],
+  ["developer relations", "devrel", "developer advocate"],
+  ["recruiter", "talent acquisition"],
+  ["demand generation", "demand gen"],
+  ["ux designer", "user experience designer"],
 ];
+
+const FAMILIES: Record<string, string[]> = {
+  "mobile engineer": ["ios engineer", "android engineer", "react native engineer", "flutter engineer", "mobile developer"],
+  "data scientist": ["machine learning scientist", "applied scientist"],
+  "designer": ["product designer", "ux designer", "ui designer", "visual designer", "interaction designer"],
+  "finance": ["financial analyst", "fp&a", "financial planning & analysis", "controller", "accountant", "accounting", "treasury"],
+  "operations": ["business operations", "revenue operations", "strategy & operations"],
+  "sales": ["account executive", "sales development representative", "account manager"],
+  "customer success": ["customer success manager"],
+  "marketing": ["product marketing", "growth marketing", "demand generation", "content marketing"],
+};
+
+const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+
+function synonymsOf(term: string): string[] {
+  for (const group of SYNONYMS) if (group.includes(term)) return group;
+  return [term];
+}
+
+// Expand a tracked role into every phrase that counts as that role.
+function expandRole(role: string): string[] {
+  const r = norm(role);
+  const out = new Set<string>(synonymsOf(r));
+  // A broad role also covers its specific members (and their synonyms).
+  for (const member of FAMILIES[r] ?? []) for (const s of synonymsOf(member)) out.add(s);
+  // "Enterprise account executive" still counts as an account executive
+  // posting — a role that CONTAINS a known phrase inherits its synonyms.
+  for (const group of SYNONYMS) {
+    for (const t of group) {
+      if (t.length > 3 && r !== t && hasPhrase(r, t)) group.forEach((g) => out.add(g));
+    }
+  }
+  return [...out];
+}
+
+/** Every phrase a user's roles stand for. Also used as a cheap SQL pre-filter. */
+export function expandRoleTitles(roles: string[]): string[] {
+  const out = new Set<string>();
+  for (const role of roles) for (const v of expandRole(role)) out.add(v);
+  return [...out];
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Whole-word, case-insensitive phrase match; singular and plural both count. */
+function hasPhrase(text: string, phrase: string): boolean {
+  const stem = phrase.replace(/(?<=[a-z]{3})s$/, "");
+  return new RegExp(`(?<![a-z0-9])${escapeRe(stem)}(?:s|es)?(?![a-z0-9])`, "i").test(text);
+}
+
+// Titles are "<role>, <team/specialty>" or "<role> - <specialty>". The role
+// is what the job IS; the rest is what it's ABOUT. "Account Executive,
+// Startups" is an AE job, not a startup job.
+const SEGMENT_SPLIT = /\s*(?:,|\s[-–—]|[-–—]\s|[|:()])\s*/;
+
+// Heads that name only a level or a generic function — "Manager, Strategic
+// Partnerships", "Software Engineer, iOS" — so the next segment is the role.
+const GENERIC_HEADS = new Set([
+  "manager", "senior manager", "director", "head", "lead", "head of", "associate", "senior associate",
+  "specialist", "analyst",
+]);
+// Generic engineering heads: the specialty can sit anywhere after them
+// ("Software Engineer, Mobile Platform (iOS)").
+const ENGINEERING_HEADS = new Set(["engineer", "software engineer", "developer", "software developer"]);
+const LEVEL_ONLY = /^(?:senior|sr\.?|staff|principal|junior|jr\.?|[ivx]+|\d+)$/;
+
+/** The part of a title that says what the job is. */
+function titleCore(title: string): string {
+  const segs = title.toLowerCase().split(SEGMENT_SPLIT).map((x) => x.trim()).filter(Boolean);
+  if (segs.length === 0) return "";
+  const bareHead = segs[0].split(" ").filter((w) => !LEVEL_ONLY.test(w)).join(" ");
+  if (ENGINEERING_HEADS.has(bareHead)) return segs.join(" ");
+  return GENERIC_HEADS.has(bareHead) && segs[1] ? `${segs[0]} ${segs[1]}` : segs[0];
+}
+
+// "Manager, Account Executives" / "Head of Recruiters" manages people in the
+// role rather than doing it.
+function managesTheRole(title: string, phrase: string): boolean {
+  // Only person-nouns can be managed: "Manager, Account Executives" yes,
+  // "Manager, Strategic Partnerships" no.
+  if (!/(?:er|or|ist|yst|ive|ant|ae|sdr|bdr|csm)s?$/.test(phrase)) return false;
+  const stem = escapeRe(phrase.replace(/(?<=[a-z]{3})s$/, ""));
+  return new RegExp(`\\b(?:manager|director|head|lead)(?:,|\\s+of)\\s+(?:[a-z&-]+\\s+){0,2}${stem}s\\b`, "i").test(title);
+}
+
+// "Partner Manager" is a partnerships job: a core word that is the root of a
+// one-word role counts ("partner" → "partnerships"). Only that direction —
+// "product" must not reach "production".
+function rootInCore(core: string, phrase: string): boolean {
+  return core.split(/[^a-z0-9&]+/).some((w) => w.length >= 5 && w !== phrase && phrase.startsWith(w));
+}
+
+const MANAGER_ROLE = /\b(?:manager|director|head|lead|vp|chief)\b/;
+
+/** Does this job title count as one of the user's roles? */
+export function titleMatchesRoles(title: string, roleTitles: string[]): boolean {
+  const core = titleCore(title);
+  const wantsManager = roleTitles.some((r) => MANAGER_ROLE.test(r.toLowerCase()));
+  const wantsIntern = roleTitles.some((r) => /\bintern/.test(r.toLowerCase()));
+  if (!wantsIntern && /\b(?:intern|internship|co-op)\b/i.test(title)) return false;
+
+  for (const role of roleTitles) {
+    for (const phrase of expandRole(role)) {
+      if (phrase.length < 2) continue;
+      // Multi-word phrases are specific enough to count anywhere in the
+      // title; single words ("Product", "Startup", "iOS") only in its core.
+      const where = phrase.includes(" ") ? title : core;
+      if (!hasPhrase(where, phrase) && !(phrase.includes(" ") ? false : rootInCore(core, phrase))) continue;
+      if (!wantsManager && managesTheRole(title, phrase)) continue;
+      return true;
+    }
+  }
+  return false;
+}
 
 // Seniority keywords mapped to canonical level.
 // Order matters — more specific terms first to avoid partial-match conflicts.
@@ -121,29 +242,6 @@ export function detectSeniority(title: string, description?: string): string | n
   return null;
 }
 
-// Expand a single role title into all semantically equivalent titles
-function expandRole(role: string): string[] {
-  const lower = role.toLowerCase();
-  for (const cluster of ROLE_CLUSTERS) {
-    if (cluster.some((term) => lower.includes(term) || term.includes(lower))) {
-      return cluster;
-    }
-  }
-  return [lower];
-}
-
-// Expand an array of role titles into all equivalent titles via clusters
-export function expandRoleTitles(roles: string[]): string[] {
-  const expanded = new Set<string>();
-  for (const role of roles) {
-    for (const variant of expandRole(role)) {
-      expanded.add(variant);
-    }
-    expanded.add(role.toLowerCase());
-  }
-  return Array.from(expanded);
-}
-
 export function doesJobMatch(
   job: Job,
   roleTitles: string[],
@@ -168,11 +266,7 @@ export function doesJobMatch(
   // role (dashboard + matches page) before anything matches.
   if (roleTitles.length === 0) return false;
 
-  const titleLower = job.title.toLowerCase();
-  const expanded = expandRoleTitles(roleTitles);
-
-  // Must match at least one role title (including semantic variants)
-  if (!expanded.some((r) => titleLower.includes(r))) return false;
+  if (!titleMatchesRoles(job.title, roleTitles)) return false;
 
   // Seniority filter: if user specified levels, check title AND description
   if (seniority.length > 0) {

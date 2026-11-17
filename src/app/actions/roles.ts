@@ -46,7 +46,7 @@ export async function removeTrackedRole(id: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/settings");
-  revalidatePath("/list");
+  revalidatePath("/companies");
   return { success: true };
 }
 

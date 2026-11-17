@@ -38,7 +38,9 @@ export async function getOutlook(
   if (companyIds.length === 0 || roleTitles.length === 0) return out;
 
   const since = new Date(Date.now() - OUTLOOK_DAYS * 86400000);
-  const variants = expandRoleTitles(roleTitles).filter((v) => v.trim().length > 1);
+  // Two-letter abbreviations ("ae", "pm") would make this LIKE pre-filter match
+  // nearly every title; the full matcher below still recognises them.
+  const variants = expandRoleTitles(roleTitles).filter((v) => v.trim().length >= 3);
 
   const jobs = await prisma.job.findMany({
     where: {

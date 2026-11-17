@@ -66,7 +66,6 @@ export async function addCustomCompany(
     await backfillMatchesForUser(user.id);
     revalidatePath("/companies");
     revalidatePath("/dashboard");
-    revalidatePath("/list");
     return { status: "exists", companyId: existing.id, slug: existing.slug };
   }
 
@@ -112,7 +111,6 @@ export async function addCustomCompany(
   await backfillMatchesForUser(user.id);
   revalidatePath("/companies");
   revalidatePath("/dashboard");
-  revalidatePath("/list");
 
   return {
     status:   "added",

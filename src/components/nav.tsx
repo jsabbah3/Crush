@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Inbox, ListOrdered, Settings, LogOut, BookOpen } from "lucide-react";
+import { Building2, Inbox, Settings, LogOut, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -25,7 +25,6 @@ type UserProps = {
 
 const navLinks = [
   { href: "/dashboard",    label: "Today",        icon: Inbox,         badge: true  },
-  { href: "/list",         label: "Your list",    icon: ListOrdered,   badge: false },
   { href: "/companies",    label: "Companies",    icon: Building2,     badge: false },
 ];
 
