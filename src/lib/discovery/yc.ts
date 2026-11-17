@@ -13,6 +13,7 @@ export type YcCompany = {
   industry: string | null;
   isHiring: boolean;
   regions: string[];
+  teamSize: number | null;
 };
 
 type Raw = {
@@ -24,6 +25,7 @@ type Raw = {
   industry?: string;
   isHiring?: boolean;
   regions?: string[];
+  team_size?: number | null;
 };
 
 const SEASON_MONTH: Record<string, number> = { Winter: 0, Spring: 3, Summer: 6, Fall: 9 };
@@ -57,5 +59,6 @@ export async function fetchRecentYc(months = 13): Promise<YcCompany[]> {
       industry: c.industry?.trim() || null,
       isHiring: !!c.isHiring,
       regions: c.regions ?? [],
+      teamSize: c.team_size ?? null,
     }));
 }

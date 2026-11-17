@@ -93,6 +93,7 @@ export async function runDiscovery({
         description: y.oneLiner,
         industry: y.industry,
         usBased: y.regions.some((r) => /united states|america|remote/i.test(r)),
+        teamSize: y.teamSize,
       });
     }
   } catch (err) {

@@ -23,6 +23,8 @@ export type Candidate = {
   industry?: string | null;
   /** The source says it's US-based (YC regions, or the news says so). */
   usBased?: boolean;
+  /** Headcount from the source (YC). A 2-person team doesn't have 40 openings. */
+  teamSize?: number | null;
   funding?: {
     round: string;
     amountM: number | null;
@@ -57,6 +59,13 @@ export function host(url: string | null | undefined): string | null {
   }
 }
 
+/** "trycardinal.ai" → "cardinal": the name inside a domain, minus try-/use-/-hq. */
+function domainCore(h: string | null): string {
+  return (h ?? "").split(".")[0]
+    .replace(/^(?:try|use|get|join|with|run|hey|go|the|meet)/, "")
+    .replace(/(?:app|hq|ai|inc|labs|io|tech)$/, "");
+}
+
 function slugify(name: string): string {
   return name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 }
@@ -85,7 +94,16 @@ async function findExisting(c: Candidate) {
     });
     if (byHost && host(byHost.website) === h) return byHost;
   }
-  return prisma.company.findFirst({ where: { name: { equals: c.name, mode: "insensitive" } } });
+  const byName = await prisma.company.findFirst({ where: { name: { equals: c.name, mode: "insensitive" } } });
+  // Same name, different website: the same company only if the domains share
+  // a core name (kinro.ai / kinro.com) AND the record we hold isn't an
+  // established company in its own right (Unicorn / VC-portfolio tags) — YC's
+  // "Hopper" (withhopper.com) is not Hopper the travel app (hopper.com).
+  if (byName && h && byName.website && host(byName.website) !== h) {
+    const established = byName.tags.some((t) => !t.startsWith("YC"));
+    if (established || domainCore(host(byName.website)) !== domainCore(h)) return null;
+  }
+  return byName;
 }
 
 async function uniqueSlug(name: string): Promise<string> {
@@ -104,7 +122,13 @@ async function uniqueSlug(name: string): Promise<string> {
  *    domain) — "Autumn Labs" must not get some other "autumn" board;
  *  - it has a role a Crush user could take: in the US, or remote.
  */
-async function attachBoard(companyId: string, name: string, website: string | null, usBased = false): Promise<boolean> {
+async function attachBoard(
+  companyId: string,
+  name: string,
+  website: string | null,
+  usBased = false,
+  teamSize: number | null = null,
+): Promise<boolean> {
   const match = await detectAts(name, website);
   const fullSlug = name.toLowerCase().replace(/[^a-z0-9]/g, "");
   let trusted = !!match && (!!website || (match.slug.replace(/-/g, "") === fullSlug && fullSlug.length >= 5));
@@ -115,7 +139,9 @@ async function attachBoard(companyId: string, name: string, website: string | nu
     const names = [name.toLowerCase(), ...(stem.length >= 4 ? [stem] : [])];
     const mentions = jobs.slice(0, 10).some((j) => names.some((n) => `${j.title} ${j.description}`.toLowerCase().includes(n)));
     const usRole = jobs.some((j) => usOpen(j));
-    trusted = mentions && (usRole || usBased);
+    // A tiny team with dozens of openings has someone else's board.
+    const plausibleSize = !teamSize || jobs.length <= Math.max(6, teamSize * 2);
+    trusted = mentions && (usRole || usBased) && plausibleSize;
   }
 
   await prisma.company.update({
@@ -213,6 +239,6 @@ export async function admit(c: Candidate): Promise<AdmitResult> {
     });
   }
 
-  const listed = needsBoard ? await attachBoard(companyId, c.name, c.website, c.usBased) : false;
+  const listed = needsBoard ? await attachBoard(companyId, c.name, c.website, c.usBased, c.teamSize) : false;
   return { outcome, listed };
 }
