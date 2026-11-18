@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { detectAts } from "@/lib/detect-ats";
+import { findCompanyBoard } from "@/lib/board-check";
 import { backfillMatchesForUser } from "./tracking";
 
 function toSlug(name: string): string {
@@ -42,7 +42,7 @@ export async function addCustomCompany(
   if (existing) {
     // If this company has no ATS connected, try to detect and wire it up now
     if (!existing.sourceId) {
-      const atsMatch = await detectAts(trimName, websiteUrl ?? existing.website);
+      const atsMatch = await findCompanyBoard(trimName, websiteUrl ?? existing.website);
       if (atsMatch) {
         await prisma.company.update({
           where: { id: existing.id },
@@ -70,7 +70,7 @@ export async function addCustomCompany(
   }
 
   // Detect ATS
-  const atsMatch = await detectAts(trimName, websiteUrl);
+  const atsMatch = await findCompanyBoard(trimName, websiteUrl);
 
   // Build unique slug
   const baseSlug = toSlug(trimName);

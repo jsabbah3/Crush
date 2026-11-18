@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { detectAts } from "@/lib/detect-ats";
 import { fetchAtsJobs, ingestCompanyById } from "@/lib/ingestion";
 import { isUS } from "@/lib/location";
+import { mentionsCompany } from "@/lib/board-check";
 import type { CompanySource, FundingStage } from "@/generated/prisma/enums";
 
 /**
@@ -117,10 +118,11 @@ async function uniqueSlug(name: string): Promise<string> {
 
 /**
  * Find and attach a job board, then pull its roles. A board counts only if:
- *  - it's really theirs: without a website, the board slug must be the full
- *    company name; and at least one posting must mention the company (or its
- *    domain) — "Autumn Labs" must not get some other "autumn" board;
- *  - it has a role a Crush user could take: in the US, or remote.
+ *  - it's really theirs: their website links to it, or — for a slug guess —
+ *    a posting names the company (without a website, the slug must also be
+ *    the full company name): "Autumn Labs" must not get some other "autumn";
+ *  - it has a role a Crush user could take: in the US, or remote;
+ *  - its size is plausible for the team (YC headcount).
  */
 async function attachBoard(
   companyId: string,
@@ -135,13 +137,11 @@ async function attachBoard(
 
   if (match && trusted) {
     const jobs = await fetchAtsJobs(match.type, match.slug).catch(() => []);
-    const stem = host(website)?.split(".")[0] ?? "";
-    const names = [name.toLowerCase(), ...(stem.length >= 4 ? [stem] : [])];
-    const mentions = jobs.slice(0, 10).some((j) => names.some((n) => `${j.title} ${j.description}`.toLowerCase().includes(n)));
+    const theirs = match.source === "site" || mentionsCompany(name, website, jobs, 10);
     const usRole = jobs.some((j) => usOpen(j));
     // A tiny team with dozens of openings has someone else's board.
     const plausibleSize = !teamSize || jobs.length <= Math.max(6, teamSize * 2);
-    trusted = mentions && (usRole || usBased) && plausibleSize;
+    trusted = theirs && (usRole || usBased) && plausibleSize;
   }
 
   await prisma.company.update({
