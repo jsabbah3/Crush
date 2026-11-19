@@ -191,7 +191,7 @@ async function main() {
   const collection = await prisma.collection.upsert({
     where: { slug },
     update: { name: meta.name, description: meta.description },
-    create: { slug, ...meta },
+    create: { slug, name: meta.name, description: meta.description },
   });
   await prisma.$transaction([
     prisma.collectionCompany.deleteMany({ where: { collectionId: collection.id } }),
