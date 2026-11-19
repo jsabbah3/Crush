@@ -14,6 +14,7 @@ import { Rank, Rule, Tag, Wordmark } from "@/components/brand";
 import { signInWithGoogle } from "@/app/actions/auth";
 import { getFreshness } from "@/lib/freshness";
 import { agoShort } from "@/lib/outlook";
+import { listedCollections } from "@/lib/collections";
 
 const STEPS = [
   {
@@ -97,6 +98,7 @@ const getLandingData = unstable_cache(
         select: { id: true, name: true, slug: true, website: true, _count: activeJobs },
       }).catch(() => []),
       prisma.collection.findMany({
+      where: listedCollections,
         orderBy: { createdAt: "asc" },
         take: 4,
         select: {

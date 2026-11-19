@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { getAllPosts } from "@/lib/blog";
+import { listedCollections } from "@/lib/collections";
 
 // Run at request time so the build doesn't need a DB connection
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       orderBy: { name: "asc" },
     }),
     prisma.collection.findMany({
+      where: listedCollections,
       select: { slug: true, updatedAt: true },
     }),
   ]);

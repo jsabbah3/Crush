@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { CompanyLogo } from "@/components/company-logo";
+import { listedCollections } from "@/lib/collections";
 
 export const metadata = {
   title: "Collections — Crush",
@@ -10,6 +11,7 @@ export const metadata = {
 
 export default async function CollectionsPage() {
   const collections = await prisma.collection.findMany({
+      where: listedCollections,
     include: {
       companies: {
         include: { company: { select: { name: true, website: true } } },

@@ -1,0 +1,92 @@
+Conduit|condu.it|Non-invasive brain computer interface that turns thoughts into text
+Hone|hone.com|Autonomous agents that optimize business metrics
+Normal|normal.ai|Hardware engineering and machining data for training AI
+Standard Intelligence|si.inc|Foundation models that operate computers like humans do
+Tacit Labs|tacitlabs.co|Autonomous biotech research for drug discovery
+American Terawatt|americanterawatt.com|High voltage electrical transmission for datacenters
+Convergent|convergent.dev|Evals and optimization for production AI agents
+Core Automation|coreauto.com|New model architectures and algorithms for agents
+Engram|engram.com|Memory system that learns company knowledge for AI agents
+Instinct|instinct.com|Personal AI assistant that operates a computer for you
+Keenable|keenable.ai|API for agents to do web searches and page retrieval
+Lumaril|lumaril.com|Software that optimizes factory control systems to increase yield
+Neion Bio|neionbio.com|Engineered chicken eggs that manufacture drugs
+Pangram Labs|pangram.com|AI that detects AI-generated text for schools and publishers
+Quadrillion|quadrillion.ai|Autonomous data experiments for researchers and data scientists
+Re|re.xyz|Stablecoin deposits that back reinsurance pools
+Ricursive|ricursive.com|AI for designing semiconductors
+Sail Research|sailresearch.com|Inference API and sandbox infrastructure for long-running AI agents
+Trajectory|trajectory.ai|Post-training tool that continually fine-tunes models based on usage
+Watney Robotics|watney.com|Robots that maintain datacenters
+Infisical|infisical.com|Open source secrets manager for developers and agents
+Long Lake|llmh.com|Acquires and holds service businesses and optimizes them with AI
+Luzern Risk|luzernrisk.com|Software for businesses to set up their own captive insurance carriers
+Mithril|mithril.ai|Neocloud for spot and reserved GPUs
+Revel|revel.io|Software for testing and controlling industrial hardware
+Specter|specter.co|Video analysis models that monitor industrial sites
+Turbopuffer|turbopuffer.com|Vector and full text search index built on object storage
+Aaru|aaru.com|Simulations of people for consumer research
+Beacon Software|beaconsoftware.com|Holding company that buys small vertical software companies
+Fab2|fab2.com|Semiconductor manufacturing tools and microfabs that produce chips
+fal|fal.ai|API for image and video models
+General Matter|generalmatter.com|US uranium enrichment facilities for nuclear reactors
+Listen Labs|listenlabs.com|AI interviewer that conducts customer and user research
+Medra|medra.ai|Robots that run wet lab biology experiments
+Pallet|pallet.com|Agents that run freight, warehousing and logistics for supply chains
+Periodic Labs|periodic.com|Autonomous labs that run physics and chemistry experiments
+SF Compute|sfcompute.com|GPU neocloud that lets you sell back unused compute
+Simile|simile.com|Simulated consumer research panels for enterprises
+Twenty|twenty.io|Offensive cyber warfare software for the US military
+XDOF|xdof.ai|Teleoperation rigs and training datasets for robotics labs
+Amca|amca.com|Hydraulic and electrical parts for aircraft
+Antares Nuclear|antaresindustries.com|Nuclear microreactors for military bases
+Aven|aven.com|Credit cards backed by home equity
+Bitwise|bitwiseinvestments.com|Crypto index funds and ETFs for institutions
+Boom Supersonic|boomsupersonic.com|Supersonic airliners and gas turbines
+Brain Co.|brain.co|AI for governments, insurance and healthcare firms
+Braintrust|braintrust.dev|Evals, logging and observability for AI software
+Castelion|castelion.com|Hypersonic strike missile for military use
+Enter|getenter.ai|Legal software that writes litigation defenses for Brazilian corporations
+Exa|exa.ai|API that does web searches for AI agents
+Factory|factory.com|Autonomous coding agents that write software for enterprises
+Fractile|fractile.ai|Chips that run inference for AI models
+Higgsfield|higgsfield.ai|AI video tools for marketers and filmmakers
+Modal|modal.com|Serverless compute for inference, training and sandboxes
+Neros|neros.tech|Attack and interceptor drones for Western militaries
+Nominal|nominal.io|Software that monitors telemetry and tests for hardware engineering
+OLIX|olix.com|Chips for running AI model inference
+OpenEvidence|openevidence.com|Software that answers clinical questions for doctors
+Physical Intelligence|physicalintelligence.company|Foundation models for controlling any robot
+Rogo|rogo.ai|AI analyst for investment banks and financial institutions
+Rox|rox.com|Sales agents that find buyers and manage enterprise sales pipelines
+Serval|serval.com|Agents that resolve IT help desk tickets
+Socket|socket.dev|Package management security tool that blocks malicious packages
+State Affairs|stateaffairs.com|Tracks state legislation for enterprises
+Valar Atomics|valaratomics.com|Gas nuclear reactors for datacenters and hydrogen fuel
+Vapi|vapi.ai|Developer API for building voice agents
+Verse Medical|versemedical.com|Medical equipment ordering and insurance checks for clinicians
+WorkOS|workos.com|APIs for adding enterprise SSO and directory sync to apps
+XBOW|xbow.com|Autonomous penetration testing for software
+Arcana|arcana.io|Portfolio analysis tool that analyzes risk for hedge funds
+Base|basepowercompany.com|Home batteries and electricity
+Baseten|baseten.co|Inference cloud for open and custom models
+Cambridge Aerospace|cambridgeaerospace.com|Interceptor missiles that destroy drone swarms
+Cognition|cognition.ai|Autonomous software engineer that writes code for teams
+ElevenLabs|elevenlabs.io|Voice models and agents that generate audio
+Etched|etched.com|Chips that run inference for frontier models
+Fireworks AI|fireworks.ai|Inference cloud for open and custom models
+Fluidstack|fluidstack.io|Builds and runs AI datacenters
+Handshake|joinhandshake.com|Network of people that produces AI training data
+Harvey|harvey.ai|Legal software that does research, drafting and contract review
+Kalshi|kalshi.com|Market for betting on sports, news and politics
+Kraken|kraken.com|Regulated crypto, stocks and futures exchange
+Lovable|lovable.dev|AI that builds web apps
+Mach Industries|machindustries.com|Drones, munitions and interceptors for the US military
+Mercor|mercor.com|Expert network for training AI models
+Owner|owner.com|Restaurant software for taking orders and marketing
+Radiant|radiantnuclear.com|Nuclear microreactor to replace diesel generators
+Ramp|ramp.com|Corporate cards for businesses
+Saronic|saronic.com|Autonomous surface vessels for the US Navy
+Stoke Space|stokespace.com|Reusable rockets for satellite launches
+Verkada|verkada.com|Commercial security cameras, alarms and access control for enterprises
+Whop|whop.com|Storefront and payments for selling information products

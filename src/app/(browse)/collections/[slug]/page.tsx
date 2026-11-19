@@ -6,12 +6,17 @@ import { prisma } from "@/lib/prisma";
 import { CompanyLogo } from "@/components/company-logo";
 import { FollowButton } from "@/components/follow-button";
 import { TrackCollectionButton } from "@/components/track-collection-button";
+import { UNLISTED_COLLECTIONS } from "@/lib/collections";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const col = await prisma.collection.findUnique({ where: { slug } });
   if (!col) return {};
-  return { title: `${col.name} — Collections — Crush`, description: col.description ?? undefined };
+  return {
+    title: `${col.name} — Collections — Crush`,
+    description: col.description ?? undefined,
+    ...(UNLISTED_COLLECTIONS.includes(slug) ? { robots: { index: false, follow: false } } : {}),
+  };
 }
 
 export default async function CollectionDetailPage({
@@ -31,7 +36,7 @@ export default async function CollectionDetailPage({
         companies: {
           include: {
             company: {
-              include: { _count: { select: { trackedBy: true } } },
+              include: { _count: { select: { trackedBy: true, jobs: { where: { status: "ACTIVE" } } } } },
             },
           },
           orderBy: { displayOrder: "asc" },
@@ -51,6 +56,8 @@ export default async function CollectionDetailPage({
   const trackedMap = new Map(tracked.map((t) => [t.companyId, { id: t.id }]));
   const trackedIds = new Set(tracked.map((t) => t.companyId));
   const companies = collection.companies.map((cc) => cc.company);
+  const openRoles = companies.reduce((n, c) => n + c._count.jobs, 0);
+  const hiring = companies.filter((c) => c._count.jobs > 0).length;
 
   return (
     <div className="space-y-8">
@@ -72,6 +79,9 @@ export default async function CollectionDetailPage({
           )}
           <p className="font-mono text-xs text-muted-foreground tabular-nums">
             {companies.length} {companies.length === 1 ? "company" : "companies"}
+            {openRoles > 0 && (
+              <> · {hiring} hiring · {openRoles.toLocaleString()} open {openRoles === 1 ? "role" : "roles"}</>
+            )}
           </p>
         </div>
 
@@ -112,14 +122,22 @@ export default async function CollectionDetailPage({
               )}
 
               <div className="flex items-center justify-between mt-auto pt-1">
-                {company._count.trackedBy > 0 ? (
-                  <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground tabular-nums">
-                    <Users className="size-3" />
-                    {company._count.trackedBy.toLocaleString()} following
-                  </span>
-                ) : (
-                  <span />
-                )}
+                <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                  {company._count.jobs > 0 ? (
+                    <Link href={`/companies/${company.slug}`} className="text-foreground hover:text-primary transition-colors">
+                      {company._count.jobs} open {company._count.jobs === 1 ? "role" : "roles"}
+                    </Link>
+                  ) : (
+                    "No open roles"
+                  )}
+                  {company._count.trackedBy > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      {" · "}
+                      <Users className="size-3" />
+                      {company._count.trackedBy.toLocaleString()}
+                    </span>
+                  )}
+                </span>
                 <FollowButton
                   company={{ id: company.id, name: company.name }}
                   tracked={tc}

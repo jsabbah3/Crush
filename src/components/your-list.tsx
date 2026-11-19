@@ -9,6 +9,7 @@ import { RemovableRow } from "@/components/removable-row";
 import { EmptyState, Rank, Tag } from "@/components/brand";
 import { boardStatus } from "@/lib/board-status";
 import { agoShort, getOutlook, OUTLOOK_DAYS } from "@/lib/outlook";
+import { listedCollections } from "@/lib/collections";
 
 type UserPrefs = {
   seniority?: string[];
@@ -41,6 +42,7 @@ export async function YourList({ userId }: { userId: string }) {
       select: { defaultCriteria: true },
     }),
     prisma.collection.findMany({
+      where: listedCollections,
       take: 3,
       orderBy: { createdAt: "asc" },
       select: {

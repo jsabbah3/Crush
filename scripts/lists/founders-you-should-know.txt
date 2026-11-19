@@ -1,0 +1,162 @@
+Anthropic|anthropic.com|Frontier AI models behind Claude
+Cursor|cursor.com|The AI code editor developers live in
+Cognition|cognition.ai|Devin, the autonomous AI software engineer
+Factory|factory.ai|AI agents that build and ship software
+Codegen|codegen.com|AI software engineering agents
+Cline|cline.bot|Open-source autonomous coding agent
+Graphite|graphite.dev|AI code review and developer workflow
+Bolt.new|bolt.new|AI full-stack app builder in the browser
+Mintlify|mintlify.com|AI-powered product documentation
+Speakeasy|speakeasy.com|SDK and API tooling for developers
+Glide|glideapps.com|No-code app builder from spreadsheets
+Recall.ai|recall.ai|API for meeting recording and transcription
+LangChain|langchain.com|Framework and tooling for AI agents
+LlamaIndex|llamaindex.ai|Data framework for LLM applications
+Together AI|together.ai|AI cloud for training and inference on open models
+Fireworks AI|fireworks.ai|Fast inference for generative AI
+Baseten|baseten.co|Infrastructure to deploy and serve ML models
+OpenRouter|openrouter.ai|Unified API and marketplace for LLMs
+San Francisco Compute Company|sfcompute.com|On-demand GPU compute for AI
+Etched|etched.com|Transformer-specialized AI inference chips
+Chalk|chalk.ai|Feature store and data platform for ML
+Cleanlab|cleanlab.ai|Data quality and reliability for AI
+DatologyAI|datologyai.com|Automated data curation for model training
+Kumo|kumo.ai|Predictive AI on relational data
+Twelve Labs|twelvelabs.io|Video understanding foundation models
+Coactive AI|coactive.ai|Multimodal AI for visual content
+Roboflow|roboflow.com|Computer vision developer platform
+Reducto|reducto.ai|Document parsing and ingestion for AI
+Parallel|parallel.ai|Web research API for AI agents
+Browserbase|browserbase.com|Headless browser infrastructure for AI agents
+David AI|withdavid.ai|Training data for voice and speech models
+Guardrails AI|guardrailsai.com|Validation and guardrails for LLM outputs
+Exa|exa.ai|A search engine built for AI
+Glean|glean.com|The Work AI platform for enterprise search
+Writer|writer.com|Full-stack generative AI for enterprises
+Contextual AI|contextual.ai|Enterprise RAG and grounded AI platform
+Dust|dust.tt|Platform for building enterprise AI agents
+Stack AI|stack-ai.com|No-code AI agent builder for enterprises
+Distyl|distyl.ai|Enterprise AI deployment and solutions
+Onyx|onyx.app|Open-source enterprise AI search (formerly Danswer)
+Decagon|decagon.ai|AI customer support agents
+Solidroad|solidroad.com|AI coaching for customer-facing teams
+Pylon|usepylon.com|Customer support and B2B communications platform
+Assembled|assembled.com|Workforce management for support teams
+Console|console.co|AI-powered IT support and automation
+Serval|serval.com|AI for IT service management
+Coverbase|coverbase.ai|AI vendor risk and compliance management
+Luminai|luminai.com|Back-office process automation
+Orby AI|orby.ai|Generative process automation
+Gumloop|gumloop.com|No-code AI automation workflows
+Deepgram|deepgram.com|Speech-to-text and voice AI APIs
+Cartesia|cartesia.ai|Real-time voice AI models
+Vapi|vapi.ai|Voice AI agents for developers
+Wispr Flow|wisprflow.ai|AI voice dictation and keyboard
+Toma|toma.com|AI voice agents for auto dealerships
+Nooks|nooks.ai|AI sales dialer and prospecting platform
+11x|11x.ai|AI sales development representatives
+Rox|rox.com|AI sales agents for revenue teams
+Rogo|rogo.ai|AI analyst for finance and investment banking
+Numeric|numeric.io|AI accounting and month-end close
+Campfire|campfire.ai|AI-native ERP and accounting
+Rillet|rillet.com|AI-native accounting and ERP
+Comulate|comulate.com|Insurance accounting automation
+Pulley|pulley.com|Cap table and equity management
+Middesk|middesk.com|Business identity and verification for onboarding
+Metronome|metronome.com|Usage-based billing infrastructure
+Slope|slope.so|B2B payments and financing
+Aven|aven.com|Home-equity-backed credit card
+Comun|comun.app|Banking for Latino immigrants
+Ambrook|ambrook.com|Financial management for agriculture
+SPRX|sprx.tax|AI for R&D tax credits
+OneChronos|onechronos.com|AI-driven equities trading exchange
+Kalshi|kalshi.com|Regulated prediction markets
+SentiLink|sentilink.com|Identity fraud prevention
+ConductorOne|conductorone.com|Identity governance and access
+Semgrep|semgrep.dev|Code security static analysis
+Socket|socket.dev|Open-source software supply-chain security
+Dynamo AI|dynamo.ai|Enterprise AI security and compliance (formerly DynamoFL)
+Haize Labs|haizelabs.com|AI red-teaming and safety testing
+Goodfire|goodfire.ai|AI interpretability research
+Abridge|abridge.com|Ambient AI medical scribe for clinicians
+Freed|getfreed.ai|AI medical scribe for clinicians
+OpenEvidence|openevidence.com|AI clinical decision support for doctors
+Rad AI|radai.com|AI for radiology reporting
+Bunkerhill Health|bunkerhillhealth.com|AI medical imaging and diagnostics
+Infinitus|infinitus.ai|AI voice agents for healthcare calls
+Assort Health|assorthealth.com|AI voice agents for healthcare front desk
+Nourish|usenourish.com|Telehealth dietitian and nutrition care
+Midi Health|joinmidi.com|Menopause and midlife women's telehealth
+Clipboard Health|clipboardhealth.com|Healthcare staffing marketplace
+Headway|headway.co|A nationwide mental-health provider network
+Chapter|askchapter.org|Medicare advisory platform
+Superpower|superpower.com|Consumer health and lab-testing membership
+Chai Discovery|chaidiscovery.com|AI models for molecular design
+Physical Intelligence|physicalintelligence.company|Foundation models for robotics
+Zipline|flyzipline.com|Autonomous drone delivery
+AIM Intelligent Machines|aim.ai|Autonomous heavy earthmoving equipment
+Skip|skipmo.com|Powered mobility exoskeletons
+Quilter|quilter.ai|AI for PCB and electronics design
+Watershed|watershed.com|Enterprise carbon accounting
+Lithos|lithoscarbon.com|Enhanced rock weathering carbon removal
+Gridware|gridware.io|Sensors that detect grid failures early
+Emerald AI|emeraldai.co|AI to manage data-center energy demand
+Base Power|basepowercompany.com|Home battery power for the grid
+Impulse Labs|impulselabs.com|Battery-powered induction stoves
+General Matter|generalmatter.com|Domestic uranium enrichment for nuclear
+Vannevar Labs|vannevarlabs.com|AI for defense and national security
+Peregrine|peregrine.io|Data integration for public safety and gov
+Polimorphic|polimorphic.com|AI CRM for local government
+Promise|joinpromise.com|Government and utility payment plans
+Runway|runwayml.com|AI video generation
+Captions|captions.ai|AI video creation and editing
+Opus Clip|opus.pro|AI video repurposing, long-form to short
+Creatify|creatify.ai|AI video ad generation
+Coframe|coframe.com|AI website and landing-page optimization
+Profound|tryprofound.com|AI search and brand visibility analytics
+Portola|portola.ai|AI companion app (Tolan)
+Gamma|gamma.app|AI presentation and deck maker
+Scribe|scribehow.com|Auto-generated how-to guides and process docs
+Julius AI|julius.ai|AI data analysis chat
+Hex|hex.tech|Collaborative data analytics notebooks
+MotherDuck|motherduck.com|Cloud analytics on DuckDB
+Hightouch|hightouch.com|Data activation and reverse ETL
+Monte Carlo|montecarlodata.com|Data observability and reliability
+Felt|felt.com|Collaborative online maps
+Braintrust|braintrust.dev|Evaluation platform for AI products
+Listen Labs|listenlabs.ai|AI user research and interviews
+Juicebox|juicebox.ai|AI recruiting search (PeopleGPT)
+Traba|traba.work|Light-industrial staffing marketplace
+TruckSmarter|trucksmarter.com|Load board and payments for truckers
+Shepherd Insurance|shepherdins.com|Insurance for the construction industry
+Rundoo|rundoo.com|Software for building-materials retailers
+LightSource|lightsource.ai|AI procurement and supply-chain software
+MagicSchool AI|magicschool.ai|Generative AI for teachers
+Ello|ello.com|AI reading tutor for kids
+Speak|speak.com|AI-powered language learning
+Cambly|cambly.com|On-demand English language tutoring
+Kindred|livekindred.com|Home-swapping travel membership
+Pallet|pallet.com|AI transportation and warehouse management (formerly Cashew)
+Tasklet|tasklet.ai|AI command center for a team's agents
+Applied Compute|appliedcompute.com|Cloud to train and continuously improve custom AI models
+Sail Research|sailresearch.com|Cost-efficient inference for long-horizon agents
+Raindrop|raindrop.ai|Monitoring and observability for AI agents
+TypeSafe AI|typesafe.ai|Reliable AI models for software decision systems
+Radical Numerics|radicalnumerics.ai|AI research lab for biological intelligence
+Fleet AI|fleetai.com|Simulated worlds to test and shape AI behavior
+Keycard|keycard.ai|Access control and identity for AI agents
+Outtake|outtake.ai|AI agents for brand protection and threat takedowns
+Armadin|armadin.com|Autonomous offensive security and attack-path testing
+Code Metal|codemetal.ai|Verifiable AI code translation for edge and safety-critical systems
+Flow Engineering|flowengineering.com|Requirements management and AI agents for hardware teams
+Quanta|usequanta.com|AI-powered accounting for software companies
+Counsel Health|counselhealth.com|AI-plus-physician chat for primary care
+Diffuse Bio|diffuse.bio|Generative AI for protein design
+Specter|specter.ai|AI monitoring for physical infrastructure and security
+Matter Intelligence|matterintelligence.com|Ultraspectral vision sensors and a world model for the physical world
+Inertia|inertia.com|Commercial laser fusion energy
+Sunday Robotics|sunday.ai|Autonomous home robot for household chores
+Conduit|condu.it|Non-invasive thought-to-text neural interface
+Deveillance|deveillance.com|Wearable that blocks mics and AI recorders from capturing your voice
+Eigen|eigen.app|An AI 'mutual friend' for social connection
+Known|known.app|Swipeless dating app

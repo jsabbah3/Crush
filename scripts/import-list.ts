@@ -1,0 +1,144 @@
+/**
+ * Turn an outside company list into a Crush collection.
+ *
+ * Reads scripts/lists/<slug>.txt (one company per line: name|domain|what they
+ * do, in the list's own order), then for each company:
+ *   - finds our record by website, or by name when the domains agree
+ *     (factory.ai / factory.com) — never a namesake on another domain;
+ *   - creates it if we don't have it;
+ *   - if it has no board (or a board with nothing open), looks for one —
+ *     the company's careers page first — and pulls its roles;
+ * and finally sets the collection to exactly the list, in order.
+ *
+ *   npx tsx --env-file=.env.local scripts/import-list.ts breakout-list
+ *   ... --companies-only   # import companies and boards, leave the collection alone
+ *
+ * Safe to re-run. Add new lists to LISTS; keep partner lists in
+ * UNLISTED_COLLECTIONS (src/lib/collections.ts) until they launch.
+ */
+import { readFileSync } from "fs";
+import { prisma } from "../src/lib/prisma";
+import { findCompanyBoard } from "../src/lib/board-check";
+import { ingestCompanyById } from "../src/lib/ingestion";
+
+const LISTS: Record<string, { name: string; description: string }> = {
+  "founders-you-should-know": {
+    name: "Founders You Should Know",
+    description:
+      "Every company that has presented at Founders You Should Know, the invite-only San Francisco showcase for breakout startups. Follow the whole list and Crush emails you when one of them opens a role that fits you.",
+  },
+  "breakout-list": {
+    name: "Breakout List",
+    description:
+      "The startups on Breakout List — great companies to join, picked by investors. Follow the whole list and Crush emails you when one of them opens a role that fits you.",
+  },
+};
+
+const host = (u: string | null) => {
+  if (!u) return null;
+  try {
+    return new URL(u.startsWith("http") ? u : `https://${u}`).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return null;
+  }
+};
+/** "listenlabs.ai" → "listen", "tryprofound.com" → "profound" */
+const core = (h: string | null) =>
+  (h ?? "").split(".")[0].replace(/^(?:try|use|get|join|with|go|meet|hey)(?=[a-z]{4})/, "").replace(/(?:labs|hq|ai|app|inc)$/, "");
+
+const slugify = (n: string) => n.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+async function uniqueSlug(name: string) {
+  const base = slugify(name) || "company";
+  for (let n = 1; n < 50; n++) {
+    const slug = n === 1 ? base : `${base}-${n}`;
+    if (!(await prisma.company.findUnique({ where: { slug }, select: { id: true } }))) return slug;
+  }
+  return `${base}-${Date.now()}`;
+}
+
+const select = {
+  id: true, name: true, website: true, description: true, sourceType: true, sourceId: true,
+  _count: { select: { jobs: { where: { status: "ACTIVE" as const } } } },
+};
+
+async function resolve(name: string, domain: string) {
+  const byHost = (await prisma.company.findMany({ where: { website: { contains: domain, mode: "insensitive" } }, select }))
+    .filter((c) => host(c.website) === domain);
+  const byName = byHost.length
+    ? []
+    : (await prisma.company.findMany({ where: { name: { equals: name, mode: "insensitive" } }, select }))
+        .filter((c) => !c.website || core(host(c.website)) === core(domain));
+  // If we hold duplicates, the one with roles.
+  return [...byHost, ...byName].sort((a, b) => b._count.jobs - a._count.jobs)[0] ?? null;
+}
+
+async function main() {
+  const slug = process.argv[2];
+  const meta = LISTS[slug];
+  if (!meta) throw new Error(`unknown list "${slug}" — one of: ${Object.keys(LISTS).join(", ")}`);
+  const rows = readFileSync(`scripts/lists/${slug}.txt`, "utf8").trim().split("\n").map((l) => l.split("|"));
+
+  const ids: string[] = new Array(rows.length);
+  const stats = { matched: 0, created: 0, boardsFound: 0, noBoard: [] as string[] };
+  const queue = rows.map((r, i) => ({ i, name: r[0].trim(), domain: r[1].trim().toLowerCase(), what: r[2]?.trim() || null }));
+
+  async function work() {
+    for (let e = queue.shift(); e; e = queue.shift()) {
+      const website = `https://${e.domain}`;
+      let c = await resolve(e.name, e.domain);
+      if (c) {
+        stats.matched++;
+        if (!c.website || !c.description) {
+          await prisma.company.update({
+            where: { id: c.id },
+            data: { ...(!c.website ? { website } : {}), ...(!c.description && e.what ? { description: e.what } : {}) },
+          });
+        }
+      } else {
+        stats.created++;
+        c = await prisma.company.create({
+          data: { name: e.name, slug: await uniqueSlug(e.name), website, description: e.what, discoveredVia: meta.name },
+          select,
+        });
+      }
+      ids[e.i] = c.id;
+
+      if (c.sourceType === "manual" || c._count.jobs === 0) {
+        const board = await findCompanyBoard(c.name, c.website ?? website).catch(() => null);
+        const current = c.sourceType === "manual" ? null : `${c.sourceType}:${c.sourceId}`;
+        if (board && `${board.type}:${board.slug}` !== current) {
+          await prisma.company.update({ where: { id: c.id }, data: { sourceType: board.type, sourceId: board.slug, atsCheckedAt: new Date() } });
+          await ingestCompanyById(c.id).catch((err) => console.error("ingest failed", c!.name, err));
+          stats.boardsFound++;
+        } else if (!board && !current) {
+          await prisma.company.update({ where: { id: c.id }, data: { atsCheckedAt: new Date() } });
+          stats.noBoard.push(e.name);
+        }
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: 4 }, work));
+
+  const ordered = [...new Set(ids)];
+  const hiring = await prisma.company.count({ where: { id: { in: ordered }, jobs: { some: { status: "ACTIVE" } } } });
+  const roles = await prisma.job.count({ where: { companyId: { in: ordered }, status: "ACTIVE" } });
+  console.log(`${meta.name}: ${ordered.length}/${rows.length} companies (${stats.matched} on file, ${stats.created} new), ${stats.boardsFound} boards connected`);
+  console.log(`${hiring} hiring · ${roles} open roles → /collections/${slug}`);
+  if (stats.noBoard.length) console.log(`no readable board: ${stats.noBoard.join(", ")}`);
+  if (process.argv.includes("--companies-only")) return;
+
+  const collection = await prisma.collection.upsert({
+    where: { slug },
+    update: { name: meta.name, description: meta.description },
+    create: { slug, ...meta },
+  });
+  await prisma.$transaction([
+    prisma.collectionCompany.deleteMany({ where: { collectionId: collection.id } }),
+    prisma.collectionCompany.createMany({
+      data: ordered.map((companyId, displayOrder) => ({ collectionId: collection.id, companyId, displayOrder })),
+    }),
+  ]);
+  console.log("collection saved");
+}
+
+main().finally(() => prisma.$disconnect());
