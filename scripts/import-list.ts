@@ -21,6 +21,7 @@ import { readFileSync } from "fs";
 import { prisma } from "../src/lib/prisma";
 import { findCompanyBoard } from "../src/lib/board-check";
 import { ingestCompanyById } from "../src/lib/ingestion";
+import { UNLISTED_COLLECTIONS } from "../src/lib/collections";
 
 type ListMeta = {
   name: string;
@@ -151,7 +152,7 @@ async function main() {
       } else {
         stats.created++;
         c = await prisma.company.create({
-          data: { name: e.name, slug: await uniqueSlug(e.name), website, description: e.what, discoveredVia: meta.name, tags: meta.tag ? [meta.tag] : [] },
+          data: { name: e.name, slug: await uniqueSlug(e.name), website, description: e.what, discoveredVia: UNLISTED_COLLECTIONS.includes(slug) ? "Curated list" : meta.name, tags: meta.tag ? [meta.tag] : [] },
           select,
         });
       }
