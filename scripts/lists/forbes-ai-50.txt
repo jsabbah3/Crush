@@ -1,0 +1,50 @@
+Abridge|abridge.com|AI notetaker for doctors
+Anthropic|anthropic.com|AI models and products
+Applied Intuition|appliedintuition.com|Self-driving software
+Baseten|baseten.co|AI app deployment software
+Black Forest Labs|bfl.ai|Image and video generation software
+Chai Discovery|chaidiscovery.com|AI drug discovery
+Clay|clay.com|AI go-to-market tools
+Cognition|cognition.ai|AI coding agents
+Cohere|cohere.com|AI model developer
+Crusoe|crusoe.ai|AI data center builder
+Cursor|cursor.com|AI coding software
+Cyera|cyera.com|AI data security
+Databricks|databricks.com|Data storage and analytics
+Decagon|decagon.ai|AI agents for customer service
+ElevenLabs|elevenlabs.io|Voice generation software
+EliseAI|eliseai.com|AI agents for housing and healthcare
+fal|fal.ai|Generative media infrastructure
+Fireworks AI|fireworks.ai|AI app development software
+Gamma|gamma.app|AI graphic design tools
+Genspark|genspark.ai|AI tools for knowledge workers
+Glean|glean.com|Enterprise search and agents
+Harvey|harvey.ai|Legal automation software
+HeyGen|heygen.com|AI video generation
+Krea|krea.ai|Image generation software
+Legora|legora.com|Legal automation software
+Listen Labs|listenlabs.ai|AI customer research tool
+Lovable|lovable.dev|AI app and website builder
+Mercor|mercor.com|Data labeling service
+Midjourney|midjourney.com|Image generation software
+Mistral AI|mistral.ai|Open source AI model developer
+Notion|notion.com|Productivity software
+OpenAI|openai.com|AI models and products
+OpenEvidence|openevidence.com|AI search for doctors
+Perplexity|perplexity.ai|AI search engine
+Physical Intelligence|physicalintelligence.company|AI models for robotics
+Reflection|reflection.ai|Open source AI models
+Replit|replit.com|AI app and website builder
+Rogo|rogo.ai|AI finance tools
+Runway|runwayml.com|Video and image editing software
+SambaNova|sambanova.ai|AI chipmaker
+Sierra|sierra.ai|AI agents for customer service
+Skild AI|skild.ai|AI systems for robotics
+Speak|speak.com|AI language tutor
+Safe Superintelligence|ssi.inc|AI research
+Suno|suno.com|Music generation software
+Surge AI|surgehq.ai|Data labeling service
+Synthesia|synthesia.io|AI avatar and video generator
+Thinking Machines Lab|thinkingmachines.ai|AI research and products
+Together AI|together.ai|AI cloud provider
+World Labs|worldlabs.ai|Spatial AI model developer

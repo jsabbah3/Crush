@@ -1,0 +1,60 @@
+Palantir|palantir.com|Palantir's ground-breaking software allows analysts to understand vast quantities of information.
+Anduril|anduril.com|Anduril brings together top technical talent to solve the most complex national security challenges.
+Stripe|stripe.com|Stripe makes it easy to perform online financial transactions, processing billions of dollars a year for thousands of businesses.
+Airbnb|airbnb.com|Airbnb is a community marketplace of individuals listing, exploring, and booking property around the world.
+Ramp|ramp.com|Ramp is the only corporate card that automates accounting, lowers your bills, and earns 1.5% cashback.
+Neuralink|neuralink.com|Neuralink is developing ultra-high bandwidth brain-machine interfaces to connect humans and computers.
+OpenAI|openai.com|OpenAI is a research and deployment company whose mission is to create safe and powerful AI that benefits all of humanity.
+Cognition|cognition-labs.com|Cognition is an applied AI lab focused on reasoning, and code is just the beginning.
+Nubank|nubank.com.br|Nubank, the leading fintech company in Latin America, is redesigning the credit card experience in Brazil to reduce complexity and empower people.
+Trade Republic|traderepublic.com|Trade Republic is a European platform for commission-free mobile investing.
+Spotify|spotify.com|Spotify provides users with a free, legal music library of more than 20 million tracks.
+Rippling|rippling.com|Rippling is the world's first system of record for workforce data – allowing you to manage employees’ payroll, benefits, devices, apps, and more, all in one pla
+Affirm|affirm.com|Affirm is reinventing credit to make it more honest and friendly, giving consumers the flexibility to buy now and pay later without any hidden fees or compoundi
+Crusoe|crusoe.ai|Crusoe is empowering the AI revolution as the industry’s first vertically integrated AI infrastructure provider.
+Polymarket|polymarket.com|Polymarket is the world’s largest prediction market. On Polymarket, traders predict the outcome of future events and earn when they are right.
+Lighter|lighter.xyz|Lighter is building verifiable financial infrastructure for digital assets and beyond.
+Figma|figma.com|Figma is changing traditional design operations by simplifying the designer workflow, bringing key contributors into the process, and enabling companies to desi
+Varda|varda.com|Varda is making the worlds first space factories, bringing high-value materials that can only be fabricated in microgravity, back down to earth.
+General Matter|generalmatter.com|General Matter is fueling American power. America’s future is nuclear. We make its fuel.
+Impulse|impulsespace.com|Impulse Space is accelerating the future in space through efficient transportation anywhere.
+Hadrian|hadrian.co|Hadrian is reindustrializing America by building highly automated factories that supercharge both American workers and the defense industrial base.
+Enter|getenter.ai|Enter’s AI agents are transforming how Latin America’s leading enterprises manage and win lawsuits at scale.
+ARQ|arqfinance.com|ARQ opens the world's strongest assets and markets to travelers, investors, and professionals.
+PsiQuantum|psiquantum.com|PsiQuantum is using silicon photonics to build the world’s first useful quantum computer, applying existing semiconductor and photonics manufacturing processes.
+Until|untillabs.com|Until is building the medical infrastructure to pause biological time: starting with organ-scale reversible cryopreservation, and methodically scaling to whole-
+DeepMind|deepmind.com|DeepMind is the world leader in artificial intelligence research and its application for positive impact.
+Scale|scale.com|Scale is building infrastructure for the democratization and proliferation of AI technology.
+Flock Safety|flocksafety.com|Flock Safety is a public safety operating system that helps communities and law enforcement in thousands of cities work together to eliminate crime, protect pri
+Boring Company|boringcompany.com|The Boring Company creates safe, fast-to-dig, and low-cost transportation, utility, and freight tunnels. The mission: solve traffic, enable rapid point-to-point
+Oculus|oculus.com|Oculus develops virtual reality platforms and products that let people experience anything, with anyone.
+Persona|withpersona.com|Persona offers trusted identity infrastructure that allows businesses to craft personalized and automated identity experiences so they can better understand and
+BuildOps|buildops.com|BuildOps serves the unsung heroes of the trades by delivering an end-to-end scalable platform for commercial contractors that empowers owners to build enduring
+Twilio|twilio.com|Twilio enables phones, VoIP and messaging to be embedded into web, desktop and mobile software.
+Credit Karma|creditkarma.com|Credit Karma is a personal finance company focused on helping everyone make financial progress.
+Netic|netic.ai|Netic’s AI-driven platform helps service enterprises boost revenue, engage customers, and scale growth with intelligent automation.
+Monaco|monaco.com|Monaco is an AI sales platform automating customer acquisition and revenue growth for startups.
+Oscar|hioscar.com|Oscar is fixing and humanizing healthcare through the use of technology, design, and data.
+Solugen|solugentech.com|Develops and manufactures bio-based chemicals for use in the agriculture, energy, water, personal care, and cleaning sectors.
+Wave|wave.com|Wave is building financial infrastructure for Sub-Saharan Africa. They offer a better, faster, radically cheaper mobile money platform for consumers and busines
+Kavak|kavak.com|Kavak is the leading marketplace for pre-owned cars in emerging markets.
+Flexport|flexport.com|Flexport is an international freight forwarder built around a modern technology stack. The company provides air freight, ocean freight and other vital supply ch
+Faire|faire.com|Curated wholesale marketplace that connects more than 100,000 independent retailers with thousands of the world's best emerging and established brands.
+Workrise|workrise.com|Workrise is the leading workforce management solution for the skilled trades.
+Aven|aven.com|Our mission is to provide the lowest cost, most convenient, and most transparent access to capital.
+Found|found.com|Found provides an all-in-one banking solution for small businesses and the self-employed with integrated bookkeeping, taxes, and invoicing.
+Cedar|cedar.com|Cedar is a smarter payment platform for providers and patients.
+Lyft|lyft.com|Lyft’s friendly, affordable peer-to-peer ridesharing model is transforming modern transportation.
+Wish|wish.com|Wish is a platform for discovering, collecting, and sharing products with friends.
+Postmates|postmates.com|Postmates is transforming the way goods move around cities by enabling anyone to have anything delivered on-demand.
+Tagomi|tagomi.com|Tagomi is an electronic brokerage for digital assets, combining institutional-grade services with proven robust infrastructure that clients have come to expect
+Sword Health|swordhealth.com|Sword Health provides clinical-grade digital physical therapy that outperforms in-person care.
+The Athletic|theathletic.com|The Athletic is a direct-to-consumer subscription service serving sports fans in North America.
+Traba|traba.work|Traba is building a world where the supply chain operates at peak efficiency. They connect industrial businesses with reliable workers to fill open shifts and e
+Paxos|paxos.com|Paxos is regulated blockchain infrastructure provider building enterprise solutions for an open, digital economy.
+Fortell|fortell.com|Fortell is a hearing technology company combining AI-powered hearing aids that separate speech from noise in real time with expert care delivered through its ow
+ZocDoc|zocdoc.com|ZocDoc is the tech company at the beginning of a better healthcare experience. With a mission to give power to the patient, ZocDoc’s online marketplace delivers
+Mnzil|mnzil.com|Mnzil is redefining workforce living through technology, creating smarter, more comfortable, and more productive environments for workers and the companies that
+EnduroSat|endurosat.com|EnduroSat is transforming the complex satellite industry into a streamlined data service.
+Nominal|nominal.io|Nominal modernizes the data supply chain for testing and operations across aerospace, defense, robotics, energy, and advanced manufacturing — helping hardware o
+River|rivertechnologies.com|River Technologies builds custom software for financial institutions, helping bridge them into an AI-native future.

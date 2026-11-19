@@ -1,0 +1,140 @@
+Voyage Labs|voyagelabs.ai|AI agent that helps everyone experience more of the world.
+Isomorphic Labs|isomorphiclabs.com|Solving all disease
+Nidus|nidus.tech|AI robotics lab for American manufacturing
+Ancep|ancep.com|AI agents for commercial insurance brokers
+Flapping Airplanes|flappingairplanes.com|Foundational AI research lab
+Modal|modal.com|Infrastructure platform for production AI
+Discovery Loop|discoveryloop.com|Automating the scientific method
+Instinct|instinct.com|Personal agent
+Cognition|cognition.com|Applied AI lab building agents
+Etched|etched.com|Frontier Inference Clusters
+K2 Space|k2space.com|Building high powered satellites for a mass abundant future
+CuspAI|cusp.ai|Pioneering breakthrough materials to accelerate human progress
+TerraFirma|terrafirma.inc|Redefining construction from the ground up
+Sail Research|sailresearch.com|Infrastructure for abundant intelligence
+Mirendil|mirendil.com|Democratizing frontier AI R&D to accelerate science and technolog
+Trovy|trovy.com|Your home's equity, in your wallet
+Engram|engram.com|The learned AI memory layer
+Poetic|withforge.com|A new way to delegate work to computers.
+Mind Robotics|mindrobotics.com|Physical AI for the real world
+Rogo|rogo.ai|AI Platform for Finance
+Manifest OS|manifestos.com|AI-native law firm replacing billable hours with fixed-fee prices
+Avoca|avoca.ai|The AI Workforce for service businesses
+Balerion|balerion.ai|AI agents for lending
+Applied Compute|appliedcompute.com|Custom enterprise AI agents trained on your data
+Saronic Technologies|saronic.com|Redefining Maritime Superiority
+Granola|granola.ai|Putting Your Company’s Context to Work
+Health Universe|healthuniverse.com|Enterprise AI platform that automates complex healthcare workflow
+Armadin|armadin.com|AI-powered offensive security platform
+Gambit|gambit.security|AI-native resilience platform
+Waymo|waymo.com|The world’s most trusted driver
+Garner Health|garnerhealth.com|Improving the quality of American healthcare
+Mindbloom|mindbloom.com|Digital mental health company
+Fal|fal.ai|Lightning-fast media generation
+Lotus Health AI|lotus.ai|Your AI doctor, powered by real doctors & medical evidence
+Maxima|maxima.ai|Enterprise accounting automation
+Assured|assured.com|Assured provides insurance and financial protection
+Superhuman|superhuman.com|Superpowers for Mail and Docs
+Sierra|sierra.ai|Conversational AI for the enterprise
+Roadrunner|roadrunner.ai|Revenue in motion
+Anthropic|anthropic.com|AI safety & large language models
+Summation|summation.com|AI analyst
+Parallel|parallel.ai|Building the web for AI agents
+Wisdom AI|wisdom.ai|The AI data analyst for the enterprise
+Reevo|reevo.ai|AI-native revenue operating system
+MAI|mai.co|Performance marketing AI
+Mirage|mirage.app|AI-powered creative studio
+Phia|gophia.com|The AI-powered shopping agent
+Alkira|alkira.com|The network for the AI era
+ArsenalBio|arsenalbio.com|Programmable cell therapy
+Audius|audius.co|Streaming platform built for all musicians
+Azarus|azarus.io|watch, play, win
+BetterWorks|betterworks.com|Making work better
+CesiumAstro|cesiumastro.com|Phased array communication payloads for airborne and in-orbit platforms
+Crossbar|crossbar-inc.com|Commercializing a new approach to non-volatile memory, ReRAM
+Dexterity|dexterity.ai|Robots that solve problems now
+Epic Games|epicgames.com|Interactive entertainment & technology company
+Lumeris|lumeris.com|Value-based care strategy
+FullStory|fullstory.com|Digital Experience Intelligence (DXI) platform
+Future|future.co|Personalized fitness and wellness coaching
+General Radar|genrad.io|High performing digital pulse compression radars
+Teleport|goteleport.com|The easiest way to access infrastructure
+Incorta|incorta.com|Open data delivery platform
+Inkitt|inkitt.com|Helping discover the next globally successful authors
+Interos|interos.net|Supply chain resilience & risk management
+LuxCreo|luxcreo.com|Enabling sustainable production with additive manufacturing and digital 3D production
+Magic Leap|magicleap.com|True Augmented Reality
+Movella|movella.com|Bringing meaning to movement
+Modern Health|joinmodernhealth.com|Mental health for the modern workforce
+Newsela|newsela.com|Authentic, trusted content
+Nova Credit|novacredit.com|Credit infrastructure and analytics
+Nuna|nuna.com|Healthcare technology
+Productboard|productboard.com|The product management platform
+Propel|joinpropel.com|Strengthening America’s safety net
+Qumulo|qumulo.com|A new era of file data management
+SpinLaunch|spinlaunch.com|A new way to get to space
+Stord|stord.com|Powering commerce for the world's best brands
+Synack|synack.com|Premier security testing platform
+Trusona|trusona.com|Passwordless authentication
+ujet|ujet.co|Reimagined contact center solutions
+Willo|willo.com|Taking the mistakes out of brushing
+Amprius|amprius.com|The highest energy density Lithium-ion batteries
+Handshake|joinhandshake.com|The early career network
+Netlify|netlify.com|Platform for developers to build highly performant websites
+Rippling|rippling.com|The employee system of record
+Viz.ai|viz.ai|AI-powered care coordination platform
+Density|density.io|Technology that measures how people use space
+apiiro|apiiro.com|A new approach to application security
+Materialize|materialize.com|Live data layer for AI agents & applications
+MedArrive|medarrive.com|Expanding access to care
+Infinitus|infinitus.ai|AI that automates routine business phone calls
+Thatgamecompany|thatgamecompany.com|Video game development
+Secureframe|secureframe.com|Security & compliance automation
+Chef Robotics|chefrobotics.ai|Intelligent food automation
+RudderStack|rudderstack.com|Customer data platform for developers
+Thrive|thriveglobal.com|The well-being platform to beat employee burnout
+Simple Healthkit|simplehealthkit.com|Accessible diagnostics for everyone
+Glean|glean.com|Work AI for all
+LightForce Orthodontics|lightforceortho.com|The future of 3D orthodontics
+Inworld|inworld.ai|Advanced AI character platforms for games
+Imprint|imprint.co|Modern loyalty based card solutions
+PlanetScale|planetscale.com|The database for developers
+Lumafield|lumafield.com|Empowering engineers to see their work in a new light
+Synthesia|synthesia.io|AI-enabled video creation platform
+Rain|rain.bh|The crypto exchange for the Middle East
+Watershed|watershedclimate.com|Carbon accounting
+Enterpret|enterpret.com|Customer intelligence platform
+Truv|truv.com|A new approach to income and employment verification
+Motive|go.gomotive.com|AI-powered operations platform for the physical economy
+Superblocks|superblocks.com|Programmable IDE for developers to build internal software
+Rebellion Defense|rebelliondefense.com|The modern mission stack
+Bedrock Systems|bedrocksystems.com|Unbreakable foundation for formally secured computing
+Ambience|ambiencehealthcare.com|The AI operating system for healthcare
+NewLimit|newlimit.com|Extending human healthspan
+Flock Safety|flocksafety.com|Safety for every situation
+Together.ai|together.ai|The AI Acceleration Cloud
+Allium|allium.so|Accurate, Fast, Simple blockchain data
+Harvey|harvey.ai|Super-powering legal work
+PermitFlow|permitflow.com|The pre-construction platform
+Applied Intuition|appliedintuition.com|Vehicle intelligence platform
+Mine|joinfizz.com|Credit-building debit cards for college students
+Browserbase|browserbase.com|Browser infrastructure for AI agents & applications
+Akeana|akeana.com|Elevating RISC-V performance
+Nooks|nooks.ai|AI-powered sales pipeline
+Juna.ai|juna.ai|Industrial process automation
+Arcade|arcade.software|Platform for interactive content creation
+Databricks|databricks.com|The data and AI company
+Hippocratic AI|hippocraticai.com|Safety-focused healthcare AI
+Retym|retym.com|Semiconductors for AI infrastructure
+Huntress|huntress.com|Managed cybersecurity platform
+Cartesia|cartesia.ai|Multimodal intelligence
+Multiply|multiplymortgage.com|Making homeownership more accessible
+Nexthop AI|nexthop.ai|The next generation of networking for AI
+Fauna|faunarobotics.com|Robots that live, work, and play by our sides
+Chainguard|chainguard.dev|The safe source for open source
+Omnifold|omnifold.ai|Training AI for supply chain optimization
+Traversal|traversal.com|AI-first site reliability
+Harmonic|harmonic.fun|Mathematical Superintelligence
+OpenEvidence|openevidence.com|The medical information platform
+Profound|tryprofound.com|The AI visibility platform
+Convoke|convoke.bio|Helping biotech and pharmaceuticals organize information

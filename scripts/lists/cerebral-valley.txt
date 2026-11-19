@@ -1,0 +1,47 @@
+OpenAI|openai.com|
+Anthropic|anthropic.com|
+Google DeepMind|deepmind.google|
+Meta|meta.com|
+Microsoft|microsoft.com|
+Mistral AI|mistral.ai|
+Nebius|nebius.com|
+Vercel|vercel.com|
+MongoDB|mongodb.com|
+Cloudflare|cloudflare.com|
+ElevenLabs|elevenlabs.io|
+Perplexity|perplexity.ai|
+Palantir|palantir.com|
+Anduril|anduril.com|
+Oracle|oracle.com|
+Samsung|samsung.com|
+Snowflake|snowflake.com|
+Instacart|instacart.com|
+Quora|quora.com|
+Black Forest Labs|bfl.ai|
+Bolt.new|bolt.new|
+Modal|modal.com|
+Vapi|vapi.ai|
+Abridge|abridge.com|
+WorkOS|workos.com|
+Voyage AI|voyageai.com|
+Tenex|tenex.ai|
+Subquadratic|subq.ai|
+Stainless|stainless.com|
+Scorecard|scorecard.io|
+Scale AI|scale.com|
+PlanetScale|planetscale.com|
+Basis|getbasis.ai|
+Fireworks AI|fireworks.ai|
+fal|fal.ai|
+Factory|factory.ai|
+CodeRabbit|coderabbit.ai|
+Cline|cline.bot|
+Brave|brave.com|
+Beeper|beeper.com|
+Baseten|baseten.co|
+Armada|armada.ai|
+AgentOps|agentops.ai|
+Smithery|smithery.ai|
+LiquidMetal AI|liquidmetal.ai|
+Fetch.ai|fetch.ai|
+Z.ai|z.ai|

@@ -1,0 +1,412 @@
+Isomorphic Labs|isomorphiclabs.com|Isomorphic Labs is combining frontier AI with rigorous science to solve all disease.
+Edelbyte|edelbyte.io|Edelbyte is a unified data platform for any data analytics challenge, at any scale, anywhere.
+Pierre|pierre.computer|Pierre Computer Company is a software company that produces low level, composable product infrastructure for machine work.
+Trajectory|trajectory.ai|Trajectory is the easiest and most intuitive tool to post-train models of your own.
+Whop|whop.com|Whop provides business operators with a gamified UI and extensive API powering distribution, business creation and money.
+Blacksmith|blacksmith.sh|Blacksmith is building the CI cloud.
+TypeSafe AI|typesafe.ai|TypeSafe makes System One Models with classifications and confidence scores for routing, agent control, evaluation, screening and extraction.
+Catalyst|catalyst.app|Catalyst allows people to turn any belief into a trade.
+Mecka|mecka.ai|Mecka is the data and deployment layer for physical AI.
+Instinct|instinct.com|Instinct is an AI agent that handles the deeply personal nuances of everyday life.
+Cymphony|cymphony.io|Cymphony is the AI security solution for the new workforce.
+Unconventional AI|unconv.ai|Unconventional AI is building the most efficient substrate for intelligence.
+AIR|air.security|AIR is the context firewall for AI agents, continuously analyzing and filtering every input into their context.
+Empirik|empirik.ai|Empirik is building the Autonomous Infrastructure Engineer to safely plan, reason about and operate enterprise infrastructure.
+Ent|ent.ai|Ent is the intent-aware workspace security platform for securing human and AI-driven work.
+Corma|corma.ai|Corma is building foundation models toward superintelligence for defensive cybersecurity.
+Glow|glow.io|Glow is the Endpoint AI company, rethinking endpoint security for the AI era.
+Sable AI|withsable.com|Sable builds Aidan, an AI employee powered by real-time computer use, vision and voice to run personalized customer interactions.
+Etched|etched.com|Etched is building frontier inference clusters to run the world
+SpaceX|spacex.com|SpaceX designs, manufactures and launches rockets and spacecraft.
+Airbnb|airbnb.com|Airbnb connects people around the world with unique homes and unforgettable experiences.
+NVIDIA|nvidia.com|NVIDIA invented the GPU and now powers the AI revolution.
+reddit|reddit.com|DReddit is the internet
+Klarna|klarna.com|Klarna is a payment solution simplifying the purchasing process.
+Apple|apple.com|Apple transforms how humans interact with technologies with products like the iPhone, iPod, iPad, Mac and Watch.
+DoorDash|doordash.com|DoorDash is an on-demand delivery service.
+Instacart|instacart.com|Instacart facilitates instant grocery delivery from local stores.
+Linear|linear.app|Linear builds issue tracking tools for developers.
+PayPal|paypal.com|PayPal is the digital payment solution behind the digital wallet.
+Block|block.xyz|Block is Square, Cash App, Spiral, TIDAL, TBD, and other foundational teams.
+Snowflake|snowflake.net|Snowflake is a data warehouse platform built for the cloud.
+Stripe|stripe.com|Stripe is building an economic infrastructure for the internet.
+Google|google.com|Google organizes the world
+Nubank|nubank.com.br|Nubank provides next-generation mobile banking and financial services to the Latin American market.
+Vanta|vanta.com|Vanta automates and simplifies security and compliance.
+Retool|retool.com|Retool is the fastest way to build internal applications.
+Cisco|cisco.com|Cisco makes networking, security and collaboration products for enterprise companies.
+HubSpot|hubspot.com|HubSpot builds all-in-one marketing software.
+Chai Discovery|chaidiscovery.com|Chai Discovery powers drug discovery programs at the world's leading pharma companies.
+Bunkerhill Health|bunkerhillhealth.com|Bunkerhill Health empowers health systems to turn their best ideas into reality.
+Origin|originhq.com|Endpoint observability for agentic AI.
+[24]7.ai|247.ai|[24]7 helps businesses create a personalized, predictive and effortless customer experience.
+Titus|gotitus.com|Titus (fka Aalto) created the Closing Line of Credit to enable seller
+Open|getopen.com|Open (formerly Acelerate) is an online sales engine helps restaurants effortlessly increase their sales and profits.
+Alkira|alkira.com|Alkira lets customers build and deploy global secure cloud networks in minutes.
+AMP Robotics|amprobotics.com|AMP Robotics is changing the face of recycling with high-speed guided robotics.
+Amplitude|amplitude.com|Amplitude is an analytics platform that enables organizations to see and predict which combination of features and actions translate to business outcomes.
+Anrok|anrok.com|Anrok is an end-to-end compliance solution for finance leaders of SaaS businesses.
+Armis|armis.com|Armis is the first agentless, enterprise-class security platform for unmanaged and IoT devices.
+Atari|atari.com|Atari is the original video game pioneer known for classics like Asteroids and Pong.
+Commure|commure.com|Commure (FKA Athelas) is an AI-powered operating system for healthcare providers.
+Attentive|attentivemobile.com|Attentive is a personalized text messaging platform for innovative brands.
+Aurora|aurora.tech|Aurora delivers the benefits of self-driving technology safely and efficiently.
+Barracuda|barracuda.com|Barracuda Networks provides security, application delivery and data protection Solutions.
+Bigeye|bigeye.com|Bigeye improves data quality at scale with observability, incident management and automation.
+BigPanda|bigpanda.io|BigPanda is an intelligent incident management platform for data center operations.
+Bird|bird.co|Bird is an electric vehicle maker and bike-sharing network focused on sustainability.
+Blues|blues.io|Blues helps physical product makers transform their offerings into data-driven intelligent services.
+Bolt|bolt.eu|Bolt is a European mobility platform for ridesharing, scooter rentals and food delivery.
+BridgeBio|bridgebio.com|BridgeBio makes targeted treatments for genetic diseases.
+CaptivateIQ|captivateiq.com|CaptivateIQ
+Carbon|carbon3d.com|Carbon is transforming 3D printing through the process of light extrusion.
+Cellworks|cellworks.life|Cellworks is a personalized medicine platform.
+Census|getcensus.com|Census is the data automation platform that syncs users
+Clari|clari.com|Clari is an end-to-end sales analytics and forecasting platform for revenue teams.
+Clever|clever.com|Clever is an educational technology platform.
+Cohesity|cohesity.com|Cohesity is a software-defined enterprise data management platform in the cloud that eliminates data silos.
+Confluent|confluent.io|Confluent
+Cortex|cortex.io|Cortex helps engineering teams improve their service-oriented architecture.
+Cresta|cresta.com|Cresta turns conversations into a competitive advantage with AI agents.
+Cribl|cribl.io|Cribl helps customers easily sift through data to find the nuggets they need.
+Dashlane|dashlane.com|Dashlane secures users
+dbt Labs|getdbt.com|dbt helps data teams work like software engineers to ship trusted data faster.
+Dolls Kill|dollskill.com|Dolls Kill is a global fashion brand that supports self-expression for the next generation.
+Domino Data Lab|dominodatalab.com|Domino Data Lab helps data scientists build and deploy AI applications.
+Doppler|doppler.com|Doppler is a central source of truth for env vars and secrets.
+Drift|drift.com|Drift is a conversational marketing platform that uses chat, email, video and automation.
+Dropbox|dropbox.com|Dropbox is a collaboration platform transforming the way teams work together.
+Electronic Arts|ea.com|Electronic Arts is a consumer entertainment and education software company.
+Elevate|elevateapp.com|Elevate is a cognitive-training app that encourages lifelong learning.
+Iambic Therapeutics|iambic.ai|Iambic Therapeutics tackles challenging design problems in drug discovery with its physics-based AI platform.
+Ethos|ethoslife.com|Ethos uses technology to provide accessible and affordable life insurance coverage.
+Eventbrite|eventbrite.com|Eventbrite is a marketplace for events.
+Evernote|evernote.com|Evernote is a digital workspace for storing and sharing.
+Evervault|evervault.com|Evervault is encryption infrastructure for developers.
+Faire|faire.com|Faire is the leading wholesale marketplace, connecting independent retailers and brands all over the world.
+Figma|figma.com|Figma is the first web-based collaborative design tool.
+Fintual|fintual.cl|Fintual offers a simple way for consumers in Latin America to invest online.
+Fireblocks|fireblocks.com|Fireblocks is an all-in-one platform for storing, transferring and issuing digital assets.
+FireEye|fireeye.com|FireEye builds world-class cybersecurity and malware protection services.
+Found|found.com|Found is an all-in-one business banking, bookkeeping and tax solution for self-employed businesses.
+Front|front.com|Front is the AI-powered customer service platform built for collaboration.
+FTX|ftx.com|FTX is a crypto-derivatives exchange.
+Gather|gather.town|Gather hosts virtual spaces for work and play.
+BreezeBio|breezebio.com|BreezeBio is a genetic medicines company pioneering precision-delivered therapies for autoimmune disease and oncology.
+Getir|getir.com|Getir is the pioneer of 10-minute grocery delivery.
+Glossier|glossier.com|Glossier is an online direct-to-consumer beauty brand.
+Gong|gong.io|Gong delivers insights on every customer interaction at scale so revenue teams can make smarter decisions.
+Grafana|grafana.com|Grafana is an observability platform that integrates metrics, traces and logs.
+Graphiant|graphiant.com|Graphiant is network-as-a-service data company delivering a single, unified network solution.
+Green Dot|greendot.com|Green Dot builds technology for faster, more efficient electronic payment and money management.
+Guardant Health|guardanthealth.com|Guardant Health is an oncology company.
+Handshake|handshake.org|XThe Handshake coin is the way participants transfer, register and update internet names.
+Houzz|houzz.com|Houzz is a visual remodeling platform that helps consumers and design professionals collaborate.
+Infracost|infracost.io|Infracost helps engineering teams understand how their code changes will affect their cloud costs.
+Ironclad|ironcladapp.com|Ironclad
+Commons|thecommons.earth|Commons makes it easy to use your spending choices to create a more sustainable world.
+Kalshi|kalshi.com|Kalshi is the first federally regulated exchange that allows people to trade on world events.
+KAYAK|kayak.com|KAYAK is a travel meta search that allows easy consolidation of booking receipts into one itinerary.
+Knowde|knowde.com|Knowde is the marketplace for chemicals, polymers and ingredients.
+Landis|landis.com|Landis help renters become homeowners.
+Ledgy|ledgy.com|Ledgy
+Lilt|lilt.com|Lilt is the leading AI solution for enterprise translations.
+Maven|mavenclinic.com|Maven is a women
+Medallia|medallia.com|Medallia offers customer experience management software.
+Medallion|medallion.co|Medallion is a workflow automation company for healthcare that offers licensing and credentialing.
+Middesk|middesk.com|Middesk makes software that builds trust between businesses.
+Airtime|airtimetools.com|Airtime (FKA mmhmm) is a new and better way to create clear, compelling video communications.
+Monad|monad.com|Monad
+MongoDB|mongodb.com|MongoDB is the leading general-purpose database platform.
+Mos|mos.com|Mos is an app that gives college students access to the largest pool of financial aid and scholarships in America.
+Mutiny|mutinyhq.com|Mutiny is a no-code AI platform helping marketers convert their top-of-funnel demand into revenue.
+n8n|n8n.io|n8n is a free low-code workflow automation tool.
+Natera|natera.com|Natera provides DNA testing across multiple clinical areas including women
+Neeva|neeva.co|Neeva is search reimagined
+NetApp|netapp.com|NetApp is a computer storage and network data management company.
+Iris Labs|getiris.app|Iris Labs is a trusted online community for beauty enthusiasts.
+Nimble Rx|nimblerx.com|Nimble RX is an online pharmacy that offers free same-day delivery.
+Captions|captions.ai|Captions is an AI-powered creative studio.
+Noom|noom.com|Noom is the world
+Observable|observablehq.com|Observable is a web-based platform for data practitioners.
+Okta|okta.com|Okta is an identity-management service that securely and simply connects people to their applications.
+Oracle|oracle.com|Oracle engineers software for enterprise information management.
+Orbital Insight|orbitalinsight.com|Orbital Insight transforms aerial imagery into actionable information.
+Oso|osohq.com|Oso is an open-source library for developers to make it easier to build authorization in their applications.
+Otter|withotter.com|Otter matches parents who need childcare with stay-at-home parents who can care for their kids.
+Palo Alto Networks|paloaltonetworks.com|Palo Alto Networks is a global cybersecurity leader focused on the cloud.
+Papaya|papayapay.com|Papaya makes paying bills as easy as snapping a photo.
+Pendulum|pendulum.co|Pendulum is a biotechnology company working to improve the human microbiome.
+Pennylane|pennylane.tech|Pennylane is the all-in-one financial and accounting platform for business owners and their CPAs.
+Physna|physna.com|Physna codifies 3D models into detailed data for software applications.
+PicsArt|picsart.com|PicsArt is a creative platform with free-to-use editing tools.
+Pilot|pilot.com|Pilot provides bookkeeping, tax preparation and CFO services for startups and small businesses.
+Productboard|productboard.com|Productboard is a product-management system that helps organizations build the right products.
+Qualtrics|qualtrics.com|Qualtrics builds operating systemS for experience management.
+Quantum Circuits|quantumcircuits.com|Quantum Circuts builds quantum computers designed to scale.
+Rappi|rappi.com|Rappi is an on-demand delivery platform for Latin America.
+Rec Room|recroom.com|Rec Room is a cross platform digital third place for kids at heart.
+Release|releasehub.com|Release provides ephemeral environments as a service that can be used in QA and staging.
+Remote|remote.com|Remote is the financial operating system for the global workforce.
+Semgrep|semgrep.dev|Semgrep is a code scanning platform for finding first and third-party security vulnerabilities in your code base.
+RingCentral|ringcentral.com|RingCentral provides cloud-based phone systems for today
+Robinhood|robinhood.com|Robinhood lets anyone invest in the stock market for free.
+Robust Intelligence|robustintelligence.com|Robust Intelligence, now a part of Cisco, is a security company that integrates seamlessly into the AI-development life cycle.
+Salt Security|salt.security|Salt Security is a cybersecurity company focused on securing APIs.
+Security Scorecard|securityscorecard.com|Security Scorecard is the global leader in cybersecurity ratings.
+ServiceNow|servicenow.com|ServiceNow is a digital workflow engine that increases productivity by simplifying work.
+Snapdocs|snapdocs.com|Snapdocs is a digital mortgage closing platform.
+Sourcegraph|about.sourcegraph.com|Sourcegraph is a universal code search tool.
+Stairwell|stairwell.com|Stairwell is a cybersecurity company building enhanced security diagnostics.
+StarkWare|starkware.co|StarkWare brings scalability and privacy to blockchains with zero-knowledge STARK proofs.
+Strava|strava.com|Strava is the world
+strongDM|strongdm.com|strongDM manages and audits access to servers and databases.
+Sumo Logic|sumologic.com|Sumo Logic is a cloud-native continuous intelligence platform.
+Sunday|getsunday.com|Sunday is a one-stop shop for your outdoor home.
+Sunrun|sunrun.com|Sunrun offers homeowners affordable solar power.
+Tecton|tecton.ai|Tecton provides data management for ML.
+Telda|telda.app|Telda is a payment and money transfer platform.
+Temporal Technologies|temporal.io|Temporal enables any software application to handle failures gracefully and in a user-friendly way.
+The Org|theorg.com|The Org is a network of public org charts for employees at fast-growing startups.
+ThousandEyes|thousandeyes.com|ThousandEyes provides network intelligence for the cloud.
+Thumbtack|thumbtack.com|Thumbtack is an online platform for managing the home.
+Tourlane|tourlane.com|Tourlane makes even the most complex journeys feel easy.
+Trade Republic|traderepublic.com|Trade Republic makes buying and selling ETFs, derivatives and cryptocurrency easy.
+Formation Bio|formation.bio|Formation Bio is a tech and AI-native pharma company differentiated by radically more efficient drug development.
+Truework|truework.com|Truework is an API platform for employment verification.
+UiPath|uipath.com|UiPath is an AI-enhanced end-to-end automation platform.
+Unity|unity3d.com|Unity is a 3D and VR content development platform.
+Verkada|verkada.com|Verkada is a security surveillance system backed by software.
+Versa Networks|versa-networks.com|Versa Networks is an elastic network services platform.
+Vise|vise.com|Vise is an AI-powered portfolio management platform.
+Watershed|watershedclimate.com|Watershed is a software platform that helps companies get to zero carbon fast.
+Wiz|wiz.io|Wiz secures everything built and run in the cloud.
+Wonolo|wonolo.com|Wonolo is an on-demand staffing platform for frontline workers.
+xentral|xentral.com|YXentral is a lean ERP cloud software that can bundle all business processes in one place.
+Yahoo|yahoo.com|Yahoo is a global media company.
+Zapier|zapier.com|Zapier
+Zipline|flyzipline.com|Zipline delivers vital shipments via the most reliable drone delivery service in the world.
+Zoom|zoom.us|Zoom brings teams together with cloud-based video communications.
+Zum|ridezum.com|Z
+Notion|notion.so|Notion is a collaborative workspace with notes, docs, wikis, and projects.
+Dagster|dagster.io|Dagster is a data orchestration platform for the development, production and observation of data assets.
+Rippling|rippling.com|Rippling connects every business system to one source of truth for employee data.
+Iron Fish|ironfish.network|Iron Fish is a Layer 1 blockchain that provides privacy guarantees on every single transaction.
+Clay|clay.com|Clay makes creative tools that help businesses grow by improving their customer research to scale personalized outreach.
+QueryPal|querypal.com|QueryPal, formerly CtrlStack, transforms your support operations by slashing ticket response times.
+CUE Labs|cue.dev|CUE Labs turns enterprise configuration from a source of risk into a source of reliability.
+Deno|deno.land|Deno is building application development for the modern web.
+Evy|evy.eu|Evy builds simple product protection for e-commerce and retailers.
+Garner Health|getgarner.com|Garner Health helps employers enrich employee benefits and reduce costs without changing plans or networks.
+MyOme|myome.com|MyOme is a clinical whole genome analysis platform company helping families understand their risk for inherited diseases.
+nxyz|n.xyz|nxyz builds real-time, flexible blockchain data APIs.
+OpenAI|openai.com|OpenAI is an AI research and deployment company dedicated to ensuring that general-purpose artificial intelligence benefits all of humanity.
+Replicate|replicate.com|Replicate runs machine learning models in the cloud.
+Decart|decart.ai|Decart is a cutting-edge AI research lab bringing GenAI interactive video experiences to all.
+Stainless|stainlessapi.com|Stainless helps API providers easily create high-quality SDKs.
+Summer Health|summerhealth.com|Summer Health is making board-certified pediatricians available to parents via text message.
+Tavus|tavus.io|Tavus is a research lab pioneering human computing, via real-time human simulation models.
+WireScreen|wirescreen.ai|WireScreen provides open-source intelligence on corporate ownership, supply chains, investment and business relationships in China.
+Tola|usetola.com|Tola combines accounts payable, receivable, and cash flow management with working capital to help businesses save time and money.
+Espresso Systems|espressosys.com|Espresso Systems provides fast, reliable transaction confirmations for L2 crypto chains.
+Turnkey|turnkey.io|Turnkey offers simple APIs to securely manage your crypto private keys.
+Warp|warp.dev|Warp is the first Agentic Development Environment, built for coding with multiple agents.
+Abby Care|abbycare.org|Abby Care trains family members to become paid caregivers for loved ones with disabilities or special needs.
+Blockaid|blockaid.io|Blockaid builds web3 security to protect users from fraud, phishing, and hacks.
+biomodal|biomodal.com|biomodal creates technologies that bring the dynamism of our ever-changing biology into focus.
+Guided Energy|guided.energy|Guided is an AI fleet and energy management platform to power renewable, electric fleets.
+Oasis Security|oasis.security|Oasis is the first enterprise platform for non-human identity management.
+Mindy|mindy.com|Mindy is an AI-powered creator/brand platform built to fix the broken engine of influencer marketing.
+LangChain|langchain.com|LangChain is an LLM programming framework for AI applications.
+Reflection AI|reflection.ai|Reflection is a research lab making intelligence open and accessible.
+Sierra|sierra.ai|Sierra is a conversational AI platform for businesses.
+Grow Therapy|growtherapy.com|Grow is the mental health platform for personal and professional growth.
+Rox|rox.com|Rox helps businesses secure and grow revenue.
+Quilt|quilt.app|Quilt empowers solutions teams with AI
+Gigi|heygigi.ai|Gigi is the AI network that unlocks your social capital.
+XBOW|xbow.com|XBOW is an AI-powered offensive security company that automates pentesting and accelerates the discovery of vulnerabilities and exploits in all types of software.
+Traversal|traversal.com|Traversal is an AI SRE agent that troubleshoots, resolves and prevents production incidents.
+Reflect Orbital|reflectorbital.com|Reflect Orbital sells sunlight at night.
+Elyn|elyn.io|Elyn provides a return management and exchange portal that helps brands optimize their online profitability.
+Tilt|tilt.com|Tilt helps consumers access cash and credit by looking beyond their credit scores.
+Inside|inside.com|Inside.com provides curated email newsletters on industry topics and events for business communities.
+Pocket Gems|pocketgems.com|Pocket Gems makes graphically rich mobile games and fun new genres of mobile entertainment.
+Citizen|citizen.com|Citizen is a personal safety app and mobile protection service.
+100 Thieves|100thieves.com|100 Thieves is a lifestyle brand for gamers.
+Cockroach Labs|cockroachlabs.com|Cockroach Labs provides a cloud-native, distributed SQL database for critical enterprise applications.
+The Melt|themelt.com|The Melt is a California-based fast-casual restaurant chain.
+Lugg|lugg.com|Lugg is an on-demand moving and storage company.
+Piazza|piazza.com|Piazza is a social learning platform connecting students, instructors and employers.
+Brewbird|brewbird.com|Brewbird provides coffee machines and sustainable whole-bean pods for the workplace.
+Physical Intelligence|physicalintelligence.company|Physical Intelligence is building a foundation model for robotics, bringing general-purpose AI into the physical world.
+Ramp|ramp.com|Ramp provides spend management, corporate cards and accounts payable solutions for businesses.
+Xaira|xaira.com|Xaira is reinventing drug R&D using artificial intelligence to rapidly prototype and test disease treatments.
+Fireworks AI|fireworks.ai|Fireworks AI is a high-performance inference platform for developers and enterprises.
+Lemni|lemni.com|Lemni is a plug-and-play environment for custom AI agents that deliver personal customer interactions at scale.
+Freed|getfreed.ai|Freed is an AI assistant that gives clinicians valuable time back in their day.
+Jive Software|jivesoftware.com|Jive pioneered Social Business Software combining the power of social networking, collaboration and community.
+xAI|x.ai|xAI is an AI platform for accelerating human scientific discovery.
+Day.ai|day.ai|Day.ai is an AI-native CRM that brings the voice of the customer into every decision.
+Gridware|gridware.io|Gridware provides wireless realtime instrumentation for utilities managing the power grid.
+Kela|kelasys.com|3Modern defense prime for Israel and Western Allies.
+Nuvo|nuvo.com|Nuvo is building the infrastructure to transform how businesses connect, trade and grow.
+Finch|finchlegal.com|Finch helps personal injury law firms serve more clients with AI-powered pre-litigation support.
+STARK|stark-defence.com|STARK is a European defence company delivering the unmanned systems  that Europe and NATO need now.
+Magic|magic.dev|Magic is training frontier models to build an AI software engineer that feels like a co-worker.
+Bridge|bridge.xyz|Bridge, now a part of Stripe, is building critical infrastructure to support stablecoin payments.
+Harmonic|harmonic.fun|Harmonic is building a state-of-the-art mathematical reasoning engine in pursuit of mathematical superintelligence.
+ARQ|arqfinance.com|ARQ is the global financial platform for affluent consumers across the Americas.
+OpenEvidence|openevidence.com|OpenEvidence is an AI copilot for doctors that helps them make high stakes decisions at the point of care.
+Delphi|delphi.ai|Delphi lets experts scale their time and knowledge through interactive digital minds.
+Phantom|phantom.com|Phantom is the leading non-custodial crypto wallet, designed for mass adoption.
+Aspora|aspora.com|Aspora is building financial services for immigrant diasporas around the world.
+Avelios|en.avelios.com|Avelios is a modern hospital information system.
+Peregrine|peregrine.io|Peregrine creates software that helps organizations integrate and analyze large and complex data stores to create intelligence and inform enterprise decision making.
+Uber|uber.com|Uber is an on-demand ride-hailing and delivery service.
+Filecoin|filecoin.io|Filecoin is a decentralized storage network designed to store people
+Statsig|statsig.com|Statsig is a modern experimentation platform that enables teams to ship products optimized experiences.
+Gadget|gadget.dev|Gadget is a development platform designed to rid ecommerce app developers of busywork.
+Upway|upway.co|Upway is a platform for the second-hand purchase, reconditioning and resale of electric bikes.
+Two|two.inc|Two is a a pure-B2B payment method that allows businesses to transact with each other seamlessly.
+Humble Bundle|humblebundle.com|Humble Bundle is a digital content distribution service, now a part of Ziff Davis.
+Paid|paid.ai|Paid is an all-in-one, drop-in Revenue Engine for AI Agents.
+Probook|probook.ai|Probook is the AI operating system for home services, built around dispatch.
+Mercury|mercury.com|Mercury is a financial technology company that connects start ups and SMBs seamlessly to banking services.
+Nominal|nominal.io|Nominal builds software that transforms how engineers test and operate mission-critical hardware.
+Sesame AI|sesame.com|Sesame envisions a future where computers are lifelike
+Rillet|rillet.com|Rillet is the AI-native ERP automating accounting for growing companies.
+Neuralink|neuralink.com|Neuralink is building a brain-computer interface for medical needs and greater human potential.
+Irregular|irregular.com|Irregular is a frontier security lab protecting increasingly capable and sophisticated AI systems.
+Sunflower Labs|sunflower-labs.com|Sunflower Labs is the only fully autonomous, AI-powered drone security system built to protect commercial, industrial and residential properties.
+Profound|tryprofound.com|Profound is an AI visibility and content creation platform that helps brands monitor and optimize how they appear in AI-powered search results.
+NinjaOne|ninjaone.com|NinjaOne is a unified IT operations platform that delivers endpoint management, autonomous patching, backup and remote access in a single console to improve efficiency, increase resilience and reduce spend.
+Juicebox|juicebox.ai|Juicebox is the AI recruiting platform to hire the best talent.
+Faraway|faraway.com|Faraway is an interoperable gaming ecosystem for players, creators and studios.
+Catch|getcatch.com|Catch helps merchants and their customers save by cutting out the credit card companies.
+Draftea|draftea.com|Draftea is the premier real-money gaming platform in the Spanish-speaking world.
+Citadel Securities|citadelsecurities.com|Citadel Securities uses its market expertise and technology to empower its clients to access liquidity in new and effective ways.
+Island|island.io|Island is the enterprise browser that makes work fluid, frictionless, and fundamentally secure.
+Parallel|parallel.fi|Parallel is an institutional-grade lending protocol for proof-of-stake blockchains.
+Supernova|supernova.ai|Supernova (fka Canvas) is a collaborative data exploration tool that helps modern business teams make decisions without SQL.
+Zefir|zefir.fr|Zefir has created the first collective sales platform that accelerates the connection between sellers and buyers, and fosters cooperation among all real estate agents.
+Apollo|apollo.io|Apollo is an end-to-end AI sales platform to help companies grow their business.
+VEED|veed.io|VEED is an AI video creation platform to go from idea to social-ready video in minutes.
+Cyera|cyera.io|Cyera transforms the way organizations secure data in the cloud with Data Reality.
+Prot|protege.com|Prot
+LayerZero|layerzero.network|LayerZero is an omnichain interoperability protocol that enables trustless cross-chain dApp development.
+Kumo|kumo.ai|Kumo makes AI as easy as analytics.
+Clipboard Health|clipboardhealth.com|Clipboard Health helps healthcare professionals by matching them with open shifts nearby.
+The Boring Company|boringcompany.com|The Boring Company creates safe, fast-to-dig, and low-cost transportation, utility, and freight tunnels.
+LiquidMetal AI|liquidmetal.ai|LiquidMetal AI (fka Seaplane) builds your AI infused application on top of the worldclass Cloudflare infrastructure.
+Airtop|airtop.ai|Airtop (fka Switchboard) provides intelligent browser automation for AI agents.
+Hugging Face|huggingface.co|Hugging Face is a community-based repository for open-source ML technology.
+Glean|glean.com|Glean searches across all your company
+Fides|fides.technology|Fides enables organizations to digitize and automate their corporate governance duties across entities globally.
+Twain|twain.ai|Twain helps growth teams build and deploy accurate, self-learning GTM agents backed by deep research.
+Curie|wearecurie.ai|Curie is a voice-driven AI assistant for clinicians.
+Studeo|studeo.app|Studeo Limited is democratising elite tutoring.
+Otto Finance|ottofinance.io|Otto revolutionizes wealth management by supercharging adviser productivity and transforming client experiences through AI-powered automation.
+Telescope|gotelescope.ai|Telescope is an AI sales assistant that performs prospecting on auto-pilot.
+RevMap|revmap.com|RevMap bridges product and sales teams so companies can build better products and sell more efficiently.
+Synativ|synativ.com|Synativ develops geospatial AI agents that help companies speed up data formatting and transformations.
+SureIn|surein.de|SureIn empowers SMBs to efficiently manage their risk and insurance.
+Popsink|popsink.com|Popsink helps companies build the next generation of data services.
+Meter|meter.com|Meter provides internet infrastructure for businesses.
+Magic Eden|magiceden.io|Magic Eden is the leading destination for NFT discovery, expression, and ownership across digital cultures.
+Chainguard|chainguard.dev|Chainguard is the safe source for open source.
+Skyramp|skyramp.dev|Skyramp is an AI-driven testing platform that acts like a personal QA engineer for your dev team.
+Chkk|chkk.io|Chkk keeps complex Kubernetes environments up and running.
+Roon|roon.care|Roon is re-imagining medical content and health communities.
+Hallway|joinhallway.com|Hallway makes avatar identity and creative tools to empower the next generation of creators.
+Safara|safara.com|Safara is the online travel agency for Millennials and Gen-Z.
+Breeze.cash|breeze.com|Breeze is the agentic workforce for payments.
+Arcwise|arcwise.app|Arcwise is the low-code platform for data apps that brings the power of Python, SQL & ML to everyone
+Flagship|landing.flagship.shop|Flagship is helping creator set up their own curated boutiques, without hassle.
+Keen Technologies|keenagi.com|Keen Technologies is John Carmack
+JITX|jitx.com|JITX lets electrical engineers write code to design circuit boards.
+nsave|nsave.com|nsave offers trusted offshore USD, EUR and GBP accounts for people from countries with unstable economies.
+Robco|robco.de|Robco rethinks how products are made, using modular robot systems.
+Caldera|caldera.xyz|Caldera enables dynamic Web3 experiences by enabling developers to launch performant application-specific blockchains.
+Mithril|mithril.ai|Mithril is orchestrating the world
+Fin|fin.tech|Fin is a next-generation payments platform built for high-value, global, and instant transactions.
+Hex|hex.tech|Hex is an all in one collaborative, AI-powered workspace for data science and analytics.
+EDX Markets|edxmarkets.com|EDX Markets is a new digital asset exchange.
+Squint|squint.ai|Squint connects the digital and physical worlds using cameras, sensors, and user data to present contextual information at the right time.
+Visual Electric|visualelectric.com|Visual Electric is the first image generator designed for creatives.
+Dust|dust.tt|Dust is an AI operating system for smart teams.
+Harvey|harvey.ai|Harvey is redefining professional services with generative AI.
+Rift|rift.com|Rift is a focused platform for sales teams that consolidates outbound sales tooling and data in one place.
+Factory|factory.ai|Factory is bringing autonomy to software engineering with task-specific AI agents.
+Mach Industries|machindustries.com|Mach Industries is building a defense company for the post-unmanned world.
+JiCgI5R85|x.com|WX (formerly Twitter) is what
+Apex|apexhq.ai|Apex is a Security Platform for generative AI and LLMs that helps companies remediate AI risks from any source.
+Blockit AI|blockit.com|Blockit is an AI scheduling agent that coordinates calendars instantly, turning days of back-and-forth into minutes.
+Cobot|co.bot|Cobot is redefining the future of human-robot interaction.
+Skild AI|skild.ai|Skild AI is building a scalable AI foundation model for robotics to unlock intelligence in the embodied, physical world.
+Zafran|zafran.io|Zafran is a threat exposure management platform that integrates with security tools to reveal, remediate and mitigate all infrastructure risks.
+Pace|pace.group|Pace is where hundreds of small groups find human connection on the internet every week.
+Meeno|meeno.com|Meeno is a relationship mentoring app powered by generative AI.
+Pydantic|pydantic.dev|Pydantic is an AI agent framework and LLM observability solution.
+Bruce|bruce.bot|Bruce is an AI-native trust and reputation platform powering professional search and discovery.
+Anterior|anterior.com|Anterior is transforming U.S. healthcare
+Firetiger|firetiger.com|Firetiger uses AI agents to find and fix production software issues before customers notice them.
+Listen Labs|listenlabs.ai|Listen Labs is an autonomous AI researcher that talks to thousands of customers to find out what they want and why.
+Gladia|gladia.io|Gladia is a multilingual audio intelligence API that leverage enterprise audio data.
+Tacto|tacto.ai|Tacto is an AI-based operating system that future proofs supply chains.
+Claim|claim.co|Claim is building a social network based on benefits with friends.
+Eon|eon.io|Eon transforms your cloud backups into an accessible, useful asset.
+ElevenLabs|elevenlabs.io|ElevenLabs is a Voice AI research and deployment company making content universally accessible in any language and voice.
+Neros|neros.tech|Neros develops and manufactures advanced unmanned drone systems for battlefield defense with a U.S. supply chain.
+Cove|cove.ai|Cove is an AI-assisted workspace that helps you get more done.
+FastAPI Labs|fastapilabs.com|FastAPI Labs helps developers build apps and APIs.
+Zed|zed.dev|Zed is a next-generation code editor designed for high-performance collaboration with humans and AI.
+Odoo|odoo.com|Odoo is a suite of fully integrated, open-source business apps that cover all your company needs.
+Magentic|magentic.com|Magentic is building the AI Agent Platform for the world
+Enter|getenter.ai|Enter helps large companies use AI to boost legal efficiency and win more cases.
+Safe Superintelligence|ssi.inc|cThe world
+Rowspace|rowspace.ai|Rowspace helps financial firms make faster, sharper decisions by turning their proprietary data into compounding edge with AI.
+Despegar|us.despegar.com|Despegar is the leading travel technology company in Latin America.
+Pharming Group|pharming.com|A global biopharmaceutical company developing and commercializing innovative protein replacement therapies and precision medicines to serve the unserved rare disease patient.
+Microchip Technology|microchip.com|Microchip Technology is a leading provider of smart, connected and secure embedded control and processing solutions.
+QuickLogic|quicklogic.com|QuickLogic is the leading provider of open reconfigurable computing solutions based on 100% open source software and hardware.
+Flextronics|flex.com|Flextronics is the manufacturing partner of choice that helps a diverse customer base design and build products that improve the world.
+Alpha & Omega Semiconductor|aosmd.com|Alpha &amp; Omega Semiconductor is a designer, developer and global supplier of a broad range of power semiconductors.
+CafePress|cafepress.com|CafePress works with designers to bring the world millions of designs on hundreds of different products.
+Pixelworks|pixelworks.com|Pixelworks
+Omnicell|omnicell.com|Omnicell manufactures automated systems for medication management in hospitals and other healthcare settings, and medication adherence packaging and patient engagement software used by retail pharmacies.
+Flow Engineering|flowengineering.com|Flow is the engineering platform hardware teams use to design, build, and test the world
+Waymo|waymo.com|Waymo is on a mission to be the world
+Anthropic|anthropic.com|Anthropic is an AI safety and research company that builds reliable, interpretable and steerable AI systems.
+Agency|agency.inc|Agency is the AI agent for customer success.
+Quince Therapeutics|quincetx.com|Quince Therapeutics (fka Cortexyme) is a late-stage biotechnology company dedicated to unlocking the power of a patient
+Health Catalyst|healthcatalyst.com|Health Catalyst is a leading provider of data and analytics technology and services to healthcare organizations, committed to being the catalyst for massive, measurable, data-informed healthcare improvement.
+Western Digital|westerndigital.com|Western Digital is an integrated circuit and data memory technology developer.
+Cadence Design Systems|cadence.com|Cadence is a leader in electronic systems design, building upon more than 30 years of computational software expertise. The company applies its underlying Intelligent System Design strategy to deliver software, hardware, and IP that turn design concepts into reality.
+Rackspace|rackspace.com|Rackspace offers hybrid multicloud solutions, including applications, data, security and AI, across every industry.
+Crosby|crosby.ai|Crosby is the AI law firm that helps fast-growing companies move even faster.
+Whatnot|whatnot.com|Whatnot is the largest live shopping platform in North America, the U.K. and Europe.
+Ricursive Intelligence|ricursive.com|Ricursive builds the AI stack that designs, verifies and closes silicon.
+fal|fal.ai|fal is the leading platform for generative media, offering cutting-edge inference solutions for AI-powered video, image and audio applications.
+Nevis|neviswealth.com|Nevis is an AI platform for wealth management that transforms how financial advisors operate by automating end-to-end workflows, enabling them to focus on client relationships, growth and delivering personalized advice at scale.
+Inferact|inferact.ai|bFounded by the creators and core maintainers of vLLM, Inferact builds AI inference infrastructure.
+WithCoverage|withcoverage.com|WithCoverage replaces traditional insurance brokers with a technology-driven risk management team and a unified platform to manage risk.
+Pace|withpace.com|Pace is the AI operations partner for the world
+Rogo|rogo.ai|Rogo is the AI operating system for finance, trained to understand how bankers and investors actually work.
+Sail Research|sailresearch.com|Sail builds infrastructure for abundant intelligence.
+Odessia|odessia.com|Odessia helps plan and book entire trips with one simple conversation.
+Engram|engram.com|Engram is building AI that learns from you and deeply understands your work.
+Scanner|scanner.dev|Scanner lets teams search and monitor years of security data, not just the 30 days a SIEM keeps.
+Ineffable Intelligence|ineffable.ai|Ineffable Intelligence
+Serval|serval.com|Serval is the AI platform for IT teams to resolve help desk requests, build workflows, and manage tickets, software access, and assets.
+Sandstone|sandstone.com|Sandstone enables modern in-house teams to move at the speed of AI, deliver better outcomes and create measurable value.
+Astrocade|astrocade.com|Astrocade is where creators make playable content, and players discover endless things to play.
+Flapping Airplanes|flappingairplanes.com|Flapping Airplanes is a foundational AI research lab devoted to solving the data efficiency problem.
+Edra|edra.ai|Edra learns how businesses operate to give AI agents the knowledge they need to automate operations.
+Auctor|getauctor.com|Auctor is the AI-native system of action for the entire software implementation lifecycle.
+Standard Intelligence|si.inc|Standard Intelligence is building aligned AGI through scaling raw video.
+NUVACORE|nuvacore.ai|At its heart, NUVACORE is building a general-purpose CPU core that is focused on two massive pillars of modern hardware: maximum performance and absolute area efficiency.
+Parallel Web Systems|parallel.ai|Parallel Web Systems is the highest accuracy web search
+SendCutSend|sendcutsend.com|SendCutSend powers American reindustrialization by delivering manufacturing services to everyone from independent inventors to global enterprises.
+Valar Atomics|valaratomics.com|Valar Atomics is scaling nuclear fission reactors to make energy in the universe cheaper and more abundant than ever before.
+Preview|preview.io|Preview is the professional platform where AI video production runs.
+Form Energy|formenergy.com|Form Energy is an American company driving innovation in energy manufacturing and technology to ensure a clean, secure and reliable electric grid.

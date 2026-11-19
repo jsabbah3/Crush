@@ -21,7 +21,19 @@ import { prisma } from "../src/lib/prisma";
 import { findCompanyBoard } from "../src/lib/board-check";
 import { ingestCompanyById } from "../src/lib/ingestion";
 
-const LISTS: Record<string, { name: string; description: string }> = {
+type ListMeta = {
+  name: string;
+  description: string;
+  /** "roles": hiring companies first, most open roles at the top (for big
+   *  lists like VC portfolios). Default: the list's own order. */
+  order?: "list" | "roles";
+  /** Added to each company's tags (VC portfolios). */
+  tag?: string;
+};
+
+const FOLLOW = "Follow the whole list and Crush emails you when one of them opens a role that fits you.";
+
+const LISTS: Record<string, ListMeta> = {
   "founders-you-should-know": {
     name: "Founders You Should Know",
     description:
@@ -31,6 +43,40 @@ const LISTS: Record<string, { name: string; description: string }> = {
     name: "Breakout List",
     description:
       "The startups on Breakout List — great companies to join, picked by investors. Follow the whole list and Crush emails you when one of them opens a role that fits you.",
+  },
+  "cerebral-valley": {
+    name: "Cerebral Valley",
+    description: `The AI labs and companies that build with Cerebral Valley — partners and sponsors of its hackathons and model launches. ${FOLLOW}`,
+    order: "roles",
+  },
+  "forbes-ai-50": {
+    name: "Forbes AI 50 (2026)",
+    description: `The 50 most promising private AI companies of 2026, as picked by Forbes. ${FOLLOW}`,
+    order: "roles",
+  },
+  sequoia: {
+    name: "Sequoia portfolio",
+    description: `Companies backed by Sequoia Capital, from its current portfolio — hiring ones first. ${FOLLOW}`,
+    order: "roles",
+    tag: "Sequoia",
+  },
+  a16z: {
+    name: "a16z portfolio",
+    description: `Active companies in Andreessen Horowitz's portfolio — hiring ones first. ${FOLLOW}`,
+    order: "roles",
+    tag: "a16z",
+  },
+  "kleiner-perkins": {
+    name: "Kleiner Perkins portfolio",
+    description: `Kleiner Perkins' current portfolio companies — hiring ones first. ${FOLLOW}`,
+    order: "roles",
+    tag: "Kleiner Perkins",
+  },
+  "founders-fund": {
+    name: "Founders Fund portfolio",
+    description: `Companies backed by Founders Fund — hiring ones first. ${FOLLOW}`,
+    order: "roles",
+    tag: "Founders Fund",
   },
 };
 
@@ -57,7 +103,7 @@ async function uniqueSlug(name: string) {
 }
 
 const select = {
-  id: true, name: true, website: true, description: true, sourceType: true, sourceId: true,
+  id: true, name: true, website: true, description: true, sourceType: true, sourceId: true, tags: true,
   _count: { select: { jobs: { where: { status: "ACTIVE" as const } } } },
 };
 
@@ -88,16 +134,21 @@ async function main() {
       let c = await resolve(e.name, e.domain);
       if (c) {
         stats.matched++;
-        if (!c.website || !c.description) {
+        const addTag = meta.tag && !c.tags.includes(meta.tag);
+        if (!c.website || (!c.description && e.what) || addTag) {
           await prisma.company.update({
             where: { id: c.id },
-            data: { ...(!c.website ? { website } : {}), ...(!c.description && e.what ? { description: e.what } : {}) },
+            data: {
+              ...(!c.website ? { website } : {}),
+              ...(!c.description && e.what ? { description: e.what } : {}),
+              ...(addTag ? { tags: [...c.tags, meta.tag!] } : {}),
+            },
           });
         }
       } else {
         stats.created++;
         c = await prisma.company.create({
-          data: { name: e.name, slug: await uniqueSlug(e.name), website, description: e.what, discoveredVia: meta.name },
+          data: { name: e.name, slug: await uniqueSlug(e.name), website, description: e.what, discoveredVia: meta.name, tags: meta.tag ? [meta.tag] : [] },
           select,
         });
       }
@@ -117,9 +168,19 @@ async function main() {
       }
     }
   }
-  await Promise.all(Array.from({ length: 4 }, work));
+  await Promise.all(Array.from({ length: 8 }, work));
 
-  const ordered = [...new Set(ids)];
+  let ordered = [...new Set(ids)];
+  if (meta.order === "roles") {
+    const counts = new Map(
+      (await prisma.job.groupBy({ by: ["companyId"], where: { companyId: { in: ordered }, status: "ACTIVE" }, _count: true }))
+        .map((g) => [g.companyId, g._count]),
+    );
+    ordered = ordered
+      .map((id, i) => ({ id, i, n: counts.get(id) ?? 0 }))
+      .sort((a, b) => b.n - a.n || a.i - b.i)
+      .map((x) => x.id);
+  }
   const hiring = await prisma.company.count({ where: { id: { in: ordered }, jobs: { some: { status: "ACTIVE" } } } });
   const roles = await prisma.job.count({ where: { companyId: { in: ordered }, status: "ACTIVE" } });
   console.log(`${meta.name}: ${ordered.length}/${rows.length} companies (${stats.matched} on file, ${stats.created} new), ${stats.boardsFound} boards connected`);
