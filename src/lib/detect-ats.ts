@@ -90,7 +90,8 @@ const BOARD_LINKS: [AtsType, RegExp][] = [
   ["lever", /jobs\.lever\.co\/([A-Za-z0-9._-]+)/g],
   ["gem", /jobs\.gem\.com\/([A-Za-z0-9._-]+)/g],
 ];
-const NOT_SLUGS = new Set(["embed", "api", "v1", "js", "job_board", "job_app", "jobs", "posting-api"]);
+// Bits of URLs, and the ATS vendors' own boards ("Powered by Gem" links).
+const NOT_SLUGS = new Set(["embed", "api", "v1", "js", "job_board", "job_app", "jobs", "posting-api", "gem", "ashby", "greenhouse", "lever"]);
 const CAREER_PATHS = ["", "/careers", "/jobs", "/company/careers", "/about/careers", "/join"];
 const CAREER_HREF = /href=["']([^"'#]*(?:career|jobs|join-us|hiring|work-with-us|open-roles)[^"'#]*)["']/gi;
 

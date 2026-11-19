@@ -35,4 +35,5 @@ test("pulls boards out of careers pages", () => {
   assert.deepEqual(links[0], { type: "ashby", slug: "Rox-Data-Corp" });
   assert.ok(links.some((l) => l.type === "greenhouse" && l.slug === "browserbaseinc"));
   assert.ok(!links.some((l) => l.slug === "embed"));
+  assert.deepEqual(boardLinks(`<a href="https://jobs.gem.com/gem">Powered by Gem</a>`), []);
 });

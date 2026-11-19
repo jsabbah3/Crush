@@ -12,6 +12,7 @@
  *
  *   npx tsx --env-file=.env.local scripts/import-list.ts breakout-list
  *   ... --companies-only   # import companies and boards, leave the collection alone
+ *   ... --collection-only  # skip board lookups, just (re)write the collection
  *
  * Safe to re-run. Add new lists to LISTS; keep partner lists in
  * UNLISTED_COLLECTIONS (src/lib/collections.ts) until they launch.
@@ -118,6 +119,8 @@ async function resolve(name: string, domain: string) {
   return [...byHost, ...byName].sort((a, b) => b._count.jobs - a._count.jobs)[0] ?? null;
 }
 
+const COLLECTION_ONLY = process.argv.includes("--collection-only");
+
 async function main() {
   const slug = process.argv[2];
   const meta = LISTS[slug];
@@ -154,7 +157,7 @@ async function main() {
       }
       ids[e.i] = c.id;
 
-      if (c.sourceType === "manual" || c._count.jobs === 0) {
+      if (!COLLECTION_ONLY && (c.sourceType === "manual" || c._count.jobs === 0)) {
         const board = await findCompanyBoard(c.name, c.website ?? website).catch(() => null);
         const current = c.sourceType === "manual" ? null : `${c.sourceType}:${c.sourceId}`;
         if (board && `${board.type}:${board.slug}` !== current) {
